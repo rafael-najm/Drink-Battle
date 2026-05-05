@@ -397,6 +397,34 @@ body::before {
 .empty-log { text-align: center; color: var(--muted); font-size: 12px; font-family: 'Courier New', monospace; padding: 16px 0; }
 .btn-end-party { width: 100%; padding: 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; margin-bottom: 8px; }
 .btn-end-party:hover { background: rgba(239,68,68,0.15); border-color: var(--red); }
+
+/* ===== PLAYERS BAR ===== */
+.players-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 4px; scrollbar-width: none; }
+.players-bar::-webkit-scrollbar { display: none; }
+.player-chip {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px 7px 7px; background: var(--surface2);
+  border: 2px solid var(--border); border-radius: 100px;
+  cursor: pointer; transition: all 0.2s;
+}
+.player-chip:hover { border-color: var(--accent2); }
+.player-chip.active { background: rgba(124,58,237,0.1); }
+.player-chip-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid; flex-shrink: 0; }
+.player-chip-info { display: flex; flex-direction: column; gap: 1px; }
+.player-chip-name { font-size: 12px; font-weight: 600; white-space: nowrap; line-height: 1.2; }
+.player-chip-bac { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); transition: color 0.3s; }
+.player-chip-add { border-style: dashed; opacity: 0.7; }
+.player-chip-add:hover { opacity: 1; border-color: var(--accent2); border-style: dashed; }
+
+/* Ranking ao vivo no monitor */
+.live-ranking { display: flex; flex-direction: column; gap: 6px; }
+.live-rank-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface2); border-radius: 10px; }
+.live-rank-pos { font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: var(--muted); min-width: 18px; }
+.live-rank-avatar { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px solid; flex-shrink: 0; }
+.live-rank-info { flex: 1; min-width: 0; }
+.live-rank-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-rank-sub { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); }
+.live-rank-bac { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -550,6 +578,30 @@ body::before {
   </div>
 </div>
 
+<!-- ===== MODAL: ADICIONAR JOGADOR ===== -->
+<div class="modal-overlay" id="modal-add-player">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-add-player')">✕</button>
+    <div class="modal-title">Adicionar jogador</div>
+    <div class="modal-sub">// perfis no dispositivo</div>
+    <div class="profile-switch-list" id="add-player-list"></div>
+    <br>
+    <button class="btn-secondary" onclick="closeModal('modal-add-player');showOnboarding()">+ Criar perfil novo primeiro</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: RANKING AO VIVO ===== -->
+<div class="modal-overlay" id="modal-live-ranking">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-live-ranking')">✕</button>
+    <div class="modal-title">Ranking ao vivo 🏆</div>
+    <div class="modal-sub" id="live-ranking-party-name">// quem tá mais alto</div>
+    <div class="live-ranking" id="live-ranking-list"></div>
+  </div>
+</div>
+
 <!-- ===== TOAST ===== -->
 <div class="toast" id="toast"></div>
 
@@ -608,6 +660,7 @@ const mon = {
   notificationsEnabled: false,
   wasAboveTarget: false,
   lastNotifTime: 0,
+  activePlayerId: null, // jogador sendo monitorado atualmente
 };
 const setupState = { targetLevel: 'flow', stomach: 'medium', hydration: 'ok' };
 
@@ -1145,10 +1198,11 @@ function startParty() {
   setupState.stomach   = document.querySelector('[data-group="setup-stomach"].selected')?.dataset.value || 'medium';
   setupState.hydration = document.querySelector('[data-group="setup-hydration"].selected')?.dataset.value || 'ok';
 
+  const now = Date.now();
   const party = {
-    id: Date.now().toString(),
+    id: now.toString(),
     name,
-    startTime: Date.now(),
+    startTime: now,
     endTime: null,
     playerIds: [p.id],
     players: [{
@@ -1156,6 +1210,7 @@ function startParty() {
       stomach: setupState.stomach,
       hydration: setupState.hydration,
       targetLevel: setupState.targetLevel,
+      joinedAt: now,
       drinks: [],
       maxBac: 0,
     }],
@@ -1164,6 +1219,7 @@ function startParty() {
 
   db.parties.push(party);
   db.activePartyId = party.id;
+  mon.activePlayerId = p.id;
   saveDB();
   updateNavDot();
   mon.selectedDrink = DRINKS[0];
@@ -1175,9 +1231,13 @@ function startParty() {
 }
 
 function renderMonitor(party) {
-  const p = getCurrentProfile();
-  const player = party.players.find(pl => pl.profileId === (p?.id)) || party.players[0];
-  const target = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
+  // Garante que mon.activePlayerId está dentro da party
+  const validPlayer = party.players.find(pl => pl.profileId === mon.activePlayerId);
+  if (!validPlayer) mon.activePlayerId = party.players[0]?.profileId || getCurrentProfile()?.id;
+
+  const player = party.players.find(pl => pl.profileId === mon.activePlayerId) || party.players[0];
+  const profile = getProfile(mon.activePlayerId) || getCurrentProfile();
+  const target  = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
   const targetPct = Math.min(100, (target.bac / 0.22) * 100);
 
   if (!mon.selectedDrink) mon.selectedDrink = DRINKS[0];
@@ -1187,9 +1247,12 @@ function renderMonitor(party) {
     <div class="monitor-top">
       <div>
         <div class="monitor-party-name">${esc(party.name)}</div>
-        <div class="monitor-party-sub">// ${p ? p.avatar + ' ' + p.name : ''} · alvo: ${target.name}</div>
+        <div class="monitor-party-sub" id="monitor-player-sub">// ${profile ? profile.avatar + ' ' + profile.name : ''} · alvo: ${target.name}</div>
       </div>
+      <button style="background:none;border:1px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0" onclick="openLiveRanking()">🏆 Rank</button>
     </div>
+
+    <div id="players-bar" class="players-bar"></div>
 
     <div class="timer-bar">
       <div><div class="timer-label">TEMPO DE PRÉ</div><div class="timer-value" id="elapsed-timer">00:00</div></div>
@@ -1267,6 +1330,7 @@ function renderMonitor(party) {
     <button class="btn-end-party" onclick="endParty()">⬛ Encerrar pré</button>
   `;
 
+  renderPlayersBar();
   renderDrinks();
   renderCups();
   renderCupPreview();
@@ -1306,8 +1370,9 @@ function calcBAC(grams, minutes, weight, sex, stomach, hydration) {
 function getPlayerData() {
   const ap = getActiveParty();
   if (!ap) return null;
-  const p = getCurrentProfile();
-  return ap.players.find(pl => pl.profileId === p?.id) || ap.players[0];
+  // Usa o jogador ativo do monitor; fallback pro perfil logado ou primeiro jogador
+  const targetId = mon.activePlayerId || getCurrentProfile()?.id;
+  return ap.players.find(pl => pl.profileId === targetId) || ap.players[0];
 }
 
 function updateBAC() {
@@ -1318,8 +1383,9 @@ function updateBAC() {
   if (!player || !profile) return;
 
   const totalGrams = player.drinks.reduce((s, d) => s + d.grams, 0);
-  const minutes    = (Date.now() - ap.startTime) / 60000;
+  const minutes    = (Date.now() - (player.joinedAt || ap.startTime)) / 60000;
   const bac        = calcBAC(totalGrams, minutes, profile.weight, profile.sex, player.stomach, player.hydration);
+  renderPlayersBar();
   const target     = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
   const diff       = target.bac - bac;
 
@@ -1552,6 +1618,147 @@ function checkNotifs(bac, target, diff, profile, player) {
   if (diff > -0.01) mon.wasAboveTarget = false;
 }
 
+// ===== GRUPO / PLAYERS =====
+function playerCurrentBAC(party, player) {
+  const profile = getProfile(player.profileId);
+  if (!profile) return 0;
+  const totalGrams = player.drinks.reduce((s, d) => s + d.grams, 0);
+  const minutes    = (Date.now() - (player.joinedAt || party.startTime)) / 60000;
+  return calcBAC(totalGrams, minutes, profile.weight, profile.sex, player.stomach, player.hydration);
+}
+
+function renderPlayersBar() {
+  const bar = document.getElementById('players-bar');
+  if (!bar) return;
+  const ap = getActiveParty();
+  if (!ap) return;
+
+  bar.innerHTML = ap.players.map(player => {
+    const profile = getProfile(player.profileId);
+    if (!profile) return '';
+    const bac      = playerCurrentBAC(ap, player);
+    const isActive = player.profileId === mon.activePlayerId;
+    const lvl      = getLevelInfo(bac);
+    const border   = isActive ? profile.color : 'var(--border)';
+    return `
+      <div class="player-chip${isActive ? ' active' : ''}" style="border-color:${border}" onclick="switchMonitorPlayer('${player.profileId}')">
+        <div class="player-chip-avatar" style="border-color:${profile.color};background:${profile.color}22">${profile.avatar}</div>
+        <div class="player-chip-info">
+          <div class="player-chip-name">${esc(profile.name.split(' ')[0].substring(0,10))}</div>
+          <div class="player-chip-bac" style="color:${lvl.color}">${(bac * 100).toFixed(2)}%</div>
+        </div>
+      </div>`;
+  }).join('') + `
+    <div class="player-chip player-chip-add" onclick="openAddPlayerModal()">
+      <div class="player-chip-avatar" style="border-color:var(--border);background:var(--surface);font-size:16px;border-style:dashed">+</div>
+      <div class="player-chip-info">
+        <div class="player-chip-name" style="color:var(--muted);font-size:11px">Adicionar</div>
+      </div>
+    </div>`;
+}
+
+function switchMonitorPlayer(profileId) {
+  const ap = getActiveParty();
+  if (!ap) return;
+  const player = ap.players.find(pl => pl.profileId === profileId);
+  if (!player) return;
+
+  mon.activePlayerId = profileId;
+  const profile = getProfile(profileId);
+  const target  = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
+
+  const sub = document.getElementById('monitor-player-sub');
+  if (sub && profile) sub.textContent = `// ${profile.avatar} ${profile.name} · alvo: ${target.name}`;
+
+  const marker = document.getElementById('target-marker');
+  if (marker) marker.style.left = Math.min(100, (target.bac / 0.22) * 100) + '%';
+
+  renderPlayersBar();
+  renderLog(player.drinks);
+  updateBAC();
+  showToast(`${profile?.avatar} ${profile?.name}`);
+}
+
+function openAddPlayerModal() {
+  const ap = getActiveParty();
+  if (!ap) return;
+  const available = db.profiles.filter(p => !ap.playerIds.includes(p.id));
+  const list = document.getElementById('add-player-list');
+  if (!list) return;
+
+  if (available.length === 0) {
+    list.innerHTML = `<div class="empty-log" style="padding:24px 0;text-align:center">Todos os perfis já estão na pré.<br><br>Cria um perfil novo!</div>`;
+  } else {
+    list.innerHTML = available.map(p => `
+      <div class="profile-switch-item" onclick="addPlayerToParty('${p.id}')">
+        <div class="profile-switch-avatar" style="border-color:${p.color};background:${p.color}22">${p.avatar}</div>
+        <div class="profile-switch-info">
+          <div class="profile-switch-name">${esc(p.name)}</div>
+          <div class="profile-switch-sub">${db.parties.filter(pt => pt.playerIds.includes(p.id)).length} prés</div>
+        </div>
+        <span style="color:var(--accent2);font-size:18px">+</span>
+      </div>`).join('');
+  }
+  openModal('modal-add-player');
+}
+
+function addPlayerToParty(profileId) {
+  const ap = getActiveParty();
+  if (!ap) return;
+  if (ap.playerIds.includes(profileId)) { showToast('Jogador já na pré!'); return; }
+
+  ap.playerIds.push(profileId);
+  ap.players.push({
+    profileId,
+    stomach: 'medium',
+    hydration: 'ok',
+    targetLevel: 'flow',
+    joinedAt: Date.now(),
+    drinks: [],
+    maxBac: 0,
+  });
+  saveDB();
+  closeModal('modal-add-player');
+  renderPlayersBar();
+  const p = getProfile(profileId);
+  showToast(`${p?.avatar} ${p?.name} entrou na pré!`);
+}
+
+function openLiveRanking() {
+  const ap = getActiveParty();
+  if (!ap) return;
+
+  const ranked = ap.players.map(player => {
+    const profile = getProfile(player.profileId);
+    const bac     = playerCurrentBAC(ap, player);
+    return { player, profile, bac, drinks: player.drinks.length, alc: player.drinks.reduce((s, d) => s + d.grams, 0) };
+  }).sort((a, b) => b.bac - a.bac);
+
+  const sub = document.getElementById('live-ranking-party-name');
+  if (sub) sub.textContent = `// ${esc(ap.name)} · ${ranked.length} jogador${ranked.length > 1 ? 'es' : ''}`;
+
+  const medals = ['🥇','🥈','🥉'];
+  const list = document.getElementById('live-ranking-list');
+  if (!list) return;
+
+  list.innerHTML = ranked.map((r, i) => {
+    if (!r.profile) return '';
+    const lvl = getLevelInfo(r.bac);
+    return `
+      <div class="live-rank-item">
+        <div class="live-rank-pos">${medals[i] || (i + 1)}</div>
+        <div class="live-rank-avatar" style="border-color:${r.profile.color};background:${r.profile.color}22">${r.profile.avatar}</div>
+        <div class="live-rank-info">
+          <div class="live-rank-name">${esc(r.profile.name)}</div>
+          <div class="live-rank-sub">${r.drinks} doses · ${r.alc.toFixed(0)}g</div>
+        </div>
+        <div class="live-rank-bac" style="color:${lvl.color}">${(r.bac * 100).toFixed(2)}%</div>
+      </div>`;
+  }).join('');
+
+  openModal('modal-live-ranking');
+}
+
 // ===== PARTY DETAIL =====
 function openPartyDetail(id) {
   if (id === db.activePartyId) {
@@ -1613,8 +1820,15 @@ function initApp() {
   document.getElementById('page-onboarding').style.display = 'none';
   document.getElementById('bottom-nav').style.display = 'flex';
   updateNavDot();
-  // Se tinha uma pré ativa, retoma os timers em background
-  if (db.activePartyId) initMonitorTimers();
+  // Restaura jogador ativo se havia pré em andamento
+  if (db.activePartyId) {
+    const ap = getActiveParty();
+    if (ap && !mon.activePlayerId) {
+      mon.activePlayerId = ap.players.find(pl => pl.profileId === currentProfileId)?.profileId
+                        || ap.players[0]?.profileId;
+    }
+    initMonitorTimers();
+  }
   navTo('feed');
 }
 
