@@ -309,6 +309,94 @@ body::before {
 .profile-switch-name { font-size: 15px; font-weight: 600; }
 .profile-switch-sub { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
 .profile-switch-check { color: var(--accent2); font-size: 18px; }
+
+/* ===== PRÉ SETUP ===== */
+.levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.level-btn { padding: 14px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.level-btn:hover { transform: translateY(-2px); }
+.level-btn.selected { border-width: 2px; }
+.level-emoji { font-size: 24px; margin-bottom: 4px; }
+.level-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.level-desc { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
+.level-bac { font-family: 'Courier New', monospace; font-size: 10px; margin-top: 4px; }
+.level-alto .level-name { color: #22c55e; } .level-alto.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); } .level-alto .level-bac { color: #22c55e; }
+.level-flow .level-name { color: #eab308; } .level-flow.selected { border-color: #eab308; background: rgba(234,179,8,0.1); } .level-flow .level-bac { color: #eab308; }
+.level-bebado .level-name { color: #f97316; } .level-bebado.selected { border-color: #f97316; background: rgba(249,115,22,0.1); } .level-bebado .level-bac { color: #f97316; }
+.level-destruicao .level-name { color: #ef4444; } .level-destruicao.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); } .level-destruicao .level-bac { color: #ef4444; }
+
+/* ===== MONITOR ===== */
+.monitor-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; padding-top: 4px; }
+.monitor-party-name { font-size: 18px; font-weight: 800; line-height: 1.2; }
+.monitor-party-sub { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 3px; }
+.timer-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+.timer-label { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); letter-spacing: 2px; }
+.timer-value { font-family: 'Courier New', monospace; font-size: 22px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
+.bac-display { text-align: center; padding: 8px 0 16px; }
+.bac-value { font-family: 'Courier New', monospace; font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; transition: color 0.5s, transform 0.3s; }
+.bac-unit { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-top: -4px; }
+.status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 100px; font-weight: 600; font-size: 14px; margin-top: 10px; transition: all 0.5s; border: 1px solid; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+.bac-bar-container { margin: 16px 0; }
+.bac-bar-labels { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); margin-bottom: 6px; }
+.bac-bar-track { height: 20px; background: var(--surface2); border-radius: 100px; overflow: visible; position: relative; border: 1px solid var(--border); }
+.bac-bar-zones { position: absolute; inset: 0; display: flex; border-radius: 100px; overflow: hidden; }
+.zone { height: 100%; opacity: 0.25; }
+.zone-sobrio { flex: 0.5; background: var(--green); } .zone-alto { flex: 1; background: var(--green); }
+.zone-flow { flex: 1.5; background: var(--yellow); } .zone-bebado { flex: 1.5; background: var(--orange); } .zone-mal { flex: 1.5; background: var(--red); }
+.bac-bar-fill { position: absolute; top: 0; left: 0; bottom: 0; border-radius: 100px; transition: width 1s cubic-bezier(0.4,0,0.2,1), background 0.5s; max-width: 100%; }
+.target-marker { position: absolute; top: -5px; bottom: -5px; width: 3px; background: white; border-radius: 3px; opacity: 0.8; }
+.target-marker::before { content: '▼'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 8px; color: white; opacity: 0.8; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; }
+.stat-value { font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; color: var(--accent2); line-height: 1; }
+.stat-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+.notif-banner { display: flex; align-items: center; justify-content: space-between; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; gap: 12px; }
+.notif-banner-text { flex: 1; }
+.notif-banner-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.notif-banner-sub { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+.notif-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.notif-toggle input { opacity: 0; width: 0; height: 0; }
+.notif-slider { position: absolute; cursor: pointer; inset: 0; background: var(--surface2); border-radius: 24px; border: 1px solid var(--border); transition: all 0.3s; }
+.notif-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: var(--muted); border-radius: 50%; transition: all 0.3s; }
+.notif-toggle input:checked + .notif-slider { background: rgba(124,58,237,0.4); border-color: var(--accent2); }
+.notif-toggle input:checked + .notif-slider::before { transform: translateX(20px); background: var(--accent2); box-shadow: 0 0 8px var(--glow); }
+.advice-card { background: var(--surface2); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border-left: 3px solid var(--accent2); transition: border-color 0.5s; }
+.advice-icon { font-size: 20px; margin-bottom: 6px; }
+.advice-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+.advice-highlight { font-family: 'Courier New', monospace; font-weight: 700; font-size: 12px; }
+.drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.drink-btn { padding: 10px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.15s; }
+.drink-btn:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.drink-btn.selected { border-color: var(--accent2); background: rgba(124,58,237,0.15); }
+.drink-emoji { font-size: 22px; }
+.drink-name { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: 'Courier New', monospace; }
+.drink-abv { font-size: 9px; color: var(--accent2); opacity: 0.7; }
+.cup-selector-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+.cup-selector-row::-webkit-scrollbar { display: none; }
+.cup-option { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; min-width: 60px; }
+.cup-option:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.cup-option.selected { border-color: var(--accent2); background: rgba(124,58,237,0.15); }
+.cup-option-label { font-size: 9px; color: var(--muted); font-family: 'Courier New', monospace; text-align: center; line-height: 1.3; white-space: pre-line; }
+.cup-option.selected .cup-option-label { color: var(--accent2); }
+.fill-section { display: flex; gap: 20px; align-items: center; margin-bottom: 16px; }
+.cup-preview { flex-shrink: 0; width: 72px; display: flex; flex-direction: column; align-items: center; }
+.fill-controls { flex: 1; }
+.fill-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-family: 'Courier New', monospace; }
+.fill-slider { width: 100%; appearance: none; height: 6px; border-radius: 3px; background: var(--surface2); outline: none; margin-bottom: 8px; cursor: pointer; }
+.fill-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent2); cursor: pointer; box-shadow: 0 0 10px var(--glow); }
+.fill-info { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 11px; }
+.fill-ml { color: var(--text); font-weight: 700; } .fill-alcohol { color: var(--accent2); }
+.log-list { display: flex; flex-direction: column; gap: 6px; }
+.log-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 8px 12px; font-size: 12px; animation: slideIn 0.3s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.log-time { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); min-width: 40px; }
+.log-drink { flex: 1; }
+.log-grams { font-family: 'Courier New', monospace; font-size: 11px; color: var(--accent2); }
+.log-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 4px; opacity: 0.5; transition: opacity 0.15s; }
+.log-remove:hover { opacity: 1; color: var(--red); }
+.empty-log { text-align: center; color: var(--muted); font-size: 12px; font-family: 'Courier New', monospace; padding: 16px 0; }
+.btn-end-party { width: 100%; padding: 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; margin-bottom: 8px; }
+.btn-end-party:hover { background: rgba(239,68,68,0.15); border-color: var(--red); }
 </style>
 </head>
 <body>
@@ -484,6 +572,45 @@ body::before {
 const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🤖','👽','🎭','🔥','💫','⚡','🌙','🎪','🌈','🍀'];
 const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
 
+const DRINKS = [
+  { id:'cerveja', name:'Cerveja', emoji:'🍺', abv:5,  color:'#f59e0b' },
+  { id:'vodka',   name:'Vodka',   emoji:'🍸', abv:40, color:'#c7d2fe' },
+  { id:'whisky',  name:'Whisky',  emoji:'🥃', abv:40, color:'#b45309' },
+  { id:'vinho',   name:'Vinho',   emoji:'🍷', abv:13, color:'#be123c' },
+  { id:'sake',    name:'Saquê',   emoji:'🍶', abv:15, color:'#d1fae5' },
+  { id:'gin',     name:'Gin',     emoji:'🍹', abv:37, color:'#38bdf8' },
+];
+const CUPS = [
+  { id:'desc300',  label:'Desc.\n300ml',  ml:300, shape:'descartavel' },
+  { id:'desc500',  label:'Desc.\n500ml',  ml:500, shape:'descartavel_g' },
+  { id:'lata',     label:'Lata\n350ml',   ml:350, shape:'lata' },
+  { id:'longneck', label:'Long\nneck',    ml:600, shape:'longneck' },
+  { id:'shot',     label:'Shot\n50ml',    ml:50,  shape:'shot' },
+  { id:'taca',     label:'Taça\n250ml',   ml:250, shape:'taca' },
+  { id:'caneca',   label:'Caneca\n500ml', ml:500, shape:'caneca' },
+];
+const LEVELS_CONFIG = {
+  alto:       { bac:0.055, name:'😊 ALTO',       color:'#22c55e' },
+  flow:       { bac:0.10,  name:'🔥 FLOW',       color:'#eab308' },
+  bebado:     { bac:0.155, name:'🥴 BÊBADO',     color:'#f97316' },
+  destruicao: { bac:0.22,  name:'💀 DESTRUIÇÃO', color:'#ef4444' },
+};
+const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
+const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
+
+// Monitor state (runtime, não persiste)
+const mon = {
+  selectedDrink: DRINKS[0],
+  selectedCup: CUPS[0],
+  fillPercent: 30,
+  timerInterval: null,
+  bacInterval: null,
+  notificationsEnabled: false,
+  wasAboveTarget: false,
+  lastNotifTime: 0,
+};
+const setupState = { targetLevel: 'flow', stomach: 'medium', hydration: 'ok' };
+
 // ===== DB =====
 let db = { profiles: [], parties: [], activePartyId: null };
 let currentProfileId = null;
@@ -569,6 +696,8 @@ function deleteCurrentProfile() {
 let currentPage = '';
 
 function navTo(page) {
+  if (currentPage === 'pre' && page !== 'pre') stopMonitorTimers();
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
@@ -577,7 +706,10 @@ function navTo(page) {
 
   if (page === 'feed')    renderFeed();
   if (page === 'profile') renderProfile();
-  if (page === 'pre')     renderPre();
+  if (page === 'pre') {
+    renderPre();
+    if (db.activePartyId) initMonitorTimers();
+  }
   window.scrollTo(0, 0);
 }
 
@@ -856,21 +988,577 @@ function renderProfile() {
   }).join('');
 }
 
-// ===== PRÉ PAGE (placeholder) =====
+// ===== CUP SVG =====
+function cupSVG(shape, fillPct, color, w, h) {
+  const fp = Math.max(0, Math.min(1, fillPct / 100));
+  const fc = color || '#a855f7';
+  const fill = fc + 'aa';
+  const gls = '#3a3a5d';
+  const hi = 'rgba(255,255,255,0.10)';
+  const uid = Math.random().toString(36).substr(2, 5);
+
+  if (shape === 'descartavel' || shape === 'descartavel_g') {
+    const tw=w*0.72,bw=w*0.52,tx=(w-tw)/2,bx=(w-bw)/2;
+    const top=h*0.05,ch=h*0.83,bot=top+ch,slope=(tw-bw)/2/ch;
+    const fillH=ch*fp,fillY=bot-fillH,fl=bx+slope*(ch-fillH),fr=fl+bw+2*slope*fillH;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs><clipPath id="c${uid}"><polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}"/></clipPath></defs>
+      <polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
+      <rect x="${fl}" y="${fillY}" width="${Math.max(0,fr-fl)}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}" rx="1"/>
+      <line x1="${tx+2}" y1="${top+3}" x2="${tx+tw-2}" y2="${top+3}" stroke="${hi}" stroke-width="1.5" stroke-linecap="round"/></svg>`;
+  }
+  if (shape === 'lata') {
+    const cw=w*0.58,cx=(w-cw)/2,r2=cw/2,top=h*0.09,ch=h*0.80,bot=top+ch;
+    const fillH=ch*fp,fillY=bot-fillH;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs><clipPath id="c${uid}"><rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="3"/></clipPath></defs>
+      <rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="3" fill="rgba(200,200,200,0.05)" stroke="${gls}" stroke-width="1.5"/>
+      <rect x="${cx}" y="${fillY}" width="${cw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
+      <ellipse cx="${w/2}" cy="${top}" rx="${r2}" ry="${r2*0.22}" fill="#1a1a26" stroke="${gls}" stroke-width="1.5"/>
+      <ellipse cx="${w/2}" cy="${bot}" rx="${r2}" ry="${r2*0.22}" fill="#12121a" stroke="${gls}" stroke-width="1.5"/></svg>`;
+  }
+  if (shape === 'longneck') {
+    const nw=w*0.22,bw=w*0.46,nx=(w-nw)/2,bx=(w-bw)/2;
+    const top=h*0.04,nBot=h*0.35,bTop=h*0.40,bot=h*0.95;
+    const nH=nBot-top,bH=bot-bTop,fillH=(nH+bH)*fp;
+    const inBody=Math.min(bH,fillH),inNeck=Math.max(0,fillH-bH);
+    const bodyFillY=bot-inBody,neckFillY=nBot-inNeck;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs>
+        <clipPath id="cb${uid}"><rect x="${bx}" y="${bTop}" width="${bw}" height="${bH}" rx="3"/></clipPath>
+        <clipPath id="cn${uid}"><rect x="${nx}" y="${top}" width="${nw}" height="${nH}" rx="2"/></clipPath>
+      </defs>
+      <rect x="${bx}" y="${bTop}" width="${bw}" height="${bH}" rx="3" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
+      <rect x="${bx}" y="${bodyFillY}" width="${bw}" height="${inBody}" clip-path="url(#cb${uid})" fill="${fill}"/>
+      <rect x="${nx}" y="${top}" width="${nw}" height="${nH}" rx="2" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
+      ${inNeck>0?`<rect x="${nx}" y="${neckFillY}" width="${nw}" height="${inNeck}" clip-path="url(#cn${uid})" fill="${fill}"/>`:''}
+      <path d="M${nx},${nBot} Q${nx},${bTop} ${bx},${bTop} L${bx+bw},${bTop} Q${nx+nw},${bTop} ${nx+nw},${nBot}" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/></svg>`;
+  }
+  if (shape === 'shot') {
+    const tw=w*0.64,bw=w*0.50,tx=(w-tw)/2,bx=(w-bw)/2;
+    const top=h*0.10,ch=h*0.72,bot=top+ch,slope=(tw-bw)/2/ch;
+    const fillH=ch*fp,fillY=bot-fillH,fl=bx+slope*(ch-fillH),fr=fl+bw+2*slope*fillH;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs><clipPath id="c${uid}"><polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}"/></clipPath></defs>
+      <polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}" fill="rgba(255,255,255,0.05)" stroke="${gls}" stroke-width="2"/>
+      <rect x="${fl}" y="${fillY}" width="${Math.max(0,fr-fl)}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}" rx="1"/>
+      <rect x="${bx-4}" y="${bot}" width="${bw+8}" height="${h*0.08}" rx="2" fill="#1a1a26" stroke="${gls}" stroke-width="1.2"/></svg>`;
+  }
+  if (shape === 'taca') {
+    const bw=w*0.72,nw=w*0.10,bx=(w-bw)/2,nx=(w-nw)/2;
+    const top=h*0.04,bowlBot=h*0.50,stemTop=h*0.52,stemBot=h*0.82;
+    const bowlH=bowlBot-top,fillH=bowlH*fp;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs><clipPath id="c${uid}"><path d="M${bx},${top} Q${bx},${bowlBot} ${w/2},${bowlBot} Q${bx+bw},${bowlBot} ${bx+bw},${top} Z"/></clipPath></defs>
+      <path d="M${bx},${top} Q${bx},${bowlBot} ${w/2},${bowlBot} Q${bx+bw},${bowlBot} ${bx+bw},${top} Z" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.8"/>
+      <rect x="${bx}" y="${bowlBot-fillH}" width="${bw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
+      <line x1="${bx}" y1="${top+1}" x2="${bx+bw}" y2="${top+1}" stroke="${gls}" stroke-width="2"/>
+      <rect x="${nx}" y="${stemTop}" width="${nw}" height="${stemBot-stemTop}" fill="#1e1e2e" stroke="${gls}" stroke-width="1.2"/>
+      <rect x="${(w-w*0.32)/2}" y="${h*0.84}" width="${w*0.32}" height="${h*0.09}" rx="3" fill="#1a1a26" stroke="${gls}" stroke-width="1.2"/></svg>`;
+  }
+  if (shape === 'caneca') {
+    const cw=w*0.58,cx=(w-cw)/2-4,hx=cx+cw,hw=w*0.20;
+    const top=h*0.08,ch=h*0.78,bot=top+ch,fillH=ch*fp,fillY=bot-fillH;
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
+      <defs><clipPath id="c${uid}"><rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="4"/></clipPath></defs>
+      <rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="4" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
+      <rect x="${cx}" y="${fillY}" width="${cw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
+      <path d="M${hx},${top+ch*0.2} Q${hx+hw*1.5},${top+ch*0.2} ${hx+hw*1.5},${top+ch*0.5} Q${hx+hw*1.5},${top+ch*0.8} ${hx},${top+ch*0.8}" stroke="${gls}" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+  }
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="10" y="10" width="${w-20}" height="${h-20}" rx="4" stroke="#3a3a5d" stroke-width="2" fill="none"/></svg>`;
+}
+
+// ===== PRÉ PAGE =====
 function renderPre() {
+  const ap = getActiveParty();
+  if (ap) {
+    renderMonitor(ap);
+  } else {
+    renderSetup();
+  }
+}
+
+function renderSetup() {
   document.getElementById('pre-content').innerHTML = `
-    <div class="page-header"><h1>PRÉ</h1><p>monitor de álcool</p></div>
-    <div class="empty-state">
-      <div class="empty-state-icon">🍺</div>
-      <div class="empty-state-title">Fase 2 a caminho!</div>
-      <div class="empty-state-text">O monitor de álcool vai aparecer aqui.</div>
+    <div class="page-header"><h1>PRÉ</h1><p>nova festa</p></div>
+    <div class="card">
+      <div class="card-title">// Configurar a pré</div>
+      <div class="form-group">
+        <label class="form-label">Nome da festa</label>
+        <input class="form-input" id="setup-name" type="text" placeholder="ex: Pré do Leo, Aniversário..." maxlength="40" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estômago <span>(comeu hoje?)</span></label>
+        <div class="btn-group">
+          <button class="btn-option" data-group="setup-stomach" data-value="empty">🈳 Vazio</button>
+          <button class="btn-option selected" data-group="setup-stomach" data-value="medium">〽️ Médio</button>
+          <button class="btn-option" data-group="setup-stomach" data-value="full">✅ Cheio</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Hidratação</label>
+        <div class="btn-group">
+          <button class="btn-option" data-group="setup-hydration" data-value="dry">🏜️ Seco</button>
+          <button class="btn-option selected" data-group="setup-hydration" data-value="ok">💧 Ok</button>
+          <button class="btn-option" data-group="setup-hydration" data-value="hydrated">🌊 Hidratado</button>
+        </div>
+      </div>
     </div>
+    <div class="card">
+      <div class="card-title">// Nível alvo da noite</div>
+      <div class="levels-grid">
+        <div class="level-btn level-alto" data-level="alto" onclick="pickSetupLevel(this)">
+          <div class="level-emoji">😊</div><div class="level-name">Alto</div>
+          <div class="level-desc">levinho, sociável</div><div class="level-bac">0.04–0.07%</div>
+        </div>
+        <div class="level-btn level-flow selected" data-level="flow" onclick="pickSetupLevel(this)">
+          <div class="level-emoji">🔥</div><div class="level-name">Flow</div>
+          <div class="level-desc">na vibe certa</div><div class="level-bac">0.08–0.12%</div>
+        </div>
+        <div class="level-btn level-bebado" data-level="bebado" onclick="pickSetupLevel(this)">
+          <div class="level-emoji">🥴</div><div class="level-name">Bêbado</div>
+          <div class="level-desc">bem alterado</div><div class="level-bac">0.13–0.18%</div>
+        </div>
+        <div class="level-btn level-destruicao" data-level="destruicao" onclick="pickSetupLevel(this)">
+          <div class="level-emoji">💀</div><div class="level-name">Destruição</div>
+          <div class="level-desc">vai se arrepender</div><div class="level-bac">0.19%+</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="startParty()">▶ COMEÇAR A PRÉ</button>
   `;
 }
 
-// ===== PARTY DETAIL (placeholder) =====
+function pickSetupLevel(el) {
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  setupState.targetLevel = el.dataset.level;
+}
+
+function startParty() {
+  const nameEl = document.getElementById('setup-name');
+  const name = nameEl ? nameEl.value.trim() : '';
+  if (!name) { showToast('Dá um nome pra pré! 🎉'); return; }
+  const p = getCurrentProfile();
+  if (!p) return;
+
+  setupState.stomach   = document.querySelector('[data-group="setup-stomach"].selected')?.dataset.value || 'medium';
+  setupState.hydration = document.querySelector('[data-group="setup-hydration"].selected')?.dataset.value || 'ok';
+
+  const party = {
+    id: Date.now().toString(),
+    name,
+    startTime: Date.now(),
+    endTime: null,
+    playerIds: [p.id],
+    players: [{
+      profileId: p.id,
+      stomach: setupState.stomach,
+      hydration: setupState.hydration,
+      targetLevel: setupState.targetLevel,
+      drinks: [],
+      maxBac: 0,
+    }],
+    photos: [],
+  };
+
+  db.parties.push(party);
+  db.activePartyId = party.id;
+  saveDB();
+  updateNavDot();
+  mon.selectedDrink = DRINKS[0];
+  mon.selectedCup   = CUPS[0];
+  mon.fillPercent   = 30;
+  renderMonitor(party);
+  initMonitorTimers();
+  showToast('Pré começou! 🍺');
+}
+
+function renderMonitor(party) {
+  const p = getCurrentProfile();
+  const player = party.players.find(pl => pl.profileId === (p?.id)) || party.players[0];
+  const target = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
+  const targetPct = Math.min(100, (target.bac / 0.22) * 100);
+
+  if (!mon.selectedDrink) mon.selectedDrink = DRINKS[0];
+  if (!mon.selectedCup)   mon.selectedCup   = CUPS[0];
+
+  document.getElementById('pre-content').innerHTML = `
+    <div class="monitor-top">
+      <div>
+        <div class="monitor-party-name">${esc(party.name)}</div>
+        <div class="monitor-party-sub">// ${p ? p.avatar + ' ' + p.name : ''} · alvo: ${target.name}</div>
+      </div>
+    </div>
+
+    <div class="timer-bar">
+      <div><div class="timer-label">TEMPO DE PRÉ</div><div class="timer-value" id="elapsed-timer">00:00</div></div>
+      <div style="text-align:right"><div class="timer-label">PRÓXIMA DOSE</div><div class="timer-value" id="next-drink-timer" style="color:var(--green)">—</div></div>
+    </div>
+
+    <div class="card" style="text-align:center">
+      <div class="bac-display">
+        <div class="bac-value" id="bac-value">0.000%</div>
+        <div class="bac-unit">BAC · g de álcool por 100ml de sangue</div>
+        <div id="status-badge" class="status-badge" style="background:rgba(100,116,139,0.1);color:var(--muted);border-color:var(--border)">
+          <span class="status-dot" style="background:var(--muted)"></span>
+          <span id="status-text">SÓBRIO</span>
+        </div>
+      </div>
+      <div class="bac-bar-container">
+        <div class="bac-bar-labels"><span>0.00</span><span>0.05</span><span>0.10</span><span>0.15</span><span>0.20+</span></div>
+        <div class="bac-bar-track">
+          <div class="bac-bar-zones">
+            <div class="zone zone-sobrio"></div><div class="zone zone-alto"></div>
+            <div class="zone zone-flow"></div><div class="zone zone-bebado"></div><div class="zone zone-mal"></div>
+          </div>
+          <div class="bac-bar-fill" id="bac-bar-fill" style="width:0%"></div>
+          <div class="target-marker" id="target-marker" style="left:${targetPct}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-value" id="stat-consumed">0g</div><div class="stat-label">Álcool puro</div></div>
+      <div class="stat-box"><div class="stat-value" id="stat-drinks">0</div><div class="stat-label">Doses</div></div>
+      <div class="stat-box"><div class="stat-value" id="stat-target-dist">+?g</div><div class="stat-label">Pro alvo</div></div>
+    </div>
+
+    <div class="notif-banner">
+      <div class="notif-banner-text">
+        <div class="notif-banner-title">🔔 Alertas de dose</div>
+        <div class="notif-banner-sub" id="notif-status-text">Ativar para avisar quando precisar beber</div>
+      </div>
+      <label class="notif-toggle">
+        <input type="checkbox" id="notif-toggle" onchange="toggleNotifications()">
+        <span class="notif-slider"></span>
+      </label>
+    </div>
+
+    <div class="advice-card" id="advice-card">
+      <div class="advice-icon" id="advice-icon">💬</div>
+      <div class="advice-text" id="advice-text">Começando a monitorar. Adicione a primeira bebida!</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">// Adicionar Bebida</div>
+      <div class="drinks-grid" id="drinks-grid"></div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:10px">TIPO DE COPO</div>
+      <div class="cup-selector-row" id="cup-selector-row"></div>
+      <div class="fill-section">
+        <div class="cup-preview" id="cup-preview"></div>
+        <div class="fill-controls">
+          <div class="fill-label">QUANTO TÁ CHEIO?</div>
+          <input type="range" class="fill-slider" id="fill-slider" min="0" max="100" value="${mon.fillPercent}" oninput="updateFill()">
+          <div class="fill-info">
+            <span class="fill-ml" id="fill-ml">—</span>
+            <span class="fill-alcohol" id="fill-alcohol">—</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addDrink()" style="margin-top:0">+ ADICIONAR</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">// Histórico da noite</div>
+      <div class="log-list" id="log-list"><div class="empty-log">nenhuma bebida adicionada ainda...</div></div>
+    </div>
+
+    <button class="btn-end-party" onclick="endParty()">⬛ Encerrar pré</button>
+  `;
+
+  renderDrinks();
+  renderCups();
+  renderCupPreview();
+  updateFillInfo();
+  renderLog(player.drinks);
+  updateBAC();
+  updateElapsedTimer();
+}
+
+function initMonitorTimers() {
+  stopMonitorTimers();
+  mon.timerInterval = setInterval(updateElapsedTimer, 1000);
+  mon.bacInterval   = setInterval(updateBAC, 4000);
+}
+
+function stopMonitorTimers() {
+  if (mon.timerInterval) { clearInterval(mon.timerInterval); mon.timerInterval = null; }
+  if (mon.bacInterval)   { clearInterval(mon.bacInterval);   mon.bacInterval   = null; }
+}
+
+function updateElapsedTimer() {
+  const el = document.getElementById('elapsed-timer');
+  if (!el) return;
+  const ap = getActiveParty();
+  if (!ap) return;
+  const s = Math.floor((Date.now() - ap.startTime) / 1000);
+  el.textContent = String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
+}
+
+// ===== BAC MATH =====
+function calcBAC(grams, minutes, weight, sex, stomach, hydration) {
+  const r  = sex === 'M' ? 0.68 : 0.55;
+  const af = (stomachMult[stomach] || 1.0) * (hydrationMult[hydration] || 1.0);
+  return Math.max(0, (grams * af / (weight * 1000 * r)) * 100 - 0.00025 * minutes);
+}
+
+function getPlayerData() {
+  const ap = getActiveParty();
+  if (!ap) return null;
+  const p = getCurrentProfile();
+  return ap.players.find(pl => pl.profileId === p?.id) || ap.players[0];
+}
+
+function updateBAC() {
+  const ap     = getActiveParty();
+  if (!ap) return;
+  const profile = getCurrentProfile();
+  const player  = getPlayerData();
+  if (!player || !profile) return;
+
+  const totalGrams = player.drinks.reduce((s, d) => s + d.grams, 0);
+  const minutes    = (Date.now() - ap.startTime) / 60000;
+  const bac        = calcBAC(totalGrams, minutes, profile.weight, profile.sex, player.stomach, player.hydration);
+  const target     = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
+  const diff       = target.bac - bac;
+
+  if (bac > (player.maxBac || 0)) { player.maxBac = bac; saveDB(); }
+
+  const bacEl = document.getElementById('bac-value');
+  if (!bacEl) return;
+
+  bacEl.textContent = (bac * 100).toFixed(3) + '%';
+  const barPct = Math.min(100, (bac / 0.22) * 100);
+
+  let color, st, sc, sb;
+  if      (bac < 0.04) { color='#64748b'; st='SÓBRIO';        sc='#94a3b8'; sb='rgba(100,116,139,0.1)'; }
+  else if (bac < 0.08) { color='#22c55e'; st='😊 ALTO';       sc='#22c55e'; sb='rgba(34,197,94,0.1)';   }
+  else if (bac < 0.13) { color='#eab308'; st='🔥 FLOW';       sc='#eab308'; sb='rgba(234,179,8,0.1)';   }
+  else if (bac < 0.19) { color='#f97316'; st='🥴 BÊBADO';     sc='#f97316'; sb='rgba(249,115,22,0.1)';  }
+  else if (bac < 0.25) { color='#ef4444'; st='💀 DESTRUIÇÃO'; sc='#ef4444'; sb='rgba(239,68,68,0.1)';   }
+  else                 { color='#ec4899'; st='🚨 PERIGO';      sc='#ec4899'; sb='rgba(236,72,153,0.15)'; }
+
+  const fillEl = document.getElementById('bac-bar-fill');
+  if (fillEl) { fillEl.style.width = barPct + '%'; fillEl.style.background = `linear-gradient(90deg,${color}88,${color})`; }
+  bacEl.style.color = color;
+
+  const badge = document.getElementById('status-badge');
+  if (badge) {
+    badge.style.cssText = `background:${sb};color:${sc};border-color:${sc}44`;
+    badge.querySelector('.status-dot').style.background = sc;
+    document.getElementById('status-text').textContent = st;
+  }
+
+  const r  = profile.sex === 'M' ? 0.68 : 0.55;
+  const af = (stomachMult[player.stomach] || 1) * (hydrationMult[player.hydration] || 1);
+
+  const sC = document.getElementById('stat-consumed');
+  const sD = document.getElementById('stat-drinks');
+  const sT = document.getElementById('stat-target-dist');
+  if (sC) sC.textContent = totalGrams.toFixed(1) + 'g';
+  if (sD) sD.textContent = player.drinks.length;
+  if (sT) {
+    if (Math.abs(diff) < 0.005) { sT.textContent = '✓'; sT.style.color = target.color; }
+    else if (diff > 0) { sT.textContent = '+' + ((diff / 100) * profile.weight * 1000 * r / af).toFixed(0) + 'g'; sT.style.color = '#a855f7'; }
+    else { sT.textContent = '↓ ACIMA'; sT.style.color = '#ef4444'; }
+  }
+
+  const nd = document.getElementById('next-drink-timer');
+  if (nd) {
+    if (diff > 0.015)      { nd.textContent = 'AGORA';  nd.style.color = '#22c55e'; }
+    else if (diff > -0.01) { nd.textContent = '~60min'; nd.style.color = '#eab308'; }
+    else                   { nd.textContent = Math.round(-diff / 0.00025) + 'min'; nd.style.color = '#ef4444'; }
+  }
+
+  const ac = document.getElementById('advice-card');
+  const ai = document.getElementById('advice-icon');
+  const at = document.getElementById('advice-text');
+  if (ac && ai && at) {
+    let icon, text, bc;
+    if (player.drinks.length === 0) {
+      icon='👋'; text='Adicione a primeira bebida pra começar!'; bc='#7c3aed';
+    } else if (diff > 0.03) {
+      const gr = ((diff / 100) * profile.weight * 1000 * r / af).toFixed(0);
+      icon='🍺'; text=`Faltam ~<span class="advice-highlight" style="color:${target.color}">${gr}g de álcool puro</span> pro nível ${target.name}. Pode mandar ver.`; bc='#22c55e';
+    } else if (diff > -0.01) {
+      icon='🎯'; text=`Tá no <span class="advice-highlight" style="color:${target.color}">nível certo</span>! Lembra que o BAC ainda sobe por ~30min. Segura.`; bc=target.color;
+    } else if (bac > 0.20) {
+      icon='🚨'; text=`BAC muito alto! <span class="advice-highlight" style="color:#ef4444">Para tudo agora.</span> Bebe água, come algo, não dirige.`; bc='#ef4444';
+    } else {
+      icon='⏳'; text=`Passou do alvo. Vai normalizar em ~<span class="advice-highlight" style="color:#f97316">${Math.round(-diff / 0.00025)} min</span>. Para e hidrata.`; bc='#f97316';
+    }
+    ai.textContent = icon;
+    at.innerHTML = text;
+    ac.style.borderLeftColor = bc;
+  }
+
+  checkNotifs(bac, target, diff, profile, player);
+}
+
+// ===== DRINK ACTIONS =====
+function addDrink() {
+  const ap     = getActiveParty();
+  const player = getPlayerData();
+  if (!ap || !player) return;
+
+  const ml    = Math.round(mon.selectedCup.ml * mon.fillPercent / 100);
+  const grams = ml * (mon.selectedDrink.abv / 100) * 0.789;
+  if (grams <= 0) { showToast('Seleciona uma quantidade!'); return; }
+
+  player.drinks.push({ id: Date.now(), name: mon.selectedDrink.name, emoji: mon.selectedDrink.emoji, ml, grams, time: Date.now() });
+  saveDB();
+  renderLog(player.drinks);
+  updateBAC();
+
+  const v = document.getElementById('bac-value');
+  if (v) { v.style.transform = 'scale(1.08)'; setTimeout(() => v.style.transform = 'scale(1)', 300); }
+  showToast(`${mon.selectedDrink.emoji} +${grams.toFixed(1)}g`);
+}
+
+function removeDrink(id) {
+  const player = getPlayerData();
+  if (!player) return;
+  player.drinks = player.drinks.filter(d => d.id !== id);
+  saveDB();
+  renderLog(player.drinks);
+  updateBAC();
+}
+
+function renderLog(drinks) {
+  const list = document.getElementById('log-list');
+  if (!list) return;
+  if (!drinks || drinks.length === 0) { list.innerHTML = '<div class="empty-log">nenhuma bebida adicionada ainda...</div>'; return; }
+  list.innerHTML = [...drinks].reverse().map(d => {
+    const t = new Date(d.time);
+    const ts = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
+    return `<div class="log-item">
+      <span class="log-time">${ts}</span><span>${d.emoji}</span>
+      <span class="log-drink">${d.name} · ${d.ml}ml</span>
+      <span class="log-grams">${d.grams.toFixed(1)}g</span>
+      <button class="log-remove" onclick="removeDrink(${d.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ===== DRINK/CUP PICKERS =====
+function renderDrinks() {
+  const el = document.getElementById('drinks-grid');
+  if (!el) return;
+  el.innerHTML = DRINKS.map(d => `
+    <div class="drink-btn${d.id===mon.selectedDrink.id?' selected':''}" onclick="selectDrink('${d.id}')">
+      <div class="drink-emoji">${d.emoji}</div>
+      <div class="drink-name">${d.name}</div>
+      <div class="drink-abv">${d.abv}% ABV</div>
+    </div>`).join('');
+}
+
+function renderCups() {
+  const el = document.getElementById('cup-selector-row');
+  if (!el) return;
+  el.innerHTML = CUPS.map(c => `
+    <div class="cup-option${c.id===mon.selectedCup.id?' selected':''}" onclick="selectCup('${c.id}')">
+      ${cupSVG(c.shape, 45, mon.selectedDrink.color, 44, 54)}
+      <div class="cup-option-label">${c.label}</div>
+    </div>`).join('');
+}
+
+function renderCupPreview() {
+  const el = document.getElementById('cup-preview');
+  if (!el) return;
+  el.innerHTML = cupSVG(mon.selectedCup.shape, mon.fillPercent, mon.selectedDrink.color, 72, 96);
+}
+
+function updateFill() {
+  mon.fillPercent = parseInt(document.getElementById('fill-slider')?.value || 30);
+  renderCupPreview();
+  updateFillInfo();
+}
+
+function updateFillInfo() {
+  const ml  = Math.round(mon.selectedCup.ml * mon.fillPercent / 100);
+  const g   = ml * (mon.selectedDrink.abv / 100) * 0.789;
+  const mlEl  = document.getElementById('fill-ml');
+  const alcEl = document.getElementById('fill-alcohol');
+  if (mlEl)  mlEl.textContent  = ml + 'ml';
+  if (alcEl) alcEl.textContent = '~' + g.toFixed(1) + 'g álcool';
+}
+
+function selectDrink(id) {
+  mon.selectedDrink = DRINKS.find(d => d.id === id) || DRINKS[0];
+  renderDrinks(); renderCups(); renderCupPreview(); updateFillInfo();
+}
+
+function selectCup(id) {
+  mon.selectedCup = CUPS.find(c => c.id === id) || CUPS[0];
+  renderCups(); renderCupPreview(); updateFillInfo();
+}
+
+// ===== END PARTY =====
+function endParty() {
+  if (!confirm('Encerrar a pré? O histórico vai ser salvo.')) return;
+  const ap = getActiveParty();
+  if (!ap) return;
+  ap.endTime = Date.now();
+  db.activePartyId = null;
+  stopMonitorTimers();
+  saveDB();
+  updateNavDot();
+  showToast('Pré encerrada! 🎉');
+  renderPre();
+}
+
+// ===== NAV DOT =====
+function updateNavDot() {
+  const dot = document.getElementById('nav-pre-dot');
+  if (dot) dot.style.display = db.activePartyId ? 'block' : 'none';
+}
+
+// ===== NOTIFICATIONS =====
+async function toggleNotifications() {
+  const toggle = document.getElementById('notif-toggle');
+  const sub    = document.getElementById('notif-status-text');
+  if (!toggle) return;
+  if (!toggle.checked) { mon.notificationsEnabled = false; if (sub) sub.textContent = 'Ativar para avisar quando precisar beber'; return; }
+  if (!('Notification' in window)) { toggle.checked = false; if (sub) sub.textContent = '❌ Browser não suporta notificações'; return; }
+  if (Notification.permission === 'denied') { toggle.checked = false; if (sub) sub.textContent = '🔒 Bloqueado nas config do browser'; return; }
+  if (Notification.permission !== 'granted') {
+    const p = await Notification.requestPermission();
+    if (p !== 'granted') { toggle.checked = false; if (sub) sub.textContent = '❌ Permissão negada'; return; }
+  }
+  mon.notificationsEnabled = true;
+  if (sub) sub.textContent = '✅ Ativo — você vai receber alertas';
+  sendNotif('🍺 PRÉ ativado!', 'Alertas de dose ligados. Bora!');
+}
+
+function sendNotif(title, body) {
+  if (!mon.notificationsEnabled || Notification.permission !== 'granted') return;
+  new Notification(title, { body });
+}
+
+function checkNotifs(bac, target, diff, profile, player) {
+  if (!mon.notificationsEnabled) return;
+  const now = Date.now(), cooldown = 5 * 60 * 1000;
+  const r  = profile.sex === 'M' ? 0.68 : 0.55;
+  const af = (stomachMult[player.stomach] || 1) * (hydrationMult[player.hydration] || 1);
+  if (diff > 0.025 && player.drinks.length > 0 && now - mon.lastNotifTime > cooldown) {
+    sendNotif('🍺 Hora de beber!', `Faltam ~${((diff/100)*profile.weight*1000*r/af).toFixed(0)}g pro nível ${target.name}.`);
+    mon.lastNotifTime = now;
+  }
+  if (diff < -0.03 && !mon.wasAboveTarget) {
+    sendNotif('⚠️ Passou do alvo!', 'BAC acima do objetivo. Beba água!');
+    mon.wasAboveTarget = true; mon.lastNotifTime = now;
+  }
+  if (diff > -0.01) mon.wasAboveTarget = false;
+}
+
+// ===== PARTY DETAIL =====
 function openPartyDetail(id) {
-  showToast('Detalhes em breve!');
+  if (id === db.activePartyId) {
+    navTo('pre');
+  } else {
+    showToast('Detalhes completos na Fase 5!');
+  }
 }
 
 // ===== HELPERS =====
@@ -924,6 +1612,9 @@ document.addEventListener('click', e => {
 function initApp() {
   document.getElementById('page-onboarding').style.display = 'none';
   document.getElementById('bottom-nav').style.display = 'flex';
+  updateNavDot();
+  // Se tinha uma pré ativa, retoma os timers em background
+  if (db.activePartyId) initMonitorTimers();
   navTo('feed');
 }
 
