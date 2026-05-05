@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PRÉ</title>
+<style>
+/* ===== RESET & VARS ===== */
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3d;
+  --accent: #7c3aed;
+  --accent2: #a855f7;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --orange: #f97316;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --glow: rgba(124,58,237,0.4);
+  --nav-h: 64px;
+}
+html { background: #0a0a0f; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; overflow-x: hidden; padding-bottom: var(--nav-h);
+}
+body::before {
+  content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 60% 20%, rgba(124,58,237,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.05) 0%, transparent 40%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ===== LAYOUT ===== */
+.page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 24px; position: relative; z-index: 1; min-height: calc(100vh - var(--nav-h)); }
+.page.active { display: block; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h);
+  background: rgba(18,18,26,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border); display: flex; z-index: 100;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 10px; font-family: inherit; transition: color 0.15s; padding: 8px 0 12px;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.nav-btn .nav-icon { font-size: 22px; transition: transform 0.15s; line-height: 1; }
+.nav-btn.active { color: var(--accent2); }
+.nav-btn.active .nav-icon { transform: scale(1.12); }
+.nav-dot {
+  position: absolute; top: 8px; right: calc(50% - 22px);
+  width: 8px; height: 8px; background: var(--green); border-radius: 50%;
+  border: 2px solid var(--bg); animation: pulse 2s infinite;
+}
+.nav-btn { position: relative; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(.85)} }
+
+/* ===== CARDS & SHARED ===== */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.card-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+.section-action { font-size: 12px; color: var(--accent2); cursor: pointer; background: none; border: none; font-family: inherit; }
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 12px; color: white; font-size: 15px;
+  font-weight: 600; font-family: inherit; cursor: pointer; letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-secondary {
+  width: 100%; padding: 13px; background: transparent;
+  border: 1px solid var(--border); border-radius: 12px;
+  color: var(--muted); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+.btn-danger {
+  width: 100%; padding: 13px; background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25); border-radius: 12px;
+  color: var(--red); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-danger:hover { background: rgba(239,68,68,0.15); border-color: var(--red); }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
+.form-label span { color: var(--muted); font-weight: 300; font-size: 12px; }
+.form-input {
+  width: 100%; padding: 12px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 15px; font-family: inherit;
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--accent2); }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-option {
+  flex: 1; min-width: 70px; padding: 10px 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted); font-size: 12px;
+  font-family: inherit; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.btn-option:hover { border-color: var(--accent2); color: var(--text); }
+.btn-option.selected { background: rgba(124,58,237,0.2); border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
+.weight-row { display: flex; align-items: center; gap: 12px; }
+.weight-row input {
+  width: 90px; padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 20px; font-family: 'Courier New', monospace;
+  font-weight: 700; text-align: center; outline: none; transition: border-color 0.15s;
+}
+.weight-row input:focus { border-color: var(--accent2); }
+.weight-row .unit { color: var(--muted); font-size: 13px; }
+
+/* ===== HEADER (telas internas) ===== */
+.page-header { text-align: center; padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.page-header h1 { font-size: 48px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); line-height: 1; text-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.page-header p { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-family: 'Courier New', monospace; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 48px 24px; }
+.empty-state-icon { font-size: 52px; margin-bottom: 12px; }
+.empty-state-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.empty-state-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 100px;
+  padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 500;
+  opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); white-space: nowrap;
+  pointer-events: none; max-width: calc(100vw - 32px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200;
+  display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface); border-radius: 24px 24px 0 0; padding: 12px 20px 32px;
+  width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-bottom: 24px; }
+.modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; margin-top: -2px; }
+
+/* ===== ONBOARDING ===== */
+#page-onboarding {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 32px 24px; max-width: 480px; margin: 0 auto;
+  position: relative; z-index: 1;
+}
+.onboarding-logo { font-size: 80px; font-weight: 900; letter-spacing: 12px; color: var(--accent2); text-shadow: 0 0 50px rgba(168,85,247,0.7); margin-bottom: 6px; }
+.onboarding-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 48px; }
+.onboarding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; }
+.onboarding-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
+
+/* Avatar picker */
+.avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; }
+.avatar-opt {
+  aspect-ratio: 1; font-size: 26px; background: var(--surface2);
+  border: 2px solid var(--border); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.avatar-opt:hover { border-color: var(--accent2); transform: scale(1.05); }
+.avatar-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); transform: scale(1.05); }
+
+/* Color picker */
+.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.color-opt {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: all 0.15s; outline: 3px solid transparent;
+}
+.color-opt:hover { transform: scale(1.1); }
+.color-opt.selected { outline: 3px solid white; outline-offset: 2px; transform: scale(1.1); }
+
+/* ===== FEED ===== */
+.feed-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-top: 4px; }
+.feed-title { font-size: 26px; font-weight: 900; }
+.feed-title span { color: var(--accent2); }
+
+/* Mini profile chip */
+.mini-profile-chip {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 6px 10px 6px 6px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 100px; transition: border-color 0.15s;
+}
+.mini-profile-chip:hover { border-color: var(--accent2); }
+.mini-avatar {
+  width: 32px; height: 32px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; border: 2px solid;
+}
+.mini-name { font-size: 13px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Ranking */
+.ranking-podium { display: flex; gap: 6px; align-items: flex-end; justify-content: center; padding: 0 8px 4px; }
+.podium-slot { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.podium-avatar-wrap { position: relative; }
+.podium-avatar {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; border: 2px solid var(--border);
+}
+.podium-medal { position: absolute; top: -8px; right: -8px; font-size: 15px; }
+.podium-base { width: 100%; border-radius: 8px 8px 0 0; background: var(--surface2); border: 1px solid var(--border); border-bottom: none; }
+.podium-slot:nth-child(1) .podium-base { height: 60px; }
+.podium-slot:nth-child(2) .podium-base { height: 84px; }
+.podium-slot:nth-child(3) .podium-base { height: 48px; }
+.podium-name { font-size: 11px; font-weight: 700; text-align: center; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-stat { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); }
+.podium-slot.p1 .podium-name { color: #fbbf24; }
+.podium-slot.p1 .podium-base { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); }
+.podium-slot.p1 .podium-avatar { border-color: #fbbf24; }
+.podium-slot.p2 .podium-name { color: #94a3b8; }
+.podium-slot.p2 .podium-base { background: rgba(148,163,184,0.06); border-color: rgba(148,163,184,0.18); }
+.podium-slot.p2 .podium-avatar { border-color: #94a3b8; }
+.podium-slot.p3 .podium-name { color: #b45309; }
+.podium-slot.p3 .podium-base { background: rgba(180,83,9,0.06); border-color: rgba(180,83,9,0.18); }
+.podium-slot.p3 .podium-avatar { border-color: #b45309; }
+
+.ranking-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.ranking-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface2); border-radius: 12px; padding: 12px 14px;
+}
+.ranking-pos { font-family: 'Courier New', monospace; font-size: 12px; color: var(--muted); min-width: 20px; text-align: center; font-weight: 700; }
+.ranking-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid; flex-shrink: 0; }
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranking-sub { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); }
+.ranking-val { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; color: var(--accent2); }
+
+/* Party cards */
+.party-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden; margin-bottom: 12px;
+  cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+}
+.party-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.party-card-top { padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; }
+.party-card-av { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; border: 2px solid; }
+.party-card-info { flex: 1; min-width: 0; }
+.party-card-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.party-card-meta { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
+.party-card-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; border: 1px solid; margin-top: 6px; display: inline-block; }
+.party-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+.party-card-stat { padding: 10px 8px; text-align: center; }
+.party-card-stat-val { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; }
+.party-card-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* ===== PROFILE PAGE ===== */
+.profile-hero { display: flex; flex-direction: column; align-items: center; padding: 24px 0 20px; }
+.profile-avatar-big {
+  width: 88px; height: 88px; border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 50px; border: 3px solid; margin-bottom: 12px;
+  box-shadow: 0 0 30px rgba(168,85,247,0.2);
+}
+.profile-name-big { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
+.profile-since { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+.profile-actions { display: flex; gap: 8px; margin-top: 16px; }
+.profile-action-btn {
+  padding: 8px 16px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 100px;
+  color: var(--muted); font-size: 12px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.profile-action-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+.profile-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+.profile-stat-box { background: var(--surface2); border-radius: 14px; padding: 16px; }
+.profile-stat-val { font-family: 'Courier New', monospace; font-size: 24px; font-weight: 700; color: var(--accent2); line-height: 1; }
+.profile-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
+
+/* Switch profile modal */
+.profile-switch-list { display: flex; flex-direction: column; gap: 8px; }
+.profile-switch-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: var(--surface2); border-radius: 12px; cursor: pointer;
+  border: 2px solid transparent; transition: border-color 0.15s;
+}
+.profile-switch-item:hover { border-color: var(--accent2); }
+.profile-switch-item.active-profile { border-color: var(--accent2); background: rgba(124,58,237,0.1); }
+.profile-switch-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid; flex-shrink: 0; }
+.profile-switch-info { flex: 1; }
+.profile-switch-name { font-size: 15px; font-weight: 600; }
+.profile-switch-sub { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+.profile-switch-check { color: var(--accent2); font-size: 18px; }
+</style>
+</head>
+<body>
+
+<!-- ===== ONBOARDING ===== -->
+<div id="page-onboarding">
+  <div class="onboarding-logo">PRÉ</div>
+  <div class="onboarding-sub">rede social de festa</div>
+
+  <div class="onboarding-card">
+    <div class="onboarding-step-label">// Criar seu perfil</div>
+
+    <div class="form-group">
+      <label class="form-label">Seu apelido</label>
+      <input class="form-input" id="ob-name" type="text" placeholder="como te chamam na pré..." maxlength="20" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Seu avatar</label>
+      <div class="avatar-grid" id="ob-avatar-grid"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sua cor</label>
+      <div class="color-row" id="ob-color-row"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Peso <span>(pra calcular o BAC)</span></label>
+      <div class="weight-row">
+        <input type="number" id="ob-weight" value="70" min="40" max="200">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Sexo biológico <span>(afeta metabolismo)</span></label>
+      <div class="btn-group">
+        <button class="btn-option selected" data-group="ob-sex" data-value="M">Masculino</button>
+        <button class="btn-option" data-group="ob-sex" data-value="F">Feminino</button>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <button class="btn-primary" onclick="createProfile()" id="ob-btn">🍺 Entrar na pré</button>
+</div>
+
+<!-- ===== FEED ===== -->
+<div id="page-feed" class="page">
+  <div class="feed-top">
+    <div>
+      <div class="feed-title">PRÉ <span>🔥</span></div>
+      <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace">ranking da galera</div>
+    </div>
+    <div class="mini-profile-chip" onclick="openSwitchProfile()">
+      <div class="mini-avatar" id="feed-mini-avatar"></div>
+      <div class="mini-name" id="feed-mini-name"></div>
+    </div>
+  </div>
+
+  <div class="card" id="ranking-card">
+    <div class="card-title">// Ranking geral</div>
+    <div id="ranking-podium" class="ranking-podium"></div>
+    <div id="ranking-list" class="ranking-list"></div>
+  </div>
+
+  <div>
+    <div class="section-header">
+      <span class="section-title">// Últimas prés</span>
+    </div>
+    <div id="feed-parties"></div>
+  </div>
+</div>
+
+<!-- ===== PRÉ (setup + monitor — injetado via JS) ===== -->
+<div id="page-pre" class="page">
+  <div id="pre-content"></div>
+</div>
+
+<!-- ===== PERFIL ===== -->
+<div id="page-profile" class="page">
+  <div class="profile-hero">
+    <div class="profile-avatar-big" id="prof-avatar"></div>
+    <div class="profile-name-big" id="prof-name"></div>
+    <div class="profile-since" id="prof-since"></div>
+    <div class="profile-actions">
+      <button class="profile-action-btn" onclick="openSwitchProfile()">↔ Trocar perfil</button>
+      <button class="profile-action-btn" onclick="openEditProfile()">✏️ Editar</button>
+    </div>
+  </div>
+
+  <div class="profile-stats-grid" id="prof-stats"></div>
+
+  <div class="section-header">
+    <span class="section-title">// Histórico de prés</span>
+  </div>
+  <div id="prof-parties"></div>
+</div>
+
+<!-- ===== MODAL: TROCAR/CRIAR PERFIL ===== -->
+<div class="modal-overlay" id="modal-switch">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-switch')">✕</button>
+    <div class="modal-title">Perfis</div>
+    <div class="modal-sub">// selecione ou crie novo</div>
+    <div class="profile-switch-list" id="switch-list"></div>
+    <br>
+    <button class="btn-primary" onclick="closeModal('modal-switch');showOnboarding()">+ Criar novo perfil</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: EDITAR PERFIL ===== -->
+<div class="modal-overlay" id="modal-edit-profile">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-edit-profile')">✕</button>
+    <div class="modal-title">Editar perfil</div>
+    <div class="modal-sub">// suas informações</div>
+
+    <div class="form-group">
+      <label class="form-label">Apelido</label>
+      <input class="form-input" id="edit-name" type="text" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Avatar</label>
+      <div class="avatar-grid" id="edit-avatar-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cor</label>
+      <div class="color-row" id="edit-color-row"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Peso</label>
+      <div class="weight-row">
+        <input type="number" id="edit-weight" min="40" max="200">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:24px">
+      <label class="form-label">Sexo biológico</label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="edit-sex" data-value="M">Masculino</button>
+        <button class="btn-option" data-group="edit-sex" data-value="F">Feminino</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveEditProfile()">Salvar</button>
+    <br><br>
+    <button class="btn-danger" onclick="deleteCurrentProfile()">Deletar perfil</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav" id="bottom-nav" style="display:none">
+  <button class="nav-btn" id="nav-feed" onclick="navTo('feed')">
+    <span class="nav-icon">🏠</span>Feed
+  </button>
+  <button class="nav-btn" id="nav-pre" onclick="navTo('pre')">
+    <span class="nav-icon">🍺</span>Pré
+    <span class="nav-dot" id="nav-pre-dot" style="display:none"></span>
+  </button>
+  <button class="nav-btn" id="nav-profile" onclick="navTo('profile')">
+    <span class="nav-icon">👤</span>Perfil
+  </button>
+</nav>
+
+<script>
+// ===== CONSTANTES =====
+const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🤖','👽','🎭','🔥','💫','⚡','🌙','🎪','🌈','🍀'];
+const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
+
+// ===== DB =====
+let db = { profiles: [], parties: [], activePartyId: null };
+let currentProfileId = null;
+
+function loadDB() {
+  try {
+    const d = localStorage.getItem('pre_db');
+    if (d) db = JSON.parse(d);
+    currentProfileId = localStorage.getItem('pre_current_profile');
+  } catch(e) { console.warn('DB load error', e); }
+}
+
+function saveDB() {
+  try {
+    localStorage.setItem('pre_db', JSON.stringify(db));
+    if (currentProfileId) localStorage.setItem('pre_current_profile', currentProfileId);
+  } catch(e) { showToast('⚠️ Armazenamento cheio'); }
+}
+
+function getProfile(id) { return db.profiles.find(p => p.id === id); }
+function getCurrentProfile() { return getProfile(currentProfileId); }
+function getParty(id) { return db.parties.find(p => p.id === id); }
+function getActiveParty() { return db.activePartyId ? getParty(db.activePartyId) : null; }
+
+// ===== PROFILE CRUD =====
+function createProfile() {
+  const name = document.getElementById('ob-name').value.trim();
+  if (!name) { showToast('Coloca seu apelido!'); return; }
+
+  const profile = {
+    id: Date.now().toString(),
+    name,
+    avatar: selectedObAvatar || AVATARS[0],
+    color: selectedObColor || COLORS[0],
+    weight: parseInt(document.getElementById('ob-weight').value) || 70,
+    sex: document.querySelector('[data-group="ob-sex"].selected')?.dataset.value || 'M',
+    createdAt: Date.now()
+  };
+
+  db.profiles.push(profile);
+  currentProfileId = profile.id;
+  saveDB();
+  showToast('Perfil criado! 🎉');
+  initApp();
+}
+
+function saveEditProfile() {
+  const p = getCurrentProfile();
+  if (!p) return;
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { showToast('Coloca um nome!'); return; }
+
+  p.name = name;
+  p.avatar = selectedEditAvatar || p.avatar;
+  p.color = selectedEditColor || p.color;
+  p.weight = parseInt(document.getElementById('edit-weight').value) || p.weight;
+  p.sex = document.querySelector('[data-group="edit-sex"].selected')?.dataset.value || p.sex;
+  saveDB();
+  closeModal('modal-edit-profile');
+  showToast('Perfil salvo!');
+  renderProfile();
+  renderFeedHeader();
+}
+
+function deleteCurrentProfile() {
+  if (!confirm('Deletar este perfil? Vai perder todo o histórico.')) return;
+  db.profiles = db.profiles.filter(p => p.id !== currentProfileId);
+  // remove parties linked to this profile
+  db.parties = db.parties.filter(p => !p.playerIds.includes(currentProfileId));
+  if (db.activePartyId) {
+    const ap = getActiveParty();
+    if (!ap || ap.playerIds.includes(currentProfileId)) db.activePartyId = null;
+  }
+  currentProfileId = db.profiles[0]?.id || null;
+  saveDB();
+  closeModal('modal-edit-profile');
+  showToast('Perfil deletado');
+  if (!currentProfileId) { showOnboarding(); return; }
+  initApp();
+}
+
+// ===== NAVEGAÇÃO =====
+let currentPage = '';
+
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.getElementById(`nav-${page}`)?.classList.add('active');
+  currentPage = page;
+
+  if (page === 'feed')    renderFeed();
+  if (page === 'profile') renderProfile();
+  if (page === 'pre')     renderPre();
+  window.scrollTo(0, 0);
+}
+
+function showOnboarding() {
+  document.getElementById('bottom-nav').style.display = 'none';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-onboarding').style.display = 'flex';
+  renderOnboarding();
+}
+
+// ===== ONBOARDING UI =====
+let selectedObAvatar = AVATARS[0];
+let selectedObColor  = COLORS[0];
+
+function renderOnboarding() {
+  // Avatar grid
+  const ag = document.getElementById('ob-avatar-grid');
+  ag.innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===selectedObAvatar?' selected':''}" onclick="pickObAvatar('${a}')">${a}</div>`
+  ).join('');
+  // Color row
+  const cr = document.getElementById('ob-color-row');
+  cr.innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===selectedObColor?' selected':''}" style="background:${c}" onclick="pickObColor('${c}')"></div>`
+  ).join('');
+}
+
+function pickObAvatar(a) {
+  selectedObAvatar = a;
+  document.querySelectorAll('#ob-avatar-grid .avatar-opt').forEach(el => el.classList.toggle('selected', el.textContent===a));
+}
+function pickObColor(c) {
+  selectedObColor = c;
+  document.querySelectorAll('#ob-color-row .color-opt').forEach(el => el.classList.toggle('selected', el.style.background===c));
+}
+
+// ===== EDIT PROFILE UI =====
+let selectedEditAvatar = null;
+let selectedEditColor  = null;
+
+function openEditProfile() {
+  const p = getCurrentProfile();
+  if (!p) return;
+  selectedEditAvatar = p.avatar;
+  selectedEditColor  = p.color;
+  document.getElementById('edit-name').value = p.name;
+  document.getElementById('edit-weight').value = p.weight;
+
+  // avatar grid
+  const ag = document.getElementById('edit-avatar-grid');
+  ag.innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===p.avatar?' selected':''}" onclick="pickEditAvatar('${a}')">${a}</div>`
+  ).join('');
+  // color row
+  const cr = document.getElementById('edit-color-row');
+  cr.innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===p.color?' selected':''}" style="background:${c}" onclick="pickEditColor('${c}')"></div>`
+  ).join('');
+  // sex buttons
+  document.querySelectorAll('[data-group="edit-sex"]').forEach(b => {
+    b.classList.toggle('selected', b.dataset.value === p.sex);
+  });
+
+  openModal('modal-edit-profile');
+}
+
+function pickEditAvatar(a) {
+  selectedEditAvatar = a;
+  document.querySelectorAll('#edit-avatar-grid .avatar-opt').forEach(el => el.classList.toggle('selected', el.textContent===a));
+}
+function pickEditColor(c) {
+  selectedEditColor = c;
+  document.querySelectorAll('#edit-color-row .color-opt').forEach(el => el.classList.toggle('selected', el.style.background===c));
+}
+
+// ===== SWITCH PROFILE =====
+function openSwitchProfile() {
+  const list = document.getElementById('switch-list');
+  list.innerHTML = db.profiles.map(p => `
+    <div class="profile-switch-item${p.id===currentProfileId?' active-profile':''}" onclick="switchProfile('${p.id}')">
+      <div class="profile-switch-avatar" style="border-color:${p.color};background:${p.color}22">${p.avatar}</div>
+      <div class="profile-switch-info">
+        <div class="profile-switch-name">${esc(p.name)}</div>
+        <div class="profile-switch-sub">${db.parties.filter(pt=>pt.playerIds.includes(p.id)).length} prés</div>
+      </div>
+      ${p.id===currentProfileId ? '<span class="profile-switch-check">✓</span>' : ''}
+    </div>
+  `).join('');
+  openModal('modal-switch');
+}
+
+function switchProfile(id) {
+  currentProfileId = id;
+  localStorage.setItem('pre_current_profile', id);
+  closeModal('modal-switch');
+  showToast(`Perfil: ${getProfile(id)?.name} 👋`);
+  renderFeedHeader();
+  if (currentPage === 'profile') renderProfile();
+}
+
+// ===== FEED =====
+function renderFeed() {
+  renderFeedHeader();
+  renderRanking();
+  renderFeedParties();
+}
+
+function renderFeedHeader() {
+  const p = getCurrentProfile();
+  if (!p) return;
+  const av = document.getElementById('feed-mini-avatar');
+  const nm = document.getElementById('feed-mini-name');
+  av.textContent = p.avatar;
+  av.style.borderColor = p.color;
+  av.style.background = p.color + '22';
+  nm.textContent = p.name;
+}
+
+function renderRanking() {
+  // ranking: soma de álcool total por perfil
+  const scores = db.profiles.map(p => {
+    const total = db.parties
+      .filter(pt => pt.playerIds.includes(p.id))
+      .reduce((sum, pt) => {
+        const player = pt.players.find(pl => pl.profileId === p.id);
+        return sum + (player ? player.drinks.reduce((s, d) => s + d.grams, 0) : 0);
+      }, 0);
+    const parties = db.parties.filter(pt => pt.playerIds.includes(p.id)).length;
+    return { profile: p, total, parties };
+  }).sort((a, b) => b.total - a.total);
+
+  const podium = document.getElementById('ranking-podium');
+  const list   = document.getElementById('ranking-list');
+
+  if (scores.length === 0) {
+    podium.innerHTML = '';
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-title">Ranking vazio</div><div class="empty-state-text">Cria um perfil e vai pra pré!</div></div>`;
+    return;
+  }
+
+  // podium: posições [2º, 1º, 3º]
+  const ordered = [scores[1], scores[0], scores[2]].filter(Boolean);
+  const pClasses = scores.length >= 2 ? ['p2','p1','p3'] : ['p1'];
+  const medals = ['🥈','🥇','🥉'];
+
+  podium.innerHTML = ordered.map((s, i) => {
+    const realPos = ordered.indexOf(s) === 1 ? 0 : (ordered.indexOf(s) === 0 ? 1 : 2);
+    const cls = pClasses[i];
+    const medal = medals[i];
+    return `
+      <div class="podium-slot ${cls}">
+        <div class="podium-name">${esc(s.profile.name)}</div>
+        <div class="podium-avatar-wrap">
+          <div class="podium-avatar" style="border-color:${s.profile.color};background:${s.profile.color}22">${s.profile.avatar}</div>
+          <span class="podium-medal">${medal}</span>
+        </div>
+        <div class="podium-base"></div>
+        <div class="podium-stat">${s.total.toFixed(0)}g</div>
+      </div>
+    `;
+  }).join('');
+
+  list.innerHTML = scores.slice(3).map((s, i) => `
+    <div class="ranking-item">
+      <div class="ranking-pos">${i + 4}</div>
+      <div class="ranking-avatar" style="border-color:${s.profile.color};background:${s.profile.color}22">${s.profile.avatar}</div>
+      <div class="ranking-info">
+        <div class="ranking-name">${esc(s.profile.name)}</div>
+        <div class="ranking-sub">${s.parties} prés · ${s.total.toFixed(0)}g total</div>
+      </div>
+      <div class="ranking-val">${s.total.toFixed(0)}g</div>
+    </div>
+  `).join('');
+}
+
+function renderFeedParties() {
+  const el = document.getElementById('feed-parties');
+  const parties = [...db.parties].sort((a,b) => b.startTime - a.startTime).slice(0, 10);
+
+  if (parties.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🍺</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Vai na aba Pré e começa a primeira!</div></div>`;
+    return;
+  }
+
+  el.innerHTML = parties.map(pt => {
+    const isActive = pt.id === db.activePartyId;
+    const hostProfile = getProfile(pt.playerIds[0]);
+    if (!hostProfile) return '';
+    const totalAlc = pt.players.reduce((s, pl) => s + pl.drinks.reduce((ss, d) => ss + d.grams, 0), 0);
+    const maxBac = Math.max(...pt.players.map(pl => pl.maxBac || 0));
+    const dur = pt.endTime
+      ? formatDuration(pt.endTime - pt.startTime)
+      : (isActive ? '🔴 ao vivo' : '—');
+    const levelInfo = getLevelInfo(maxBac);
+    return `
+      <div class="party-card" onclick="openPartyDetail('${pt.id}')">
+        <div class="party-card-top">
+          <div class="party-card-av" style="border-color:${hostProfile.color};background:${hostProfile.color}22">${hostProfile.avatar}</div>
+          <div class="party-card-info">
+            <div class="party-card-name">${esc(pt.name)}</div>
+            <div class="party-card-meta">${hostProfile.name} · ${formatDate(pt.startTime)}</div>
+            <span class="party-card-badge" style="color:${levelInfo.color};border-color:${levelInfo.color}44">${levelInfo.name}</span>
+          </div>
+        </div>
+        <div class="party-card-stats">
+          <div class="party-card-stat"><div class="party-card-stat-val" style="color:var(--accent2)">${totalAlc.toFixed(0)}g</div><div class="party-card-stat-lbl">Álcool</div></div>
+          <div class="party-card-stat"><div class="party-card-stat-val">${pt.players.length}</div><div class="party-card-stat-lbl">Jogadores</div></div>
+          <div class="party-card-stat"><div class="party-card-stat-val">${dur}</div><div class="party-card-stat-lbl">Duração</div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== PROFILE PAGE =====
+function renderProfile() {
+  const p = getCurrentProfile();
+  if (!p) return;
+
+  const av = document.getElementById('prof-avatar');
+  av.textContent = p.avatar;
+  av.style.borderColor = p.color;
+  av.style.background = p.color + '22';
+  document.getElementById('prof-name').textContent = p.name;
+  document.getElementById('prof-since').textContent = `desde ${formatDate(p.createdAt)}`;
+
+  const myParties = db.parties.filter(pt => pt.playerIds.includes(p.id));
+  const totalAlc = myParties.reduce((s, pt) => {
+    const pl = pt.players.find(pl => pl.profileId === p.id);
+    return s + (pl ? pl.drinks.reduce((ss, d) => ss + d.grams, 0) : 0);
+  }, 0);
+  const maxBac = Math.max(0, ...myParties.map(pt => {
+    const pl = pt.players.find(pl => pl.profileId === p.id);
+    return pl?.maxBac || 0;
+  }));
+  const totalDrinks = myParties.reduce((s, pt) => {
+    const pl = pt.players.find(pl => pl.profileId === p.id);
+    return s + (pl?.drinks.length || 0);
+  }, 0);
+
+  document.getElementById('prof-stats').innerHTML = `
+    <div class="profile-stat-box"><div class="profile-stat-val">${myParties.length}</div><div class="profile-stat-lbl">Prés</div></div>
+    <div class="profile-stat-box"><div class="profile-stat-val">${totalAlc.toFixed(0)}g</div><div class="profile-stat-lbl">Álcool total</div></div>
+    <div class="profile-stat-box"><div class="profile-stat-val">${(maxBac*100).toFixed(2)}%</div><div class="profile-stat-lbl">Pico de BAC</div></div>
+    <div class="profile-stat-box"><div class="profile-stat-val">${totalDrinks}</div><div class="profile-stat-lbl">Doses</div></div>
+  `;
+
+  const pp = document.getElementById('prof-parties');
+  if (myParties.length === 0) {
+    pp.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">Nenhuma pré</div><div class="empty-state-text">Vai na aba Pré e começa!</div></div>`;
+    return;
+  }
+
+  pp.innerHTML = [...myParties].sort((a,b)=>b.startTime-a.startTime).map(pt => {
+    const pl = pt.players.find(pl => pl.profileId === p.id);
+    const alc = pl ? pl.drinks.reduce((s,d)=>s+d.grams,0) : 0;
+    const levelInfo = getLevelInfo(pl?.maxBac || 0);
+    const dur = pt.endTime ? formatDuration(pt.endTime - pt.startTime) : '🔴 ao vivo';
+    return `
+      <div class="party-card" onclick="openPartyDetail('${pt.id}')">
+        <div class="party-card-top">
+          <div class="party-card-av" style="border-color:${p.color};background:${p.color}22">🍺</div>
+          <div class="party-card-info">
+            <div class="party-card-name">${esc(pt.name)}</div>
+            <div class="party-card-meta">${formatDate(pt.startTime)}</div>
+            <span class="party-card-badge" style="color:${levelInfo.color};border-color:${levelInfo.color}44">${levelInfo.name}</span>
+          </div>
+        </div>
+        <div class="party-card-stats">
+          <div class="party-card-stat"><div class="party-card-stat-val" style="color:var(--accent2)">${alc.toFixed(0)}g</div><div class="party-card-stat-lbl">Álcool</div></div>
+          <div class="party-card-stat"><div class="party-card-stat-val">${pl?.drinks.length||0}</div><div class="party-card-stat-lbl">Doses</div></div>
+          <div class="party-card-stat"><div class="party-card-stat-val">${dur}</div><div class="party-card-stat-lbl">Duração</div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== PRÉ PAGE (placeholder) =====
+function renderPre() {
+  document.getElementById('pre-content').innerHTML = `
+    <div class="page-header"><h1>PRÉ</h1><p>monitor de álcool</p></div>
+    <div class="empty-state">
+      <div class="empty-state-icon">🍺</div>
+      <div class="empty-state-title">Fase 2 a caminho!</div>
+      <div class="empty-state-text">O monitor de álcool vai aparecer aqui.</div>
+    </div>
+  `;
+}
+
+// ===== PARTY DETAIL (placeholder) =====
+function openPartyDetail(id) {
+  showToast('Detalhes em breve!');
+}
+
+// ===== HELPERS =====
+function getLevelInfo(bac) {
+  if (bac < 0.04) return { name: 'Sóbrio', color: '#64748b' };
+  if (bac < 0.08) return { name: '😊 Alto', color: '#22c55e' };
+  if (bac < 0.13) return { name: '🔥 Flow', color: '#eab308' };
+  if (bac < 0.19) return { name: '🥴 Bêbado', color: '#f97316' };
+  return { name: '💀 Destruição', color: '#ef4444' };
+}
+
+function formatDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
+}
+
+function formatDuration(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? `${h}h${m.toString().padStart(2,'0')}` : `${m}min`;
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Fechar modal clicando fora
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// btn-option toggle
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-group]');
+  if (!btn) return;
+  document.querySelectorAll(`[data-group="${btn.dataset.group}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+});
+
+// ===== INIT =====
+function initApp() {
+  document.getElementById('page-onboarding').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'flex';
+  navTo('feed');
+}
+
+function init() {
+  loadDB();
+  renderOnboarding();
+  if (currentProfileId && getProfile(currentProfileId)) {
+    initApp();
+  } else if (db.profiles.length > 0) {
+    currentProfileId = db.profiles[0].id;
+    localStorage.setItem('pre_current_profile', currentProfileId);
+    initApp();
+  } else {
+    showOnboarding();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
