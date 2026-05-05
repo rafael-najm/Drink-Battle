@@ -425,6 +425,51 @@ body::before {
 .live-rank-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .live-rank-sub { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); }
 .live-rank-bac { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; }
+
+/* ===== FOTOS ===== */
+.photo-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; min-height: 80px; align-items: center; }
+.photo-strip::-webkit-scrollbar { display: none; }
+.photo-strip-thumb { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; border: 2px solid var(--border); }
+.photo-strip-thumb:hover { transform: scale(1.05); border-color: var(--accent2); }
+.add-photo-btn { width: 72px; height: 72px; flex-shrink: 0; border-radius: 10px; background: var(--surface2); border: 2px dashed var(--border); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); font-size: 10px; transition: all 0.15s; }
+.add-photo-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+.add-photo-btn .photo-icon { font-size: 22px; line-height: 1; }
+.hidden-file { display: none; }
+
+/* Photo viewer fullscreen */
+.photo-viewer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 300; display: none; flex-direction: column; align-items: center; justify-content: center; }
+.photo-viewer-overlay.open { display: flex; }
+.photo-viewer-img { max-width: 95vw; max-height: 75vh; border-radius: 12px; object-fit: contain; }
+.photo-viewer-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
+.photo-viewer-who { font-size: 14px; font-weight: 600; color: white; }
+.photo-viewer-close-btn { background: rgba(255,255,255,0.12); border: none; color: white; font-size: 18px; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+.photo-viewer-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px 40px; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.photo-viewer-time { font-size: 11px; color: rgba(255,255,255,0.55); font-family: 'Courier New', monospace; }
+.photo-viewer-delete-btn { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; padding: 8px 14px; border-radius: 100px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+.photo-viewer-delete-btn:hover { background: rgba(239,68,68,0.4); }
+
+/* Party detail modal */
+.party-detail-section { margin-bottom: 20px; }
+.party-detail-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 12px; overflow: hidden; }
+.party-detail-photo { aspect-ratio: 1; overflow: hidden; cursor: pointer; }
+.party-detail-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; display: block; }
+.party-detail-photo:hover img { transform: scale(1.06); }
+.party-players-list { display: flex; flex-direction: column; gap: 8px; }
+.party-player-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: 10px; }
+.party-player-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid; flex-shrink: 0; }
+.party-player-info { flex: 1; min-width: 0; }
+.party-player-name { font-size: 13px; font-weight: 600; }
+.party-player-sub { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); }
+.party-player-bac { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; }
+.party-detail-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 4px; }
+.party-detail-stat { background: var(--surface2); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.party-detail-stat-val { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; color: var(--accent2); }
+.party-detail-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+/* Foto thumbs em party cards no feed/perfil */
+.party-card-photos { display: flex; gap: 3px; padding: 0 14px 12px; overflow-x: auto; scrollbar-width: none; }
+.party-card-photos::-webkit-scrollbar { display: none; }
+.party-card-photo-thumb { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -599,6 +644,45 @@ body::before {
     <div class="modal-title">Ranking ao vivo 🏆</div>
     <div class="modal-sub" id="live-ranking-party-name">// quem tá mais alto</div>
     <div class="live-ranking" id="live-ranking-list"></div>
+  </div>
+</div>
+
+<!-- ===== PHOTO VIEWER ===== -->
+<div class="photo-viewer-overlay" id="photo-viewer">
+  <div class="photo-viewer-bar">
+    <div class="photo-viewer-who" id="pv-who"></div>
+    <button class="photo-viewer-close-btn" onclick="closePhotoViewer()">✕</button>
+  </div>
+  <img class="photo-viewer-img" id="pv-img" src="" alt="">
+  <div class="photo-viewer-bottom">
+    <div class="photo-viewer-time" id="pv-time"></div>
+    <button class="photo-viewer-delete-btn" id="pv-delete">🗑 Apagar</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: DETALHE DA PRÉ ===== -->
+<div class="modal-overlay" id="modal-party-detail">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-party-detail')">✕</button>
+    <div class="modal-title" id="pd-title">Pré</div>
+    <div class="modal-sub" id="pd-meta"></div>
+
+    <div class="party-detail-stats" id="pd-stats"></div>
+
+    <div class="party-detail-section">
+      <div class="section-header" style="margin-bottom:10px">
+        <span class="section-title">// Jogadores</span>
+      </div>
+      <div class="party-players-list" id="pd-players"></div>
+    </div>
+
+    <div class="party-detail-section" id="pd-photos-section">
+      <div class="section-header" style="margin-bottom:10px">
+        <span class="section-title">// Fotos</span>
+      </div>
+      <div class="party-detail-gallery" id="pd-gallery"></div>
+    </div>
   </div>
 </div>
 
@@ -1327,6 +1411,16 @@ function renderMonitor(party) {
       <div class="log-list" id="log-list"><div class="empty-log">nenhuma bebida adicionada ainda...</div></div>
     </div>
 
+    <div class="card">
+      <div class="card-title">// Fotos da noite</div>
+      <div id="photo-strip" class="photo-strip">
+        <label class="add-photo-btn" for="photo-input">
+          <span class="photo-icon">📷</span><span>Foto</span>
+        </label>
+      </div>
+      <input type="file" id="photo-input" class="hidden-file" accept="image/*" onchange="handlePhotoUpload(event)">
+    </div>
+
     <button class="btn-end-party" onclick="endParty()">⬛ Encerrar pré</button>
   `;
 
@@ -1336,6 +1430,7 @@ function renderMonitor(party) {
   renderCupPreview();
   updateFillInfo();
   renderLog(player.drinks);
+  renderPhotoStrip();
   updateBAC();
   updateElapsedTimer();
 }
@@ -1759,13 +1854,182 @@ function openLiveRanking() {
   openModal('modal-live-ranking');
 }
 
+// ===== FOTOS =====
+function compressImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else       { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.72));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function handlePhotoUpload(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  e.target.value = '';          // reset input pra poder reusar
+
+  const ap = getActiveParty();
+  if (!ap) return;
+
+  try {
+    showToast('📷 Comprimindo...');
+    const url = await compressImage(file);
+    const photo = {
+      id: Date.now(),
+      url,
+      playerId: mon.activePlayerId || getCurrentProfile()?.id,
+      time: Date.now(),
+    };
+    if (!ap.photos) ap.photos = [];
+    ap.photos.push(photo);
+
+    try { saveDB(); } catch (storageErr) {
+      ap.photos.pop();
+      showToast('⚠️ Armazenamento cheio — apaga fotos antigas!', 4000);
+      return;
+    }
+    renderPhotoStrip();
+    showToast('Foto adicionada! 📸');
+  } catch (err) {
+    showToast('Erro ao processar foto');
+  }
+}
+
+function renderPhotoStrip() {
+  const strip = document.getElementById('photo-strip');
+  if (!strip) return;
+  const ap = getActiveParty();
+  if (!ap) return;
+
+  const photos = (ap.photos || []);
+  const thumbs = [...photos].reverse().map(p => {
+    const profile = getProfile(p.playerId);
+    const title   = profile ? `${profile.name}` : '';
+    return `<img class="photo-strip-thumb" src="${p.url}" title="${title}" onclick="openPhotoViewer('${ap.id}',${p.id})" alt="">`;
+  }).join('');
+
+  strip.innerHTML = `
+    <label class="add-photo-btn" for="photo-input">
+      <span class="photo-icon">📷</span><span>Foto</span>
+    </label>
+    ${thumbs}`;
+}
+
+let _pvPartyId = null;
+let _pvPhotoId = null;
+
+function openPhotoViewer(partyId, photoId) {
+  const party = getParty(partyId);
+  if (!party) return;
+  const photo = (party.photos || []).find(p => p.id == photoId);
+  if (!photo) return;
+
+  _pvPartyId = partyId;
+  _pvPhotoId = photoId;
+
+  const profile = getProfile(photo.playerId);
+  const t = new Date(photo.time);
+  const timeStr = t.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+
+  document.getElementById('pv-img').src    = photo.url;
+  document.getElementById('pv-who').textContent  = profile ? `${profile.avatar} ${profile.name}` : '';
+  document.getElementById('pv-time').textContent = timeStr;
+  document.getElementById('pv-delete').onclick   = () => deletePhoto(partyId, photoId);
+
+  document.getElementById('photo-viewer').classList.add('open');
+}
+
+function closePhotoViewer() {
+  document.getElementById('photo-viewer').classList.remove('open');
+  document.getElementById('pv-img').src = '';
+  _pvPartyId = null; _pvPhotoId = null;
+}
+
+function deletePhoto(partyId, photoId) {
+  if (!confirm('Apagar esta foto?')) return;
+  const party = getParty(partyId);
+  if (!party) return;
+  party.photos = (party.photos || []).filter(p => p.id != photoId);
+  saveDB();
+  closePhotoViewer();
+  // Atualiza a UI conforme onde estamos
+  renderPhotoStrip();
+  if (document.getElementById('modal-party-detail')?.classList.contains('open')) {
+    openPartyDetail(partyId);
+  }
+  showToast('Foto apagada');
+}
+
 // ===== PARTY DETAIL =====
 function openPartyDetail(id) {
-  if (id === db.activePartyId) {
-    navTo('pre');
+  if (id === db.activePartyId) { navTo('pre'); return; }
+
+  const party = getParty(id);
+  if (!party) return;
+
+  // Título e meta
+  const dur = party.endTime ? formatDuration(party.endTime - party.startTime) : '—';
+  document.getElementById('pd-title').textContent = party.name;
+  document.getElementById('pd-meta').textContent  = `// ${formatDate(party.startTime)} · ${dur}`;
+
+  // Stats gerais
+  const totalAlc  = party.players.reduce((s, pl) => s + pl.drinks.reduce((ss, d) => ss + d.grams, 0), 0);
+  const totalDrk  = party.players.reduce((s, pl) => s + pl.drinks.length, 0);
+  const maxBac    = Math.max(0, ...party.players.map(pl => pl.maxBac || 0));
+  document.getElementById('pd-stats').innerHTML = `
+    <div class="party-detail-stat"><div class="party-detail-stat-val">${totalAlc.toFixed(0)}g</div><div class="party-detail-stat-lbl">Álcool</div></div>
+    <div class="party-detail-stat"><div class="party-detail-stat-val">${totalDrk}</div><div class="party-detail-stat-lbl">Doses</div></div>
+    <div class="party-detail-stat"><div class="party-detail-stat-val" style="color:${getLevelInfo(maxBac).color}">${(maxBac*100).toFixed(2)}%</div><div class="party-detail-stat-lbl">Pico BAC</div></div>`;
+
+  // Jogadores
+  const sortedPlayers = [...party.players].sort((a, b) => (b.maxBac || 0) - (a.maxBac || 0));
+  document.getElementById('pd-players').innerHTML = sortedPlayers.map(pl => {
+    const prof  = getProfile(pl.profileId);
+    if (!prof) return '';
+    const alc   = pl.drinks.reduce((s, d) => s + d.grams, 0);
+    const bac   = pl.maxBac || 0;
+    const lvl   = getLevelInfo(bac);
+    return `
+      <div class="party-player-row">
+        <div class="party-player-avatar" style="border-color:${prof.color};background:${prof.color}22">${prof.avatar}</div>
+        <div class="party-player-info">
+          <div class="party-player-name">${esc(prof.name)}</div>
+          <div class="party-player-sub">${pl.drinks.length} doses · ${alc.toFixed(0)}g</div>
+        </div>
+        <div class="party-player-bac" style="color:${lvl.color}">${(bac*100).toFixed(2)}%</div>
+      </div>`;
+  }).join('');
+
+  // Galeria de fotos
+  const photos = party.photos || [];
+  const photosSection = document.getElementById('pd-photos-section');
+  const gallery = document.getElementById('pd-gallery');
+  if (photos.length === 0) {
+    photosSection.style.display = 'none';
   } else {
-    showToast('Detalhes completos na Fase 5!');
+    photosSection.style.display = 'block';
+    gallery.innerHTML = photos.map(p => `
+      <div class="party-detail-photo" onclick="openPhotoViewer('${party.id}',${p.id})">
+        <img src="${p.url}" alt="" loading="lazy">
+      </div>`).join('');
   }
+
+  openModal('modal-party-detail');
 }
 
 // ===== HELPERS =====
