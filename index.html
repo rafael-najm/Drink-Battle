@@ -633,15 +633,20 @@ let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
 let _connectTimeout = null;
+let bc = null;             // BroadcastChannel (same-device tabs)
+const MY_ID = uid();       // stable ID for this tab/session
 
-// PeerJS config with STUN servers for better connectivity
+// PeerJS config with STUN + TURN for better NAT traversal
 const PEER_CFG = {
   debug: 0,
   config: {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:global.stun.twilio.com:3478' },
+      // Free TURN relay — allows crossing strict NATs/firewalls
+      { urls: 'turn:openrelay.metered.ca:80',              username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443',             username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
     ]
   }
 };
@@ -689,6 +694,24 @@ function rgbToHex(rgb) {
   const m = String(rgb).match(/\d+/g);
   if (!m) return '#7c3aed';
   return '#' + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+// ===== BROADCAST CHANNEL (same-device, same-origin tabs) =====
+function initBC(code) {
+  destroyBC();
+  try {
+    bc = new BroadcastChannel('pre_' + code);
+    bc.onmessage = e => {
+      const data = e.data;
+      if (!data || data._from === MY_ID) return; // ignore own messages
+      if (isHost) handleGuestMessage(null, data);
+      else handleHostMessage(data);
+    };
+  } catch(e) { bc = null; }
+}
+
+function destroyBC() {
+  if (bc) { try { bc.close(); } catch(e) {} bc = null; }
 }
 
 // ===== PROFILE =====
@@ -815,6 +838,7 @@ function createParty(partyName) {
     players: [{ peerId:'host', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:null, drinks:[], maxBac:0 }]
   };
 
+  initBC(code); // same-device tab sync (works without internet)
   navTo('lobby');
   document.getElementById('lobby-status').textContent = '// conectando...';
   document.getElementById('lobby-qr-btn').style.display = 'none';
@@ -864,28 +888,34 @@ function createParty(partyName) {
 
 function handleGuestMessage(conn, data) {
   if (!party) return;
+  // conn is null for BroadcastChannel messages; use _from to build a stable peerId
+  const peerId = conn ? conn.peer : ('bc_' + (data._from || 'anon'));
+
   if (data.type === 'JOIN') {
-    const ex = party.players.find(p => p.peerId === conn.peer);
+    // Deduplicate: same person might arrive via both PeerJS and BC
+    let ex = party.players.find(p => p.profile?.id === data.profile?.id && p.peerId !== 'host');
+    if (!ex) ex = party.players.find(p => p.peerId === peerId);
     if (!ex) {
-      party.players.push({ peerId:conn.peer, profile:data.profile, prefs:data.prefs||{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:party.status==='active'?Date.now():null, drinks:[], maxBac:0 });
+      party.players.push({ peerId, profile:data.profile, prefs:data.prefs||{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:party.status==='active'?Date.now():null, drinks:[], maxBac:0 });
     } else { ex.profile = data.profile; if (data.prefs) ex.prefs = data.prefs; }
     broadcastState();
     if (currentPage === 'lobby') renderLobby();
   } else if (data.type === 'UPDATE_PREFS') {
-    const p = party.players.find(pl => pl.peerId === conn.peer);
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
     if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
   } else if (data.type === 'ADD_DRINK') {
-    const p = party.players.find(pl => pl.peerId === conn.peer);
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
     if (p && data.drink) { p.drinks.push(data.drink); broadcastState(); }
   } else if (data.type === 'REMOVE_DRINK') {
-    const p = party.players.find(pl => pl.peerId === conn.peer);
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
     if (p) { p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState(); }
   }
 }
 
 function broadcastState() {
-  const msg = { type:'STATE', party };
+  const msg = { type:'STATE', party, _from: MY_ID };
   guestConns.forEach(c => { if (c.open) c.send(msg); });
+  if (bc) bc.postMessage(msg);
 }
 
 // ===== JOIN PARTY =====
@@ -903,6 +933,7 @@ function joinByCode() {
 
 function doJoinParty(code) {
   isHost = false; party = null; hostConn = null;
+  initBC(code); // will work immediately for same-device tabs
 
   navTo('lobby');
   document.getElementById('lobby-party-name').textContent = 'Conectando...';
@@ -1003,7 +1034,9 @@ function handleHostMessage(data) {
 }
 
 function sendToHost(data) {
-  if (hostConn?.open) hostConn.send(data);
+  const msg = { ...data, _from: MY_ID, _profileId: myProfile?.id };
+  if (hostConn?.open) hostConn.send(msg);
+  if (bc) bc.postMessage(msg);
 }
 
 // ===== START PARTY (host only) =====
@@ -1064,6 +1097,8 @@ function renderLobby() {
 
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
+  clearTimeout(_connectTimeout);
+  destroyBC();
   if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
   hostConn = null; guestConns = []; isHost = false; party = null;
   navTo('home');
