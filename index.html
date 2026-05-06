@@ -27,7 +27,7 @@ html { background: #0a0a0f; }
 body {
   background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  min-height: 100vh; overflow-x: hidden; padding-bottom: var(--nav-h);
+  min-height: 100vh; overflow-x: hidden;
 }
 body::before {
   content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -36,39 +36,118 @@ body::before {
   pointer-events: none; z-index: 0;
 }
 
-/* ===== LAYOUT ===== */
-.page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 24px; position: relative; z-index: 1; min-height: calc(100vh - var(--nav-h)); }
+/* ===== PAGES ===== */
+.page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; position: relative; z-index: 1; min-height: 100vh; }
 .page.active { display: block; }
+.page-with-nav { padding-bottom: calc(var(--nav-h) + 24px); }
+
+/* ===== SPLASH ===== */
+#page-splash {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; position: relative; z-index: 1;
+}
+.splash-logo { font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2); text-shadow: 0 0 60px rgba(168,85,247,0.8); }
+.splash-sub { color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
+.splash-dots { display: flex; gap: 8px; margin-top: 40px; }
+.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: dotPulse 1.4s infinite; opacity: 0.3; }
+.splash-dot:nth-child(2) { animation-delay: 0.2s; }
+.splash-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse { 0%,80%,100%{opacity:0.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.2)} }
+
+/* ===== PROFILE SETUP ===== */
+#page-profile-setup {
+  display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+  min-height: 100vh; padding: 32px 24px 48px; max-width: 480px; margin: 0 auto;
+  position: relative; z-index: 1; overflow-y: auto;
+}
+#page-profile-setup.active { display: flex; }
+.setup-logo { font-size: 64px; font-weight: 900; letter-spacing: 10px; color: var(--accent2); text-shadow: 0 0 40px rgba(168,85,247,0.7); margin-bottom: 6px; }
+.setup-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 32px; }
+.setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; }
+.setup-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
+
+/* ===== HOME ===== */
+.home-header { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-bottom: 40px; }
+.home-logo { font-size: 42px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); text-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.home-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.action-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+  padding: 24px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.action-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.action-card:active { transform: translateY(0); opacity: 0.9; }
+.action-card-emoji { font-size: 40px; margin-bottom: 10px; }
+.action-card-title { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+.action-card-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
+.action-card.join { background: var(--surface2); }
+
+/* ===== LOBBY ===== */
+.lobby-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-top: 4px; }
+.lobby-back { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.lobby-top-info { flex: 1; min-width: 0; }
+.lobby-party-name { font-size: 20px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lobby-status { font-size: 10px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 2px; margin-top: 2px; }
+
+.lobby-code-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+}
+.lobby-code-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.lobby-code-value { font-family: 'Courier New', monospace; font-size: 26px; font-weight: 900; color: var(--accent2); letter-spacing: 4px; }
+.lobby-qr-btn { margin-left: auto; background: rgba(124,58,237,0.15); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 10px 14px; color: var(--accent2); cursor: pointer; font-size: 12px; font-family: inherit; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.lobby-qr-btn:hover { background: rgba(124,58,237,0.25); }
+
+.lobby-players-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.lobby-players-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.lobby-count-badge { font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent2); }
+
+.lobby-player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.lobby-player-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px;
+  transition: border-color 0.15s; animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.lobby-player-row.me { border-color: rgba(168,85,247,0.4); background: rgba(124,58,237,0.06); }
+.lobby-player-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid; flex-shrink: 0; }
+.lobby-player-info { flex: 1; min-width: 0; }
+.lobby-player-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.me-badge { font-size: 9px; background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.4); color: var(--accent2); padding: 2px 7px; border-radius: 100px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+.host-badge { font-size: 9px; background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.3); color: #eab308; padding: 2px 7px; border-radius: 100px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+.lobby-player-prefs { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 3px; line-height: 1.5; }
+.btn-edit-prefs { background: rgba(124,58,237,0.12); border: 1px solid rgba(168,85,247,0.2); color: var(--accent2); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; transition: all 0.15s; flex-shrink: 0; }
+.btn-edit-prefs:hover { background: rgba(124,58,237,0.22); }
+
+.lobby-waiting { text-align: center; padding: 12px; color: var(--muted); font-size: 11px; font-family: 'Courier New', monospace; }
+
+/* ===== QR MODAL ===== */
+.qr-container { display: flex; flex-direction: column; align-items: center; padding: 8px 0 16px; }
+.qr-img { width: 220px; height: 220px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface2); }
+.qr-code-big { font-family: 'Courier New', monospace; font-size: 30px; font-weight: 900; color: var(--accent2); letter-spacing: 8px; margin-top: 16px; }
+.qr-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; font-family: 'Courier New', monospace; line-height: 1.6; }
 
 /* ===== BOTTOM NAV ===== */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h);
   background: rgba(18,18,26,0.97); backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border); display: flex; z-index: 100;
+  border-top: 1px solid var(--border); display: none; z-index: 100;
 }
+.bottom-nav.visible { display: flex; }
 .nav-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 4px; background: none; border: none; color: var(--muted); cursor: pointer;
   font-size: 10px; font-family: inherit; transition: color 0.15s; padding: 8px 0 12px;
-  letter-spacing: 0.5px; text-transform: uppercase;
+  letter-spacing: 0.5px; text-transform: uppercase; position: relative;
 }
 .nav-btn .nav-icon { font-size: 22px; transition: transform 0.15s; line-height: 1; }
 .nav-btn.active { color: var(--accent2); }
 .nav-btn.active .nav-icon { transform: scale(1.12); }
-.nav-dot {
-  position: absolute; top: 8px; right: calc(50% - 22px);
-  width: 8px; height: 8px; background: var(--green); border-radius: 50%;
-  border: 2px solid var(--bg); animation: pulse 2s infinite;
-}
-.nav-btn { position: relative; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.7;transform:scale(.85)} }
 
 /* ===== CARDS & SHARED ===== */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
 .card-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .section-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
-.section-action { font-size: 12px; color: var(--accent2); cursor: pointer; background: none; border: none; font-family: inherit; }
 
 /* ===== BUTTONS ===== */
 .btn-primary {
@@ -78,9 +157,8 @@ body::before {
   font-weight: 600; font-family: inherit; cursor: pointer; letter-spacing: 0.5px;
   transition: opacity 0.15s, transform 0.1s;
 }
-.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-.btn-primary:active { transform: translateY(0); opacity: 0.85; }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-secondary {
   width: 100%; padding: 13px; background: transparent;
   border: 1px solid var(--border); border-radius: 12px;
@@ -88,6 +166,7 @@ body::before {
   cursor: pointer; transition: all 0.15s;
 }
 .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-danger {
   width: 100%; padding: 13px; background: rgba(239,68,68,0.08);
   border: 1px solid rgba(239,68,68,0.25); border-radius: 12px;
@@ -114,7 +193,6 @@ body::before {
   border-radius: 10px; color: var(--muted); font-size: 12px;
   font-family: inherit; cursor: pointer; transition: all 0.15s; text-align: center;
 }
-.btn-option:hover { border-color: var(--accent2); color: var(--text); }
 .btn-option.selected { background: rgba(124,58,237,0.2); border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
 .weight-row { display: flex; align-items: center; gap: 12px; }
 .weight-row input {
@@ -126,24 +204,50 @@ body::before {
 .weight-row input:focus { border-color: var(--accent2); }
 .weight-row .unit { color: var(--muted); font-size: 13px; }
 
-/* ===== HEADER (telas internas) ===== */
-.page-header { text-align: center; padding: 20px 0 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-.page-header h1 { font-size: 48px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); line-height: 1; text-shadow: 0 0 30px rgba(168,85,247,0.5); }
-.page-header p { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-family: 'Courier New', monospace; }
+/* ===== AVATAR / COLOR PICKERS ===== */
+.avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; }
+.avatar-opt {
+  aspect-ratio: 1; font-size: 26px; background: var(--surface2);
+  border: 2px solid var(--border); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.avatar-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); transform: scale(1.05); }
+.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.color-opt {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: all 0.15s; outline: 3px solid transparent;
+}
+.color-opt.selected { outline: 3px solid white; outline-offset: 2px; transform: scale(1.1); }
 
-/* ===== EMPTY STATE ===== */
-.empty-state { text-align: center; padding: 48px 24px; }
-.empty-state-icon { font-size: 52px; margin-bottom: 12px; }
-.empty-state-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-.empty-state-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+/* ===== LEVELS ===== */
+.levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.level-btn { padding: 14px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.level-emoji { font-size: 24px; margin-bottom: 4px; }
+.level-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.level-desc { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
+.level-bac { font-family: 'Courier New', monospace; font-size: 10px; margin-top: 4px; }
+.level-alto .level-name { color: #22c55e; } .level-alto.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); } .level-alto .level-bac { color: #22c55e; }
+.level-flow .level-name { color: #eab308; } .level-flow.selected { border-color: #eab308; background: rgba(234,179,8,0.1); } .level-flow .level-bac { color: #eab308; }
+.level-bebado .level-name { color: #f97316; } .level-bebado.selected { border-color: #f97316; background: rgba(249,115,22,0.1); } .level-bebado .level-bac { color: #f97316; }
+.level-destruicao .level-name { color: #ef4444; } .level-destruicao.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); } .level-destruicao .level-bac { color: #ef4444; }
+
+/* ===== MINI PROFILE CHIP ===== */
+.mini-profile-chip {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 6px 10px 6px 6px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 100px; transition: border-color 0.15s;
+}
+.mini-profile-chip:hover { border-color: var(--accent2); }
+.mini-avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid; }
+.mini-name { font-size: 13px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ===== TOAST ===== */
 .toast {
-  position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%; transform: translateX(-50%) translateY(20px);
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
   background: var(--surface); border: 1px solid var(--border); border-radius: 100px;
   padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 500;
   opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); white-space: nowrap;
-  pointer-events: none; max-width: calc(100vw - 32px);
+  pointer-events: none; max-width: calc(100vw - 32px); text-align: center;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
@@ -155,7 +259,7 @@ body::before {
 }
 .modal-overlay.open { display: flex; }
 .modal-sheet {
-  background: var(--surface); border-radius: 24px 24px 0 0; padding: 12px 20px 32px;
+  background: var(--surface); border-radius: 24px 24px 0 0; padding: 12px 20px 40px;
   width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto;
   animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
 }
@@ -165,342 +269,73 @@ body::before {
 .modal-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-bottom: 24px; }
 .modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; margin-top: -2px; }
 
-/* ===== ONBOARDING ===== */
-#page-onboarding {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; padding: 32px 24px; max-width: 480px; margin: 0 auto;
-  position: relative; z-index: 1;
-}
-.onboarding-logo { font-size: 80px; font-weight: 900; letter-spacing: 12px; color: var(--accent2); text-shadow: 0 0 50px rgba(168,85,247,0.7); margin-bottom: 6px; }
-.onboarding-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 48px; }
-.onboarding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; }
-.onboarding-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 32px 24px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.empty-state-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
 
-/* Avatar picker */
-.avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; }
-.avatar-opt {
-  aspect-ratio: 1; font-size: 26px; background: var(--surface2);
-  border: 2px solid var(--border); border-radius: 12px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.avatar-opt:hover { border-color: var(--accent2); transform: scale(1.05); }
-.avatar-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); transform: scale(1.05); }
-
-/* Color picker */
-.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
-.color-opt {
-  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
-  border: 3px solid transparent; transition: all 0.15s; outline: 3px solid transparent;
-}
-.color-opt:hover { transform: scale(1.1); }
-.color-opt.selected { outline: 3px solid white; outline-offset: 2px; transform: scale(1.1); }
-
-/* ===== FEED ===== */
-.feed-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding-top: 4px; }
-.feed-title { font-size: 26px; font-weight: 900; }
-.feed-title span { color: var(--accent2); }
-
-/* Mini profile chip */
-.mini-profile-chip {
-  display: flex; align-items: center; gap: 8px; cursor: pointer;
-  padding: 6px 10px 6px 6px; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 100px; transition: border-color 0.15s;
-}
-.mini-profile-chip:hover { border-color: var(--accent2); }
-.mini-avatar {
-  width: 32px; height: 32px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; border: 2px solid;
-}
-.mini-name { font-size: 13px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* Ranking */
-.ranking-podium { display: flex; gap: 6px; align-items: flex-end; justify-content: center; padding: 0 8px 4px; }
-.podium-slot { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-.podium-avatar-wrap { position: relative; }
-.podium-avatar {
-  width: 52px; height: 52px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; border: 2px solid var(--border);
-}
-.podium-medal { position: absolute; top: -8px; right: -8px; font-size: 15px; }
-.podium-base { width: 100%; border-radius: 8px 8px 0 0; background: var(--surface2); border: 1px solid var(--border); border-bottom: none; }
-.podium-slot:nth-child(1) .podium-base { height: 60px; }
-.podium-slot:nth-child(2) .podium-base { height: 84px; }
-.podium-slot:nth-child(3) .podium-base { height: 48px; }
-.podium-name { font-size: 11px; font-weight: 700; text-align: center; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.podium-stat { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); }
-.podium-slot.p1 .podium-name { color: #fbbf24; }
-.podium-slot.p1 .podium-base { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.25); }
-.podium-slot.p1 .podium-avatar { border-color: #fbbf24; }
-.podium-slot.p2 .podium-name { color: #94a3b8; }
-.podium-slot.p2 .podium-base { background: rgba(148,163,184,0.06); border-color: rgba(148,163,184,0.18); }
-.podium-slot.p2 .podium-avatar { border-color: #94a3b8; }
-.podium-slot.p3 .podium-name { color: #b45309; }
-.podium-slot.p3 .podium-base { background: rgba(180,83,9,0.06); border-color: rgba(180,83,9,0.18); }
-.podium-slot.p3 .podium-avatar { border-color: #b45309; }
-
-.ranking-list { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
-.ranking-item {
-  display: flex; align-items: center; gap: 12px;
-  background: var(--surface2); border-radius: 12px; padding: 12px 14px;
-}
-.ranking-pos { font-family: 'Courier New', monospace; font-size: 12px; color: var(--muted); min-width: 20px; text-align: center; font-weight: 700; }
-.ranking-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid; flex-shrink: 0; }
-.ranking-info { flex: 1; min-width: 0; }
-.ranking-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ranking-sub { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); }
-.ranking-val { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; color: var(--accent2); }
-
-/* Party cards */
-.party-card {
+/* ===== HISTORY ===== */
+.history-item {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; overflow: hidden; margin-bottom: 12px;
-  cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
 }
-.party-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
-.party-card-top { padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; }
-.party-card-av { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; border: 2px solid; }
-.party-card-info { flex: 1; min-width: 0; }
-.party-card-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.party-card-meta { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
-.party-card-badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 100px; border: 1px solid; margin-top: 6px; display: inline-block; }
-.party-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
-.party-card-stat { padding: 10px 8px; text-align: center; }
-.party-card-stat-val { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; }
-.party-card-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.history-item-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.history-item-meta { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+.history-item-players { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.history-player-chip { display: flex; align-items: center; gap: 5px; padding: 3px 8px 3px 5px; background: var(--surface2); border-radius: 100px; font-size: 11px; border-left: 3px solid var(--border); }
 
-/* ===== PROFILE PAGE ===== */
-.profile-hero { display: flex; flex-direction: column; align-items: center; padding: 24px 0 20px; }
-.profile-avatar-big {
-  width: 88px; height: 88px; border-radius: 24px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 50px; border: 3px solid; margin-bottom: 12px;
-  box-shadow: 0 0 30px rgba(168,85,247,0.2);
-}
-.profile-name-big { font-size: 26px; font-weight: 900; margin-bottom: 4px; }
-.profile-since { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
-.profile-actions { display: flex; gap: 8px; margin-top: 16px; }
-.profile-action-btn {
-  padding: 8px 16px; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: 100px;
-  color: var(--muted); font-size: 12px; font-family: inherit;
-  cursor: pointer; transition: all 0.15s;
-}
-.profile-action-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+/* ===== PAGE HEADER ===== */
+.page-back-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-top: 4px; }
+.page-back-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+.page-back-title { font-size: 22px; font-weight: 900; }
 
-.profile-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-.profile-stat-box { background: var(--surface2); border-radius: 14px; padding: 16px; }
-.profile-stat-val { font-family: 'Courier New', monospace; font-size: 24px; font-weight: 700; color: var(--accent2); line-height: 1; }
-.profile-stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; }
-
-/* Switch profile modal */
-.profile-switch-list { display: flex; flex-direction: column; gap: 8px; }
-.profile-switch-item {
-  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-  background: var(--surface2); border-radius: 12px; cursor: pointer;
-  border: 2px solid transparent; transition: border-color 0.15s;
-}
-.profile-switch-item:hover { border-color: var(--accent2); }
-.profile-switch-item.active-profile { border-color: var(--accent2); background: rgba(124,58,237,0.1); }
-.profile-switch-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid; flex-shrink: 0; }
-.profile-switch-info { flex: 1; }
-.profile-switch-name { font-size: 15px; font-weight: 600; }
-.profile-switch-sub { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
-.profile-switch-check { color: var(--accent2); font-size: 18px; }
-
-/* ===== PRÉ SETUP ===== */
-.levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.level-btn { padding: 14px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
-.level-btn:hover { transform: translateY(-2px); }
-.level-btn.selected { border-width: 2px; }
-.level-emoji { font-size: 24px; margin-bottom: 4px; }
-.level-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
-.level-desc { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
-.level-bac { font-family: 'Courier New', monospace; font-size: 10px; margin-top: 4px; }
-.level-alto .level-name { color: #22c55e; } .level-alto.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); } .level-alto .level-bac { color: #22c55e; }
-.level-flow .level-name { color: #eab308; } .level-flow.selected { border-color: #eab308; background: rgba(234,179,8,0.1); } .level-flow .level-bac { color: #eab308; }
-.level-bebado .level-name { color: #f97316; } .level-bebado.selected { border-color: #f97316; background: rgba(249,115,22,0.1); } .level-bebado .level-bac { color: #f97316; }
-.level-destruicao .level-name { color: #ef4444; } .level-destruicao.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); } .level-destruicao .level-bac { color: #ef4444; }
-
-/* ===== MONITOR ===== */
-.monitor-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; padding-top: 4px; }
-.monitor-party-name { font-size: 18px; font-weight: 800; line-height: 1.2; }
-.monitor-party-sub { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 3px; }
-.timer-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; border: 1px solid var(--border); }
-.timer-label { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); letter-spacing: 2px; }
-.timer-value { font-family: 'Courier New', monospace; font-size: 22px; font-weight: 700; color: var(--accent2); letter-spacing: 2px; }
-.bac-display { text-align: center; padding: 8px 0 16px; }
-.bac-value { font-family: 'Courier New', monospace; font-size: 64px; font-weight: 700; line-height: 1; letter-spacing: 2px; transition: color 0.5s, transform 0.3s; }
-.bac-unit { font-family: 'Courier New', monospace; font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-top: -4px; }
-.status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 100px; font-weight: 600; font-size: 14px; margin-top: 10px; transition: all 0.5s; border: 1px solid; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
-.bac-bar-container { margin: 16px 0; }
-.bac-bar-labels { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); margin-bottom: 6px; }
-.bac-bar-track { height: 20px; background: var(--surface2); border-radius: 100px; overflow: visible; position: relative; border: 1px solid var(--border); }
-.bac-bar-zones { position: absolute; inset: 0; display: flex; border-radius: 100px; overflow: hidden; }
-.zone { height: 100%; opacity: 0.25; }
-.zone-sobrio { flex: 0.5; background: var(--green); } .zone-alto { flex: 1; background: var(--green); }
-.zone-flow { flex: 1.5; background: var(--yellow); } .zone-bebado { flex: 1.5; background: var(--orange); } .zone-mal { flex: 1.5; background: var(--red); }
-.bac-bar-fill { position: absolute; top: 0; left: 0; bottom: 0; border-radius: 100px; transition: width 1s cubic-bezier(0.4,0,0.2,1), background 0.5s; max-width: 100%; }
-.target-marker { position: absolute; top: -5px; bottom: -5px; width: 3px; background: white; border-radius: 3px; opacity: 0.8; }
-.target-marker::before { content: '▼'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 8px; color: white; opacity: 0.8; }
-.stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; }
-.stat-value { font-family: 'Courier New', monospace; font-size: 18px; font-weight: 700; color: var(--accent2); line-height: 1; }
-.stat-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
-.notif-banner { display: flex; align-items: center; justify-content: space-between; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; gap: 12px; }
-.notif-banner-text { flex: 1; }
-.notif-banner-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-.notif-banner-sub { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
-.notif-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-.notif-toggle input { opacity: 0; width: 0; height: 0; }
-.notif-slider { position: absolute; cursor: pointer; inset: 0; background: var(--surface2); border-radius: 24px; border: 1px solid var(--border); transition: all 0.3s; }
-.notif-slider::before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px; background: var(--muted); border-radius: 50%; transition: all 0.3s; }
-.notif-toggle input:checked + .notif-slider { background: rgba(124,58,237,0.4); border-color: var(--accent2); }
-.notif-toggle input:checked + .notif-slider::before { transform: translateX(20px); background: var(--accent2); box-shadow: 0 0 8px var(--glow); }
-.advice-card { background: var(--surface2); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; border-left: 3px solid var(--accent2); transition: border-color 0.5s; }
-.advice-icon { font-size: 20px; margin-bottom: 6px; }
-.advice-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-.advice-highlight { font-family: 'Courier New', monospace; font-weight: 700; font-size: 12px; }
-.drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-.drink-btn { padding: 10px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; text-align: center; transition: all 0.15s; }
-.drink-btn:hover { border-color: var(--accent2); transform: translateY(-2px); }
-.drink-btn.selected { border-color: var(--accent2); background: rgba(124,58,237,0.15); }
-.drink-emoji { font-size: 22px; }
-.drink-name { font-size: 10px; color: var(--muted); margin-top: 3px; font-family: 'Courier New', monospace; }
-.drink-abv { font-size: 9px; color: var(--accent2); opacity: 0.7; }
-.cup-selector-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
-.cup-selector-row::-webkit-scrollbar { display: none; }
-.cup-option { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; min-width: 60px; }
-.cup-option:hover { border-color: var(--accent2); transform: translateY(-2px); }
-.cup-option.selected { border-color: var(--accent2); background: rgba(124,58,237,0.15); }
-.cup-option-label { font-size: 9px; color: var(--muted); font-family: 'Courier New', monospace; text-align: center; line-height: 1.3; white-space: pre-line; }
-.cup-option.selected .cup-option-label { color: var(--accent2); }
-.fill-section { display: flex; gap: 20px; align-items: center; margin-bottom: 16px; }
-.cup-preview { flex-shrink: 0; width: 72px; display: flex; flex-direction: column; align-items: center; }
-.fill-controls { flex: 1; }
-.fill-label { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-family: 'Courier New', monospace; }
-.fill-slider { width: 100%; appearance: none; height: 6px; border-radius: 3px; background: var(--surface2); outline: none; margin-bottom: 8px; cursor: pointer; }
-.fill-slider::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent2); cursor: pointer; box-shadow: 0 0 10px var(--glow); }
-.fill-info { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 11px; }
-.fill-ml { color: var(--text); font-weight: 700; } .fill-alcohol { color: var(--accent2); }
-.log-list { display: flex; flex-direction: column; gap: 6px; }
-.log-item { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 8px 12px; font-size: 12px; animation: slideIn 0.3s ease; }
-@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-.log-time { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); min-width: 40px; }
-.log-drink { flex: 1; }
-.log-grams { font-family: 'Courier New', monospace; font-size: 11px; color: var(--accent2); }
-.log-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 0 4px; opacity: 0.5; transition: opacity 0.15s; }
-.log-remove:hover { opacity: 1; color: var(--red); }
-.empty-log { text-align: center; color: var(--muted); font-size: 12px; font-family: 'Courier New', monospace; padding: 16px 0; }
-.btn-end-party { width: 100%; padding: 14px; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; color: var(--red); font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; margin-bottom: 8px; }
-.btn-end-party:hover { background: rgba(239,68,68,0.15); border-color: var(--red); }
-
-/* ===== PLAYERS BAR ===== */
-.players-bar { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 4px; scrollbar-width: none; }
-.players-bar::-webkit-scrollbar { display: none; }
-.player-chip {
-  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px 7px 7px; background: var(--surface2);
-  border: 2px solid var(--border); border-radius: 100px;
-  cursor: pointer; transition: all 0.2s;
-}
-.player-chip:hover { border-color: var(--accent2); }
-.player-chip.active { background: rgba(124,58,237,0.1); }
-.player-chip-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid; flex-shrink: 0; }
-.player-chip-info { display: flex; flex-direction: column; gap: 1px; }
-.player-chip-name { font-size: 12px; font-weight: 600; white-space: nowrap; line-height: 1.2; }
-.player-chip-bac { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); transition: color 0.3s; }
-.player-chip-add { border-style: dashed; opacity: 0.7; }
-.player-chip-add:hover { opacity: 1; border-color: var(--accent2); border-style: dashed; }
-
-/* Ranking ao vivo no monitor */
-.live-ranking { display: flex; flex-direction: column; gap: 6px; }
-.live-rank-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface2); border-radius: 10px; }
-.live-rank-pos { font-family: 'Courier New', monospace; font-size: 11px; font-weight: 700; color: var(--muted); min-width: 18px; }
-.live-rank-avatar { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px solid; flex-shrink: 0; }
-.live-rank-info { flex: 1; min-width: 0; }
-.live-rank-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.live-rank-sub { font-family: 'Courier New', monospace; font-size: 9px; color: var(--muted); }
-.live-rank-bac { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; }
-
-/* ===== FOTOS ===== */
-.photo-strip { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; min-height: 80px; align-items: center; }
-.photo-strip::-webkit-scrollbar { display: none; }
-.photo-strip-thumb { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex-shrink: 0; cursor: pointer; transition: transform 0.15s; border: 2px solid var(--border); }
-.photo-strip-thumb:hover { transform: scale(1.05); border-color: var(--accent2); }
-.add-photo-btn { width: 72px; height: 72px; flex-shrink: 0; border-radius: 10px; background: var(--surface2); border: 2px dashed var(--border); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--muted); font-size: 10px; transition: all 0.15s; }
-.add-photo-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-.add-photo-btn .photo-icon { font-size: 22px; line-height: 1; }
-.hidden-file { display: none; }
-
-/* Photo viewer fullscreen */
-.photo-viewer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 300; display: none; flex-direction: column; align-items: center; justify-content: center; }
-.photo-viewer-overlay.open { display: flex; }
-.photo-viewer-img { max-width: 95vw; max-height: 75vh; border-radius: 12px; object-fit: contain; }
-.photo-viewer-bar { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent); }
-.photo-viewer-who { font-size: 14px; font-weight: 600; color: white; }
-.photo-viewer-close-btn { background: rgba(255,255,255,0.12); border: none; color: white; font-size: 18px; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
-.photo-viewer-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 16px 20px 40px; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent); display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.photo-viewer-time { font-size: 11px; color: rgba(255,255,255,0.55); font-family: 'Courier New', monospace; }
-.photo-viewer-delete-btn { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; padding: 8px 14px; border-radius: 100px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
-.photo-viewer-delete-btn:hover { background: rgba(239,68,68,0.4); }
-
-/* Party detail modal */
-.party-detail-section { margin-bottom: 20px; }
-.party-detail-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 12px; overflow: hidden; }
-.party-detail-photo { aspect-ratio: 1; overflow: hidden; cursor: pointer; }
-.party-detail-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; display: block; }
-.party-detail-photo:hover img { transform: scale(1.06); }
-.party-players-list { display: flex; flex-direction: column; gap: 8px; }
-.party-player-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border-radius: 10px; }
-.party-player-avatar { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid; flex-shrink: 0; }
-.party-player-info { flex: 1; min-width: 0; }
-.party-player-name { font-size: 13px; font-weight: 600; }
-.party-player-sub { font-family: 'Courier New', monospace; font-size: 10px; color: var(--muted); }
-.party-player-bac { font-family: 'Courier New', monospace; font-size: 14px; font-weight: 700; }
-.party-detail-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 4px; }
-.party-detail-stat { background: var(--surface2); border-radius: 10px; padding: 10px 8px; text-align: center; }
-.party-detail-stat-val { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; color: var(--accent2); }
-.party-detail-stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
-
-/* Foto thumbs em party cards no feed/perfil */
-.party-card-photos { display: flex; gap: 3px; padding: 0 14px 12px; overflow-x: auto; scrollbar-width: none; }
-.party-card-photos::-webkit-scrollbar { display: none; }
-.party-card-photo-thumb { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
+/* ===== MONITOR STUB ===== */
+.monitor-stub { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; gap: 12px; }
 </style>
 </head>
 <body>
 
-<!-- ===== ONBOARDING ===== -->
-<div id="page-onboarding">
-  <div class="onboarding-logo">PRÉ</div>
-  <div class="onboarding-sub">rede social de festa</div>
+<!-- ===== SPLASH ===== -->
+<div id="page-splash">
+  <div class="splash-logo">PRÉ</div>
+  <div class="splash-sub">rede social de festa</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
 
-  <div class="onboarding-card">
-    <div class="onboarding-step-label">// Criar seu perfil</div>
+<!-- ===== PROFILE SETUP ===== -->
+<div id="page-profile-setup" class="page">
+  <div style="text-align:center;margin-bottom:28px;padding-top:8px">
+    <div class="setup-logo">PRÉ</div>
+    <div class="setup-sub">crie seu perfil</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-step-label">// Quem é você na festa?</div>
 
     <div class="form-group">
       <label class="form-label">Seu apelido</label>
-      <input class="form-input" id="ob-name" type="text" placeholder="como te chamam na pré..." maxlength="20" autocomplete="off">
+      <input class="form-input" id="ps-name" type="text" placeholder="como te chamam na pré..." maxlength="20" autocomplete="off">
     </div>
 
     <div class="form-group">
       <label class="form-label">Seu avatar</label>
-      <div class="avatar-grid" id="ob-avatar-grid"></div>
+      <div class="avatar-grid" id="ps-avatar-grid"></div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Sua cor</label>
-      <div class="color-row" id="ob-color-row"></div>
+      <div class="color-row" id="ps-color-row"></div>
     </div>
 
     <div class="form-group">
       <label class="form-label">Peso <span>(pra calcular o BAC)</span></label>
       <div class="weight-row">
-        <input type="number" id="ob-weight" value="70" min="40" max="200">
+        <input type="number" id="ps-weight" value="70" min="40" max="200">
         <span class="unit">kg</span>
       </div>
     </div>
@@ -508,78 +343,216 @@ body::before {
     <div class="form-group" style="margin-bottom:0">
       <label class="form-label">Sexo biológico <span>(afeta metabolismo)</span></label>
       <div class="btn-group">
-        <button class="btn-option selected" data-group="ob-sex" data-value="M">Masculino</button>
-        <button class="btn-option" data-group="ob-sex" data-value="F">Feminino</button>
+        <button class="btn-option selected" data-group="ps-sex" data-value="M">Masculino</button>
+        <button class="btn-option" data-group="ps-sex" data-value="F">Feminino</button>
       </div>
     </div>
   </div>
 
   <br>
-  <button class="btn-primary" onclick="createProfile()" id="ob-btn">🍺 Entrar na pré</button>
+  <button class="btn-primary" onclick="saveProfileSetup()">Entrar na festa 🍺</button>
 </div>
 
-<!-- ===== FEED ===== -->
-<div id="page-feed" class="page">
-  <div class="feed-top">
-    <div>
-      <div class="feed-title">PRÉ <span>🔥</span></div>
-      <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace">ranking da galera</div>
-    </div>
-    <div class="mini-profile-chip" onclick="openSwitchProfile()">
-      <div class="mini-avatar" id="feed-mini-avatar"></div>
-      <div class="mini-name" id="feed-mini-name"></div>
+<!-- ===== HOME ===== -->
+<div id="page-home" class="page">
+  <div class="home-header">
+    <div class="home-logo">PRÉ</div>
+    <div class="mini-profile-chip" onclick="openEditProfile()">
+      <div class="mini-avatar" id="home-mini-avatar"></div>
+      <div class="mini-name" id="home-mini-name"></div>
     </div>
   </div>
 
-  <div class="card" id="ranking-card">
-    <div class="card-title">// Ranking geral</div>
-    <div id="ranking-podium" class="ranking-podium"></div>
-    <div id="ranking-list" class="ranking-list"></div>
-  </div>
-
-  <div>
-    <div class="section-header">
-      <span class="section-title">// Últimas prés</span>
+  <div class="home-actions">
+    <div class="action-card" onclick="openCreateParty()">
+      <div class="action-card-emoji">🍺</div>
+      <div class="action-card-title">Criar pré</div>
+      <div class="action-card-sub">// você é o anfitrião</div>
     </div>
-    <div id="feed-parties"></div>
-  </div>
-</div>
-
-<!-- ===== PRÉ (setup + monitor — injetado via JS) ===== -->
-<div id="page-pre" class="page">
-  <div id="pre-content"></div>
-</div>
-
-<!-- ===== PERFIL ===== -->
-<div id="page-profile" class="page">
-  <div class="profile-hero">
-    <div class="profile-avatar-big" id="prof-avatar"></div>
-    <div class="profile-name-big" id="prof-name"></div>
-    <div class="profile-since" id="prof-since"></div>
-    <div class="profile-actions">
-      <button class="profile-action-btn" onclick="openSwitchProfile()">↔ Trocar perfil</button>
-      <button class="profile-action-btn" onclick="openEditProfile()">✏️ Editar</button>
+    <div class="action-card join" onclick="openJoinParty()">
+      <div class="action-card-emoji">📲</div>
+      <div class="action-card-title">Entrar numa pré</div>
+      <div class="action-card-sub">// escaneie o QR ou coloque o código</div>
     </div>
   </div>
-
-  <div class="profile-stats-grid" id="prof-stats"></div>
 
   <div class="section-header">
-    <span class="section-title">// Histórico de prés</span>
+    <span class="section-title">// Histórico</span>
+    <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" onclick="navTo('history')">Ver tudo</button>
   </div>
-  <div id="prof-parties"></div>
+  <div id="home-history"></div>
 </div>
 
-<!-- ===== MODAL: TROCAR/CRIAR PERFIL ===== -->
-<div class="modal-overlay" id="modal-switch">
+<!-- ===== LOBBY ===== -->
+<div id="page-lobby" class="page">
+  <div class="lobby-top">
+    <button class="lobby-back" onclick="leaveLobby()">←</button>
+    <div class="lobby-top-info">
+      <div class="lobby-party-name" id="lobby-party-name">Pré da galera</div>
+      <div class="lobby-status" id="lobby-status">// conectando...</div>
+    </div>
+  </div>
+
+  <div class="lobby-code-block">
+    <div>
+      <div class="lobby-code-label">Código da festa</div>
+      <div class="lobby-code-value" id="lobby-code">------</div>
+    </div>
+    <button class="lobby-qr-btn" onclick="openQRModal()" id="lobby-qr-btn" style="display:none">📱 QR Code</button>
+  </div>
+
+  <div class="lobby-players-header">
+    <span class="lobby-players-title">// jogadores</span>
+    <span class="lobby-count-badge"><span id="lobby-count">0</span> conectados</span>
+  </div>
+
+  <div class="lobby-player-list" id="lobby-players"></div>
+
+  <div class="lobby-waiting" id="lobby-waiting-msg" style="display:none">
+    Compartilhe o código ou QR pra chamar a galera...
+  </div>
+
+  <br>
+  <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none">🚀 Começar a pré!</button>
+  <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled>⏳ Aguardando o anfitrião começar...</button>
+  <br><br>
+  <button class="btn-danger" onclick="leaveLobby()">Sair da pré</button>
+</div>
+
+<!-- ===== MONITOR (stub — Parte 2) ===== -->
+<div id="page-monitor" class="page page-with-nav">
+  <div id="monitor-content">
+    <div class="monitor-stub">
+      <div style="font-size:56px">🍺</div>
+      <div style="font-size:22px;font-weight:800">Pré rolando!</div>
+      <div id="monitor-party-label" style="font-size:13px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px"></div>
+      <div style="margin-top:24px;font-size:12px;color:var(--muted);font-family:'Courier New',monospace">monitor de bebidas vem na parte 2...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RANKING (stub — Parte 2) ===== -->
+<div id="page-ranking" class="page page-with-nav">
+  <div class="page-back-row">
+    <div class="page-back-title">Ranking</div>
+  </div>
+  <div class="empty-state">
+    <div class="empty-state-icon">🏆</div>
+    <div class="empty-state-title">Ranking ao vivo</div>
+    <div class="empty-state-text">Disponível na parte 2</div>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="page-history" class="page">
+  <div class="page-back-row">
+    <button class="page-back-btn" onclick="navTo('home')">←</button>
+    <div class="page-back-title">Histórico</div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ===== MODAL: QR CODE ===== -->
+<div class="modal-overlay" id="modal-qr">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('modal-switch')">✕</button>
-    <div class="modal-title">Perfis</div>
-    <div class="modal-sub">// selecione ou crie novo</div>
-    <div class="profile-switch-list" id="switch-list"></div>
+    <button class="modal-close" onclick="closeModal('modal-qr')">✕</button>
+    <div class="modal-title">Entrar na pré</div>
+    <div class="modal-sub">// escaneie o QR ou copie o código</div>
+    <div class="qr-container">
+      <img class="qr-img" id="qr-img" src="" alt="QR Code">
+      <div class="qr-code-big" id="qr-code-display">------</div>
+      <div class="qr-hint">Aponte a câmera do celular pro QR<br>ou coloque o código manualmente</div>
+    </div>
     <br>
-    <button class="btn-primary" onclick="closeModal('modal-switch');showOnboarding()">+ Criar novo perfil</button>
+    <button class="btn-primary" onclick="copyPartyLink()">📋 Copiar link</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: ENTRAR COM CÓDIGO ===== -->
+<div class="modal-overlay" id="modal-join">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-join')">✕</button>
+    <div class="modal-title">Entrar numa pré</div>
+    <div class="modal-sub">// coloque o código da festa</div>
+    <div class="form-group">
+      <label class="form-label">Código</label>
+      <input class="form-input" id="join-code-input" type="text" placeholder="ex: ABC123"
+        maxlength="10" autocomplete="off"
+        style="text-transform:uppercase;font-family:'Courier New',monospace;font-size:24px;letter-spacing:6px;text-align:center"
+        oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <button class="btn-primary" onclick="joinByCode()">Entrar 🎉</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: CRIAR PRÉ ===== -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    <div class="modal-title">Criar pré</div>
+    <div class="modal-sub">// você é o anfitrião</div>
+    <div class="form-group">
+      <label class="form-label">Nome da festa <span>(opcional)</span></label>
+      <input class="form-input" id="create-party-name" type="text"
+        placeholder="ex: Pré do Leo, Aniversário..." maxlength="40" autocomplete="off">
+    </div>
+    <button class="btn-primary" onclick="doCreateParty()">Criar e gerar QR 📱</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: MINHAS PREFERÊNCIAS ===== -->
+<div class="modal-overlay" id="modal-prefs">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-prefs')">✕</button>
+    <div class="modal-title">Minhas preferências</div>
+    <div class="modal-sub">// afeta o cálculo do BAC</div>
+
+    <div class="form-group">
+      <label class="form-label">Estômago <span>(comeu hoje?)</span></label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="prefs-stomach" data-value="empty">🫙 Vazio</button>
+        <button class="btn-option selected" data-group="prefs-stomach" data-value="medium">🍕 Médio</button>
+        <button class="btn-option" data-group="prefs-stomach" data-value="full">🍖 Cheio</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Hidratação</label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="prefs-hydration" data-value="dry">🌵 Seco</button>
+        <button class="btn-option selected" data-group="prefs-hydration" data-value="ok">💧 OK</button>
+        <button class="btn-option" data-group="prefs-hydration" data-value="hydrated">🚰 Hidratado</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Meta de álcool</label>
+      <div class="levels-grid">
+        <div class="level-btn level-alto" data-pref-level="alto" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">😊</div><div class="level-name">ALTO</div>
+          <div class="level-desc">leve e animado</div><div class="level-bac">~0.055%</div>
+        </div>
+        <div class="level-btn level-flow selected" data-pref-level="flow" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">🔥</div><div class="level-name">FLOW</div>
+          <div class="level-desc">zona perfeita</div><div class="level-bac">~0.10%</div>
+        </div>
+        <div class="level-btn level-bebado" data-pref-level="bebado" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">🥴</div><div class="level-name">BÊBADO</div>
+          <div class="level-desc">vai ficar pesado</div><div class="level-bac">~0.155%</div>
+        </div>
+        <div class="level-btn level-destruicao" data-pref-level="destruicao" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">💀</div><div class="level-name">DESTRUIÇÃO</div>
+          <div class="level-desc">modo difícil</div><div class="level-bac">~0.22%</div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+    <button class="btn-primary" onclick="savePrefs()">Salvar ✓</button>
   </div>
 </div>
 
@@ -618,113 +591,29 @@ body::before {
       </div>
     </div>
     <button class="btn-primary" onclick="saveEditProfile()">Salvar</button>
-    <br><br>
-    <button class="btn-danger" onclick="deleteCurrentProfile()">Deletar perfil</button>
-  </div>
-</div>
-
-<!-- ===== MODAL: ADICIONAR JOGADOR ===== -->
-<div class="modal-overlay" id="modal-add-player">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('modal-add-player')">✕</button>
-    <div class="modal-title">Adicionar jogador</div>
-    <div class="modal-sub">// perfis no dispositivo</div>
-    <div class="profile-switch-list" id="add-player-list"></div>
-    <br>
-    <button class="btn-secondary" onclick="closeModal('modal-add-player');showOnboarding()">+ Criar perfil novo primeiro</button>
-  </div>
-</div>
-
-<!-- ===== MODAL: RANKING AO VIVO ===== -->
-<div class="modal-overlay" id="modal-live-ranking">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('modal-live-ranking')">✕</button>
-    <div class="modal-title">Ranking ao vivo 🏆</div>
-    <div class="modal-sub" id="live-ranking-party-name">// quem tá mais alto</div>
-    <div class="live-ranking" id="live-ranking-list"></div>
-  </div>
-</div>
-
-<!-- ===== PHOTO VIEWER ===== -->
-<div class="photo-viewer-overlay" id="photo-viewer">
-  <div class="photo-viewer-bar">
-    <div class="photo-viewer-who" id="pv-who"></div>
-    <button class="photo-viewer-close-btn" onclick="closePhotoViewer()">✕</button>
-  </div>
-  <img class="photo-viewer-img" id="pv-img" src="" alt="">
-  <div class="photo-viewer-bottom">
-    <div class="photo-viewer-time" id="pv-time"></div>
-    <button class="photo-viewer-delete-btn" id="pv-delete">🗑 Apagar</button>
-  </div>
-</div>
-
-<!-- ===== MODAL: DETALHE DA PRÉ ===== -->
-<div class="modal-overlay" id="modal-party-detail">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <button class="modal-close" onclick="closeModal('modal-party-detail')">✕</button>
-    <div class="modal-title" id="pd-title">Pré</div>
-    <div class="modal-sub" id="pd-meta"></div>
-
-    <div class="party-detail-stats" id="pd-stats"></div>
-
-    <div class="party-detail-section">
-      <div class="section-header" style="margin-bottom:10px">
-        <span class="section-title">// Jogadores</span>
-      </div>
-      <div class="party-players-list" id="pd-players"></div>
-    </div>
-
-    <div class="party-detail-section" id="pd-photos-section">
-      <div class="section-header" style="margin-bottom:10px">
-        <span class="section-title">// Fotos</span>
-      </div>
-      <div class="party-detail-gallery" id="pd-gallery"></div>
-    </div>
   </div>
 </div>
 
 <!-- ===== TOAST ===== -->
-<div class="toast" id="toast"></div>
+<div id="toast" class="toast"></div>
 
 <!-- ===== BOTTOM NAV ===== -->
-<nav class="bottom-nav" id="bottom-nav" style="display:none">
-  <button class="nav-btn" id="nav-feed" onclick="navTo('feed')">
-    <span class="nav-icon">🏠</span>Feed
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
+    <span class="nav-icon">🍺</span><span>Bebidas</span>
   </button>
-  <button class="nav-btn" id="nav-pre" onclick="navTo('pre')">
-    <span class="nav-icon">🍺</span>Pré
-    <span class="nav-dot" id="nav-pre-dot" style="display:none"></span>
-  </button>
-  <button class="nav-btn" id="nav-profile" onclick="navTo('profile')">
-    <span class="nav-icon">👤</span>Perfil
+  <button class="nav-btn" id="nav-ranking" onclick="navTo('ranking')">
+    <span class="nav-icon">🏆</span><span>Ranking</span>
   </button>
 </nav>
 
+<!-- PeerJS -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
 <script>
-// ===== CONSTANTES =====
+// ===== CONSTANTS =====
 const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🤖','👽','🎭','🔥','💫','⚡','🌙','🎪','🌈','🍀'];
 const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
-
-const DRINKS = [
-  { id:'cerveja', name:'Cerveja', emoji:'🍺', abv:5,  color:'#f59e0b' },
-  { id:'vodka',   name:'Vodka',   emoji:'🍸', abv:40, color:'#c7d2fe' },
-  { id:'whisky',  name:'Whisky',  emoji:'🥃', abv:40, color:'#b45309' },
-  { id:'vinho',   name:'Vinho',   emoji:'🍷', abv:13, color:'#be123c' },
-  { id:'sake',    name:'Saquê',   emoji:'🍶', abv:15, color:'#d1fae5' },
-  { id:'gin',     name:'Gin',     emoji:'🍹', abv:37, color:'#38bdf8' },
-];
-const CUPS = [
-  { id:'desc300',  label:'Desc.\n300ml',  ml:300, shape:'descartavel' },
-  { id:'desc500',  label:'Desc.\n500ml',  ml:500, shape:'descartavel_g' },
-  { id:'lata',     label:'Lata\n350ml',   ml:350, shape:'lata' },
-  { id:'longneck', label:'Long\nneck',    ml:600, shape:'longneck' },
-  { id:'shot',     label:'Shot\n50ml',    ml:50,  shape:'shot' },
-  { id:'taca',     label:'Taça\n250ml',   ml:250, shape:'taca' },
-  { id:'caneca',   label:'Caneca\n500ml', ml:500, shape:'caneca' },
-];
 const LEVELS_CONFIG = {
   alto:       { bac:0.055, name:'😊 ALTO',       color:'#22c55e' },
   flow:       { bac:0.10,  name:'🔥 FLOW',       color:'#eab308' },
@@ -734,1383 +623,549 @@ const LEVELS_CONFIG = {
 const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
 const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
 
-// Monitor state (runtime, não persiste)
-const mon = {
-  selectedDrink: DRINKS[0],
-  selectedCup: CUPS[0],
-  fillPercent: 30,
-  timerInterval: null,
-  bacInterval: null,
-  notificationsEnabled: false,
-  wasAboveTarget: false,
-  lastNotifTime: 0,
-  activePlayerId: null, // jogador sendo monitorado atualmente
-};
-const setupState = { targetLevel: 'flow', stomach: 'medium', hydration: 'ok' };
-
-// ===== DB =====
-let db = { profiles: [], parties: [], activePartyId: null };
-let currentProfileId = null;
-
-function loadDB() {
-  try {
-    const d = localStorage.getItem('pre_db');
-    if (d) db = JSON.parse(d);
-    currentProfileId = localStorage.getItem('pre_current_profile');
-  } catch(e) { console.warn('DB load error', e); }
-}
-
-function saveDB() {
-  try {
-    localStorage.setItem('pre_db', JSON.stringify(db));
-    if (currentProfileId) localStorage.setItem('pre_current_profile', currentProfileId);
-  } catch(e) { showToast('⚠️ Armazenamento cheio'); }
-}
-
-function getProfile(id) { return db.profiles.find(p => p.id === id); }
-function getCurrentProfile() { return getProfile(currentProfileId); }
-function getParty(id) { return db.parties.find(p => p.id === id); }
-function getActiveParty() { return db.activePartyId ? getParty(db.activePartyId) : null; }
-
-// ===== PROFILE CRUD =====
-function createProfile() {
-  const name = document.getElementById('ob-name').value.trim();
-  if (!name) { showToast('Coloca seu apelido!'); return; }
-
-  const profile = {
-    id: Date.now().toString(),
-    name,
-    avatar: selectedObAvatar || AVATARS[0],
-    color: selectedObColor || COLORS[0],
-    weight: parseInt(document.getElementById('ob-weight').value) || 70,
-    sex: document.querySelector('[data-group="ob-sex"].selected')?.dataset.value || 'M',
-    createdAt: Date.now()
-  };
-
-  db.profiles.push(profile);
-  currentProfileId = profile.id;
-  saveDB();
-  showToast('Perfil criado! 🎉');
-  initApp();
-}
-
-function saveEditProfile() {
-  const p = getCurrentProfile();
-  if (!p) return;
-  const name = document.getElementById('edit-name').value.trim();
-  if (!name) { showToast('Coloca um nome!'); return; }
-
-  p.name = name;
-  p.avatar = selectedEditAvatar || p.avatar;
-  p.color = selectedEditColor || p.color;
-  p.weight = parseInt(document.getElementById('edit-weight').value) || p.weight;
-  p.sex = document.querySelector('[data-group="edit-sex"].selected')?.dataset.value || p.sex;
-  saveDB();
-  closeModal('modal-edit-profile');
-  showToast('Perfil salvo!');
-  renderProfile();
-  renderFeedHeader();
-}
-
-function deleteCurrentProfile() {
-  if (!confirm('Deletar este perfil? Vai perder todo o histórico.')) return;
-  db.profiles = db.profiles.filter(p => p.id !== currentProfileId);
-  // remove parties linked to this profile
-  db.parties = db.parties.filter(p => !p.playerIds.includes(currentProfileId));
-  if (db.activePartyId) {
-    const ap = getActiveParty();
-    if (!ap || ap.playerIds.includes(currentProfileId)) db.activePartyId = null;
-  }
-  currentProfileId = db.profiles[0]?.id || null;
-  saveDB();
-  closeModal('modal-edit-profile');
-  showToast('Perfil deletado');
-  if (!currentProfileId) { showOnboarding(); return; }
-  initApp();
-}
-
-// ===== NAVEGAÇÃO =====
-let currentPage = '';
-
-function navTo(page) {
-  if (currentPage === 'pre' && page !== 'pre') stopMonitorTimers();
-
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`page-${page}`).classList.add('active');
-  document.getElementById(`nav-${page}`)?.classList.add('active');
-  currentPage = page;
-
-  if (page === 'feed')    renderFeed();
-  if (page === 'profile') renderProfile();
-  if (page === 'pre') {
-    renderPre();
-    if (db.activePartyId) initMonitorTimers();
-  }
-  window.scrollTo(0, 0);
-}
-
-function showOnboarding() {
-  document.getElementById('bottom-nav').style.display = 'none';
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-onboarding').style.display = 'flex';
-  renderOnboarding();
-}
-
-// ===== ONBOARDING UI =====
-let selectedObAvatar = AVATARS[0];
-let selectedObColor  = COLORS[0];
-
-function renderOnboarding() {
-  // Avatar grid
-  const ag = document.getElementById('ob-avatar-grid');
-  ag.innerHTML = AVATARS.map(a =>
-    `<div class="avatar-opt${a===selectedObAvatar?' selected':''}" onclick="pickObAvatar('${a}')">${a}</div>`
-  ).join('');
-  // Color row
-  const cr = document.getElementById('ob-color-row');
-  cr.innerHTML = COLORS.map(c =>
-    `<div class="color-opt${c===selectedObColor?' selected':''}" style="background:${c}" onclick="pickObColor('${c}')"></div>`
-  ).join('');
-}
-
-function pickObAvatar(a) {
-  selectedObAvatar = a;
-  document.querySelectorAll('#ob-avatar-grid .avatar-opt').forEach(el => el.classList.toggle('selected', el.textContent===a));
-}
-function pickObColor(c) {
-  selectedObColor = c;
-  document.querySelectorAll('#ob-color-row .color-opt').forEach(el => el.classList.toggle('selected', el.style.background===c));
-}
-
-// ===== EDIT PROFILE UI =====
-let selectedEditAvatar = null;
-let selectedEditColor  = null;
-
-function openEditProfile() {
-  const p = getCurrentProfile();
-  if (!p) return;
-  selectedEditAvatar = p.avatar;
-  selectedEditColor  = p.color;
-  document.getElementById('edit-name').value = p.name;
-  document.getElementById('edit-weight').value = p.weight;
-
-  // avatar grid
-  const ag = document.getElementById('edit-avatar-grid');
-  ag.innerHTML = AVATARS.map(a =>
-    `<div class="avatar-opt${a===p.avatar?' selected':''}" onclick="pickEditAvatar('${a}')">${a}</div>`
-  ).join('');
-  // color row
-  const cr = document.getElementById('edit-color-row');
-  cr.innerHTML = COLORS.map(c =>
-    `<div class="color-opt${c===p.color?' selected':''}" style="background:${c}" onclick="pickEditColor('${c}')"></div>`
-  ).join('');
-  // sex buttons
-  document.querySelectorAll('[data-group="edit-sex"]').forEach(b => {
-    b.classList.toggle('selected', b.dataset.value === p.sex);
-  });
-
-  openModal('modal-edit-profile');
-}
-
-function pickEditAvatar(a) {
-  selectedEditAvatar = a;
-  document.querySelectorAll('#edit-avatar-grid .avatar-opt').forEach(el => el.classList.toggle('selected', el.textContent===a));
-}
-function pickEditColor(c) {
-  selectedEditColor = c;
-  document.querySelectorAll('#edit-color-row .color-opt').forEach(el => el.classList.toggle('selected', el.style.background===c));
-}
-
-// ===== SWITCH PROFILE =====
-function openSwitchProfile() {
-  const list = document.getElementById('switch-list');
-  list.innerHTML = db.profiles.map(p => `
-    <div class="profile-switch-item${p.id===currentProfileId?' active-profile':''}" onclick="switchProfile('${p.id}')">
-      <div class="profile-switch-avatar" style="border-color:${p.color};background:${p.color}22">${p.avatar}</div>
-      <div class="profile-switch-info">
-        <div class="profile-switch-name">${esc(p.name)}</div>
-        <div class="profile-switch-sub">${db.parties.filter(pt=>pt.playerIds.includes(p.id)).length} prés</div>
-      </div>
-      ${p.id===currentProfileId ? '<span class="profile-switch-check">✓</span>' : ''}
-    </div>
-  `).join('');
-  openModal('modal-switch');
-}
-
-function switchProfile(id) {
-  currentProfileId = id;
-  localStorage.setItem('pre_current_profile', id);
-  closeModal('modal-switch');
-  showToast(`Perfil: ${getProfile(id)?.name} 👋`);
-  renderFeedHeader();
-  if (currentPage === 'profile') renderProfile();
-}
-
-// ===== FEED =====
-function renderFeed() {
-  renderFeedHeader();
-  renderRanking();
-  renderFeedParties();
-}
-
-function renderFeedHeader() {
-  const p = getCurrentProfile();
-  if (!p) return;
-  const av = document.getElementById('feed-mini-avatar');
-  const nm = document.getElementById('feed-mini-name');
-  av.textContent = p.avatar;
-  av.style.borderColor = p.color;
-  av.style.background = p.color + '22';
-  nm.textContent = p.name;
-}
-
-function renderRanking() {
-  // ranking: soma de álcool total por perfil
-  const scores = db.profiles.map(p => {
-    const total = db.parties
-      .filter(pt => pt.playerIds.includes(p.id))
-      .reduce((sum, pt) => {
-        const player = pt.players.find(pl => pl.profileId === p.id);
-        return sum + (player ? player.drinks.reduce((s, d) => s + d.grams, 0) : 0);
-      }, 0);
-    const parties = db.parties.filter(pt => pt.playerIds.includes(p.id)).length;
-    return { profile: p, total, parties };
-  }).sort((a, b) => b.total - a.total);
-
-  const podium = document.getElementById('ranking-podium');
-  const list   = document.getElementById('ranking-list');
-
-  if (scores.length === 0) {
-    podium.innerHTML = '';
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🏆</div><div class="empty-state-title">Ranking vazio</div><div class="empty-state-text">Cria um perfil e vai pra pré!</div></div>`;
-    return;
-  }
-
-  // podium: posições [2º, 1º, 3º]
-  const ordered = [scores[1], scores[0], scores[2]].filter(Boolean);
-  const pClasses = scores.length >= 2 ? ['p2','p1','p3'] : ['p1'];
-  const medals = ['🥈','🥇','🥉'];
-
-  podium.innerHTML = ordered.map((s, i) => {
-    const realPos = ordered.indexOf(s) === 1 ? 0 : (ordered.indexOf(s) === 0 ? 1 : 2);
-    const cls = pClasses[i];
-    const medal = medals[i];
-    return `
-      <div class="podium-slot ${cls}">
-        <div class="podium-name">${esc(s.profile.name)}</div>
-        <div class="podium-avatar-wrap">
-          <div class="podium-avatar" style="border-color:${s.profile.color};background:${s.profile.color}22">${s.profile.avatar}</div>
-          <span class="podium-medal">${medal}</span>
-        </div>
-        <div class="podium-base"></div>
-        <div class="podium-stat">${s.total.toFixed(0)}g</div>
-      </div>
-    `;
-  }).join('');
-
-  list.innerHTML = scores.slice(3).map((s, i) => `
-    <div class="ranking-item">
-      <div class="ranking-pos">${i + 4}</div>
-      <div class="ranking-avatar" style="border-color:${s.profile.color};background:${s.profile.color}22">${s.profile.avatar}</div>
-      <div class="ranking-info">
-        <div class="ranking-name">${esc(s.profile.name)}</div>
-        <div class="ranking-sub">${s.parties} prés · ${s.total.toFixed(0)}g total</div>
-      </div>
-      <div class="ranking-val">${s.total.toFixed(0)}g</div>
-    </div>
-  `).join('');
-}
-
-function renderFeedParties() {
-  const el = document.getElementById('feed-parties');
-  const parties = [...db.parties].sort((a,b) => b.startTime - a.startTime).slice(0, 10);
-
-  if (parties.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🍺</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Vai na aba Pré e começa a primeira!</div></div>`;
-    return;
-  }
-
-  el.innerHTML = parties.map(pt => {
-    const isActive = pt.id === db.activePartyId;
-    const hostProfile = getProfile(pt.playerIds[0]);
-    if (!hostProfile) return '';
-    const totalAlc = pt.players.reduce((s, pl) => s + pl.drinks.reduce((ss, d) => ss + d.grams, 0), 0);
-    const maxBac = Math.max(...pt.players.map(pl => pl.maxBac || 0));
-    const dur = pt.endTime
-      ? formatDuration(pt.endTime - pt.startTime)
-      : (isActive ? '🔴 ao vivo' : '—');
-    const levelInfo = getLevelInfo(maxBac);
-    return `
-      <div class="party-card" onclick="openPartyDetail('${pt.id}')">
-        <div class="party-card-top">
-          <div class="party-card-av" style="border-color:${hostProfile.color};background:${hostProfile.color}22">${hostProfile.avatar}</div>
-          <div class="party-card-info">
-            <div class="party-card-name">${esc(pt.name)}</div>
-            <div class="party-card-meta">${hostProfile.name} · ${formatDate(pt.startTime)}</div>
-            <span class="party-card-badge" style="color:${levelInfo.color};border-color:${levelInfo.color}44">${levelInfo.name}</span>
-          </div>
-        </div>
-        <div class="party-card-stats">
-          <div class="party-card-stat"><div class="party-card-stat-val" style="color:var(--accent2)">${totalAlc.toFixed(0)}g</div><div class="party-card-stat-lbl">Álcool</div></div>
-          <div class="party-card-stat"><div class="party-card-stat-val">${pt.players.length}</div><div class="party-card-stat-lbl">Jogadores</div></div>
-          <div class="party-card-stat"><div class="party-card-stat-val">${dur}</div><div class="party-card-stat-lbl">Duração</div></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ===== PROFILE PAGE =====
-function renderProfile() {
-  const p = getCurrentProfile();
-  if (!p) return;
-
-  const av = document.getElementById('prof-avatar');
-  av.textContent = p.avatar;
-  av.style.borderColor = p.color;
-  av.style.background = p.color + '22';
-  document.getElementById('prof-name').textContent = p.name;
-  document.getElementById('prof-since').textContent = `desde ${formatDate(p.createdAt)}`;
-
-  const myParties = db.parties.filter(pt => pt.playerIds.includes(p.id));
-  const totalAlc = myParties.reduce((s, pt) => {
-    const pl = pt.players.find(pl => pl.profileId === p.id);
-    return s + (pl ? pl.drinks.reduce((ss, d) => ss + d.grams, 0) : 0);
-  }, 0);
-  const maxBac = Math.max(0, ...myParties.map(pt => {
-    const pl = pt.players.find(pl => pl.profileId === p.id);
-    return pl?.maxBac || 0;
-  }));
-  const totalDrinks = myParties.reduce((s, pt) => {
-    const pl = pt.players.find(pl => pl.profileId === p.id);
-    return s + (pl?.drinks.length || 0);
-  }, 0);
-
-  document.getElementById('prof-stats').innerHTML = `
-    <div class="profile-stat-box"><div class="profile-stat-val">${myParties.length}</div><div class="profile-stat-lbl">Prés</div></div>
-    <div class="profile-stat-box"><div class="profile-stat-val">${totalAlc.toFixed(0)}g</div><div class="profile-stat-lbl">Álcool total</div></div>
-    <div class="profile-stat-box"><div class="profile-stat-val">${(maxBac*100).toFixed(2)}%</div><div class="profile-stat-lbl">Pico de BAC</div></div>
-    <div class="profile-stat-box"><div class="profile-stat-val">${totalDrinks}</div><div class="profile-stat-lbl">Doses</div></div>
-  `;
-
-  const pp = document.getElementById('prof-parties');
-  if (myParties.length === 0) {
-    pp.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">Nenhuma pré</div><div class="empty-state-text">Vai na aba Pré e começa!</div></div>`;
-    return;
-  }
-
-  pp.innerHTML = [...myParties].sort((a,b)=>b.startTime-a.startTime).map(pt => {
-    const pl = pt.players.find(pl => pl.profileId === p.id);
-    const alc = pl ? pl.drinks.reduce((s,d)=>s+d.grams,0) : 0;
-    const levelInfo = getLevelInfo(pl?.maxBac || 0);
-    const dur = pt.endTime ? formatDuration(pt.endTime - pt.startTime) : '🔴 ao vivo';
-    return `
-      <div class="party-card" onclick="openPartyDetail('${pt.id}')">
-        <div class="party-card-top">
-          <div class="party-card-av" style="border-color:${p.color};background:${p.color}22">🍺</div>
-          <div class="party-card-info">
-            <div class="party-card-name">${esc(pt.name)}</div>
-            <div class="party-card-meta">${formatDate(pt.startTime)}</div>
-            <span class="party-card-badge" style="color:${levelInfo.color};border-color:${levelInfo.color}44">${levelInfo.name}</span>
-          </div>
-        </div>
-        <div class="party-card-stats">
-          <div class="party-card-stat"><div class="party-card-stat-val" style="color:var(--accent2)">${alc.toFixed(0)}g</div><div class="party-card-stat-lbl">Álcool</div></div>
-          <div class="party-card-stat"><div class="party-card-stat-val">${pl?.drinks.length||0}</div><div class="party-card-stat-lbl">Doses</div></div>
-          <div class="party-card-stat"><div class="party-card-stat-val">${dur}</div><div class="party-card-stat-lbl">Duração</div></div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ===== CUP SVG =====
-function cupSVG(shape, fillPct, color, w, h) {
-  const fp = Math.max(0, Math.min(1, fillPct / 100));
-  const fc = color || '#a855f7';
-  const fill = fc + 'aa';
-  const gls = '#3a3a5d';
-  const hi = 'rgba(255,255,255,0.10)';
-  const uid = Math.random().toString(36).substr(2, 5);
-
-  if (shape === 'descartavel' || shape === 'descartavel_g') {
-    const tw=w*0.72,bw=w*0.52,tx=(w-tw)/2,bx=(w-bw)/2;
-    const top=h*0.05,ch=h*0.83,bot=top+ch,slope=(tw-bw)/2/ch;
-    const fillH=ch*fp,fillY=bot-fillH,fl=bx+slope*(ch-fillH),fr=fl+bw+2*slope*fillH;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs><clipPath id="c${uid}"><polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}"/></clipPath></defs>
-      <polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
-      <rect x="${fl}" y="${fillY}" width="${Math.max(0,fr-fl)}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}" rx="1"/>
-      <line x1="${tx+2}" y1="${top+3}" x2="${tx+tw-2}" y2="${top+3}" stroke="${hi}" stroke-width="1.5" stroke-linecap="round"/></svg>`;
-  }
-  if (shape === 'lata') {
-    const cw=w*0.58,cx=(w-cw)/2,r2=cw/2,top=h*0.09,ch=h*0.80,bot=top+ch;
-    const fillH=ch*fp,fillY=bot-fillH;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs><clipPath id="c${uid}"><rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="3"/></clipPath></defs>
-      <rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="3" fill="rgba(200,200,200,0.05)" stroke="${gls}" stroke-width="1.5"/>
-      <rect x="${cx}" y="${fillY}" width="${cw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
-      <ellipse cx="${w/2}" cy="${top}" rx="${r2}" ry="${r2*0.22}" fill="#1a1a26" stroke="${gls}" stroke-width="1.5"/>
-      <ellipse cx="${w/2}" cy="${bot}" rx="${r2}" ry="${r2*0.22}" fill="#12121a" stroke="${gls}" stroke-width="1.5"/></svg>`;
-  }
-  if (shape === 'longneck') {
-    const nw=w*0.22,bw=w*0.46,nx=(w-nw)/2,bx=(w-bw)/2;
-    const top=h*0.04,nBot=h*0.35,bTop=h*0.40,bot=h*0.95;
-    const nH=nBot-top,bH=bot-bTop,fillH=(nH+bH)*fp;
-    const inBody=Math.min(bH,fillH),inNeck=Math.max(0,fillH-bH);
-    const bodyFillY=bot-inBody,neckFillY=nBot-inNeck;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs>
-        <clipPath id="cb${uid}"><rect x="${bx}" y="${bTop}" width="${bw}" height="${bH}" rx="3"/></clipPath>
-        <clipPath id="cn${uid}"><rect x="${nx}" y="${top}" width="${nw}" height="${nH}" rx="2"/></clipPath>
-      </defs>
-      <rect x="${bx}" y="${bTop}" width="${bw}" height="${bH}" rx="3" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
-      <rect x="${bx}" y="${bodyFillY}" width="${bw}" height="${inBody}" clip-path="url(#cb${uid})" fill="${fill}"/>
-      <rect x="${nx}" y="${top}" width="${nw}" height="${nH}" rx="2" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
-      ${inNeck>0?`<rect x="${nx}" y="${neckFillY}" width="${nw}" height="${inNeck}" clip-path="url(#cn${uid})" fill="${fill}"/>`:''}
-      <path d="M${nx},${nBot} Q${nx},${bTop} ${bx},${bTop} L${bx+bw},${bTop} Q${nx+nw},${bTop} ${nx+nw},${nBot}" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/></svg>`;
-  }
-  if (shape === 'shot') {
-    const tw=w*0.64,bw=w*0.50,tx=(w-tw)/2,bx=(w-bw)/2;
-    const top=h*0.10,ch=h*0.72,bot=top+ch,slope=(tw-bw)/2/ch;
-    const fillH=ch*fp,fillY=bot-fillH,fl=bx+slope*(ch-fillH),fr=fl+bw+2*slope*fillH;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs><clipPath id="c${uid}"><polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}"/></clipPath></defs>
-      <polygon points="${tx},${top} ${tx+tw},${top} ${bx+bw},${bot} ${bx},${bot}" fill="rgba(255,255,255,0.05)" stroke="${gls}" stroke-width="2"/>
-      <rect x="${fl}" y="${fillY}" width="${Math.max(0,fr-fl)}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}" rx="1"/>
-      <rect x="${bx-4}" y="${bot}" width="${bw+8}" height="${h*0.08}" rx="2" fill="#1a1a26" stroke="${gls}" stroke-width="1.2"/></svg>`;
-  }
-  if (shape === 'taca') {
-    const bw=w*0.72,nw=w*0.10,bx=(w-bw)/2,nx=(w-nw)/2;
-    const top=h*0.04,bowlBot=h*0.50,stemTop=h*0.52,stemBot=h*0.82;
-    const bowlH=bowlBot-top,fillH=bowlH*fp;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs><clipPath id="c${uid}"><path d="M${bx},${top} Q${bx},${bowlBot} ${w/2},${bowlBot} Q${bx+bw},${bowlBot} ${bx+bw},${top} Z"/></clipPath></defs>
-      <path d="M${bx},${top} Q${bx},${bowlBot} ${w/2},${bowlBot} Q${bx+bw},${bowlBot} ${bx+bw},${top} Z" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.8"/>
-      <rect x="${bx}" y="${bowlBot-fillH}" width="${bw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
-      <line x1="${bx}" y1="${top+1}" x2="${bx+bw}" y2="${top+1}" stroke="${gls}" stroke-width="2"/>
-      <rect x="${nx}" y="${stemTop}" width="${nw}" height="${stemBot-stemTop}" fill="#1e1e2e" stroke="${gls}" stroke-width="1.2"/>
-      <rect x="${(w-w*0.32)/2}" y="${h*0.84}" width="${w*0.32}" height="${h*0.09}" rx="3" fill="#1a1a26" stroke="${gls}" stroke-width="1.2"/></svg>`;
-  }
-  if (shape === 'caneca') {
-    const cw=w*0.58,cx=(w-cw)/2-4,hx=cx+cw,hw=w*0.20;
-    const top=h*0.08,ch=h*0.78,bot=top+ch,fillH=ch*fp,fillY=bot-fillH;
-    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none">
-      <defs><clipPath id="c${uid}"><rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="4"/></clipPath></defs>
-      <rect x="${cx}" y="${top}" width="${cw}" height="${ch}" rx="4" fill="rgba(255,255,255,0.03)" stroke="${gls}" stroke-width="1.5"/>
-      <rect x="${cx}" y="${fillY}" width="${cw}" height="${fillH}" clip-path="url(#c${uid})" fill="${fill}"/>
-      <path d="M${hx},${top+ch*0.2} Q${hx+hw*1.5},${top+ch*0.2} ${hx+hw*1.5},${top+ch*0.5} Q${hx+hw*1.5},${top+ch*0.8} ${hx},${top+ch*0.8}" stroke="${gls}" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
-  }
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><rect x="10" y="10" width="${w-20}" height="${h-20}" rx="4" stroke="#3a3a5d" stroke-width="2" fill="none"/></svg>`;
-}
-
-// ===== PRÉ PAGE =====
-function renderPre() {
-  const ap = getActiveParty();
-  if (ap) {
-    renderMonitor(ap);
-  } else {
-    renderSetup();
-  }
-}
-
-function renderSetup() {
-  document.getElementById('pre-content').innerHTML = `
-    <div class="page-header"><h1>PRÉ</h1><p>nova festa</p></div>
-    <div class="card">
-      <div class="card-title">// Configurar a pré</div>
-      <div class="form-group">
-        <label class="form-label">Nome da festa</label>
-        <input class="form-input" id="setup-name" type="text" placeholder="ex: Pré do Leo, Aniversário..." maxlength="40" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Estômago <span>(comeu hoje?)</span></label>
-        <div class="btn-group">
-          <button class="btn-option" data-group="setup-stomach" data-value="empty">🈳 Vazio</button>
-          <button class="btn-option selected" data-group="setup-stomach" data-value="medium">〽️ Médio</button>
-          <button class="btn-option" data-group="setup-stomach" data-value="full">✅ Cheio</button>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:0">
-        <label class="form-label">Hidratação</label>
-        <div class="btn-group">
-          <button class="btn-option" data-group="setup-hydration" data-value="dry">🏜️ Seco</button>
-          <button class="btn-option selected" data-group="setup-hydration" data-value="ok">💧 Ok</button>
-          <button class="btn-option" data-group="setup-hydration" data-value="hydrated">🌊 Hidratado</button>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">// Nível alvo da noite</div>
-      <div class="levels-grid">
-        <div class="level-btn level-alto" data-level="alto" onclick="pickSetupLevel(this)">
-          <div class="level-emoji">😊</div><div class="level-name">Alto</div>
-          <div class="level-desc">levinho, sociável</div><div class="level-bac">0.04–0.07%</div>
-        </div>
-        <div class="level-btn level-flow selected" data-level="flow" onclick="pickSetupLevel(this)">
-          <div class="level-emoji">🔥</div><div class="level-name">Flow</div>
-          <div class="level-desc">na vibe certa</div><div class="level-bac">0.08–0.12%</div>
-        </div>
-        <div class="level-btn level-bebado" data-level="bebado" onclick="pickSetupLevel(this)">
-          <div class="level-emoji">🥴</div><div class="level-name">Bêbado</div>
-          <div class="level-desc">bem alterado</div><div class="level-bac">0.13–0.18%</div>
-        </div>
-        <div class="level-btn level-destruicao" data-level="destruicao" onclick="pickSetupLevel(this)">
-          <div class="level-emoji">💀</div><div class="level-name">Destruição</div>
-          <div class="level-desc">vai se arrepender</div><div class="level-bac">0.19%+</div>
-        </div>
-      </div>
-    </div>
-    <button class="btn-primary" onclick="startParty()">▶ COMEÇAR A PRÉ</button>
-  `;
-}
-
-function pickSetupLevel(el) {
-  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  setupState.targetLevel = el.dataset.level;
-}
-
-function startParty() {
-  const nameEl = document.getElementById('setup-name');
-  const name = nameEl ? nameEl.value.trim() : '';
-  if (!name) { showToast('Dá um nome pra pré! 🎉'); return; }
-  const p = getCurrentProfile();
-  if (!p) return;
-
-  setupState.stomach   = document.querySelector('[data-group="setup-stomach"].selected')?.dataset.value || 'medium';
-  setupState.hydration = document.querySelector('[data-group="setup-hydration"].selected')?.dataset.value || 'ok';
-
-  const now = Date.now();
-  const party = {
-    id: now.toString(),
-    name,
-    startTime: now,
-    endTime: null,
-    playerIds: [p.id],
-    players: [{
-      profileId: p.id,
-      stomach: setupState.stomach,
-      hydration: setupState.hydration,
-      targetLevel: setupState.targetLevel,
-      joinedAt: now,
-      drinks: [],
-      maxBac: 0,
-    }],
-    photos: [],
-  };
-
-  db.parties.push(party);
-  db.activePartyId = party.id;
-  mon.activePlayerId = p.id;
-  saveDB();
-  updateNavDot();
-  mon.selectedDrink = DRINKS[0];
-  mon.selectedCup   = CUPS[0];
-  mon.fillPercent   = 30;
-  renderMonitor(party);
-  initMonitorTimers();
-  showToast('Pré começou! 🍺');
-}
-
-function renderMonitor(party) {
-  // Garante que mon.activePlayerId está dentro da party
-  const validPlayer = party.players.find(pl => pl.profileId === mon.activePlayerId);
-  if (!validPlayer) mon.activePlayerId = party.players[0]?.profileId || getCurrentProfile()?.id;
-
-  const player = party.players.find(pl => pl.profileId === mon.activePlayerId) || party.players[0];
-  const profile = getProfile(mon.activePlayerId) || getCurrentProfile();
-  const target  = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
-  const targetPct = Math.min(100, (target.bac / 0.22) * 100);
-
-  if (!mon.selectedDrink) mon.selectedDrink = DRINKS[0];
-  if (!mon.selectedCup)   mon.selectedCup   = CUPS[0];
-
-  document.getElementById('pre-content').innerHTML = `
-    <div class="monitor-top">
-      <div>
-        <div class="monitor-party-name">${esc(party.name)}</div>
-        <div class="monitor-party-sub" id="monitor-player-sub">// ${profile ? profile.avatar + ' ' + profile.name : ''} · alvo: ${target.name}</div>
-      </div>
-      <button style="background:none;border:1px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;flex-shrink:0" onclick="openLiveRanking()">🏆 Rank</button>
-    </div>
-
-    <div id="players-bar" class="players-bar"></div>
-
-    <div class="timer-bar">
-      <div><div class="timer-label">TEMPO DE PRÉ</div><div class="timer-value" id="elapsed-timer">00:00</div></div>
-      <div style="text-align:right"><div class="timer-label">PRÓXIMA DOSE</div><div class="timer-value" id="next-drink-timer" style="color:var(--green)">—</div></div>
-    </div>
-
-    <div class="card" style="text-align:center">
-      <div class="bac-display">
-        <div class="bac-value" id="bac-value">0.000%</div>
-        <div class="bac-unit">BAC · g de álcool por 100ml de sangue</div>
-        <div id="status-badge" class="status-badge" style="background:rgba(100,116,139,0.1);color:var(--muted);border-color:var(--border)">
-          <span class="status-dot" style="background:var(--muted)"></span>
-          <span id="status-text">SÓBRIO</span>
-        </div>
-      </div>
-      <div class="bac-bar-container">
-        <div class="bac-bar-labels"><span>0.00</span><span>0.05</span><span>0.10</span><span>0.15</span><span>0.20+</span></div>
-        <div class="bac-bar-track">
-          <div class="bac-bar-zones">
-            <div class="zone zone-sobrio"></div><div class="zone zone-alto"></div>
-            <div class="zone zone-flow"></div><div class="zone zone-bebado"></div><div class="zone zone-mal"></div>
-          </div>
-          <div class="bac-bar-fill" id="bac-bar-fill" style="width:0%"></div>
-          <div class="target-marker" id="target-marker" style="left:${targetPct}%"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-value" id="stat-consumed">0g</div><div class="stat-label">Álcool puro</div></div>
-      <div class="stat-box"><div class="stat-value" id="stat-drinks">0</div><div class="stat-label">Doses</div></div>
-      <div class="stat-box"><div class="stat-value" id="stat-target-dist">+?g</div><div class="stat-label">Pro alvo</div></div>
-    </div>
-
-    <div class="notif-banner">
-      <div class="notif-banner-text">
-        <div class="notif-banner-title">🔔 Alertas de dose</div>
-        <div class="notif-banner-sub" id="notif-status-text">Ativar para avisar quando precisar beber</div>
-      </div>
-      <label class="notif-toggle">
-        <input type="checkbox" id="notif-toggle" onchange="toggleNotifications()">
-        <span class="notif-slider"></span>
-      </label>
-    </div>
-
-    <div class="advice-card" id="advice-card">
-      <div class="advice-icon" id="advice-icon">💬</div>
-      <div class="advice-text" id="advice-text">Começando a monitorar. Adicione a primeira bebida!</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">// Adicionar Bebida</div>
-      <div class="drinks-grid" id="drinks-grid"></div>
-      <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:10px">TIPO DE COPO</div>
-      <div class="cup-selector-row" id="cup-selector-row"></div>
-      <div class="fill-section">
-        <div class="cup-preview" id="cup-preview"></div>
-        <div class="fill-controls">
-          <div class="fill-label">QUANTO TÁ CHEIO?</div>
-          <input type="range" class="fill-slider" id="fill-slider" min="0" max="100" value="${mon.fillPercent}" oninput="updateFill()">
-          <div class="fill-info">
-            <span class="fill-ml" id="fill-ml">—</span>
-            <span class="fill-alcohol" id="fill-alcohol">—</span>
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="addDrink()" style="margin-top:0">+ ADICIONAR</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">// Histórico da noite</div>
-      <div class="log-list" id="log-list"><div class="empty-log">nenhuma bebida adicionada ainda...</div></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">// Fotos da noite</div>
-      <div id="photo-strip" class="photo-strip">
-        <label class="add-photo-btn" for="photo-input">
-          <span class="photo-icon">📷</span><span>Foto</span>
-        </label>
-      </div>
-      <input type="file" id="photo-input" class="hidden-file" accept="image/*" onchange="handlePhotoUpload(event)">
-    </div>
-
-    <button class="btn-end-party" onclick="endParty()">⬛ Encerrar pré</button>
-  `;
-
-  renderPlayersBar();
-  renderDrinks();
-  renderCups();
-  renderCupPreview();
-  updateFillInfo();
-  renderLog(player.drinks);
-  renderPhotoStrip();
-  updateBAC();
-  updateElapsedTimer();
-}
-
-function initMonitorTimers() {
-  stopMonitorTimers();
-  mon.timerInterval = setInterval(updateElapsedTimer, 1000);
-  mon.bacInterval   = setInterval(updateBAC, 4000);
-}
-
-function stopMonitorTimers() {
-  if (mon.timerInterval) { clearInterval(mon.timerInterval); mon.timerInterval = null; }
-  if (mon.bacInterval)   { clearInterval(mon.bacInterval);   mon.bacInterval   = null; }
-}
-
-function updateElapsedTimer() {
-  const el = document.getElementById('elapsed-timer');
-  if (!el) return;
-  const ap = getActiveParty();
-  if (!ap) return;
-  const s = Math.floor((Date.now() - ap.startTime) / 1000);
-  el.textContent = String(Math.floor(s / 60)).padStart(2,'0') + ':' + String(s % 60).padStart(2,'0');
-}
-
-// ===== BAC MATH =====
-function calcBAC(grams, minutes, weight, sex, stomach, hydration) {
-  const r  = sex === 'M' ? 0.68 : 0.55;
-  const af = (stomachMult[stomach] || 1.0) * (hydrationMult[hydration] || 1.0);
-  return Math.max(0, (grams * af / (weight * 1000 * r)) * 100 - 0.00025 * minutes);
-}
-
-function getPlayerData() {
-  const ap = getActiveParty();
-  if (!ap) return null;
-  // Usa o jogador ativo do monitor; fallback pro perfil logado ou primeiro jogador
-  const targetId = mon.activePlayerId || getCurrentProfile()?.id;
-  return ap.players.find(pl => pl.profileId === targetId) || ap.players[0];
-}
-
-function updateBAC() {
-  const ap     = getActiveParty();
-  if (!ap) return;
-  const profile = getCurrentProfile();
-  const player  = getPlayerData();
-  if (!player || !profile) return;
-
-  const totalGrams = player.drinks.reduce((s, d) => s + d.grams, 0);
-  const minutes    = (Date.now() - (player.joinedAt || ap.startTime)) / 60000;
-  const bac        = calcBAC(totalGrams, minutes, profile.weight, profile.sex, player.stomach, player.hydration);
-  renderPlayersBar();
-  const target     = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
-  const diff       = target.bac - bac;
-
-  if (bac > (player.maxBac || 0)) { player.maxBac = bac; saveDB(); }
-
-  const bacEl = document.getElementById('bac-value');
-  if (!bacEl) return;
-
-  bacEl.textContent = (bac * 100).toFixed(3) + '%';
-  const barPct = Math.min(100, (bac / 0.22) * 100);
-
-  let color, st, sc, sb;
-  if      (bac < 0.04) { color='#64748b'; st='SÓBRIO';        sc='#94a3b8'; sb='rgba(100,116,139,0.1)'; }
-  else if (bac < 0.08) { color='#22c55e'; st='😊 ALTO';       sc='#22c55e'; sb='rgba(34,197,94,0.1)';   }
-  else if (bac < 0.13) { color='#eab308'; st='🔥 FLOW';       sc='#eab308'; sb='rgba(234,179,8,0.1)';   }
-  else if (bac < 0.19) { color='#f97316'; st='🥴 BÊBADO';     sc='#f97316'; sb='rgba(249,115,22,0.1)';  }
-  else if (bac < 0.25) { color='#ef4444'; st='💀 DESTRUIÇÃO'; sc='#ef4444'; sb='rgba(239,68,68,0.1)';   }
-  else                 { color='#ec4899'; st='🚨 PERIGO';      sc='#ec4899'; sb='rgba(236,72,153,0.15)'; }
-
-  const fillEl = document.getElementById('bac-bar-fill');
-  if (fillEl) { fillEl.style.width = barPct + '%'; fillEl.style.background = `linear-gradient(90deg,${color}88,${color})`; }
-  bacEl.style.color = color;
-
-  const badge = document.getElementById('status-badge');
-  if (badge) {
-    badge.style.cssText = `background:${sb};color:${sc};border-color:${sc}44`;
-    badge.querySelector('.status-dot').style.background = sc;
-    document.getElementById('status-text').textContent = st;
-  }
-
-  const r  = profile.sex === 'M' ? 0.68 : 0.55;
-  const af = (stomachMult[player.stomach] || 1) * (hydrationMult[player.hydration] || 1);
-
-  const sC = document.getElementById('stat-consumed');
-  const sD = document.getElementById('stat-drinks');
-  const sT = document.getElementById('stat-target-dist');
-  if (sC) sC.textContent = totalGrams.toFixed(1) + 'g';
-  if (sD) sD.textContent = player.drinks.length;
-  if (sT) {
-    if (Math.abs(diff) < 0.005) { sT.textContent = '✓'; sT.style.color = target.color; }
-    else if (diff > 0) { sT.textContent = '+' + ((diff / 100) * profile.weight * 1000 * r / af).toFixed(0) + 'g'; sT.style.color = '#a855f7'; }
-    else { sT.textContent = '↓ ACIMA'; sT.style.color = '#ef4444'; }
-  }
-
-  const nd = document.getElementById('next-drink-timer');
-  if (nd) {
-    if (diff > 0.015)      { nd.textContent = 'AGORA';  nd.style.color = '#22c55e'; }
-    else if (diff > -0.01) { nd.textContent = '~60min'; nd.style.color = '#eab308'; }
-    else                   { nd.textContent = Math.round(-diff / 0.00025) + 'min'; nd.style.color = '#ef4444'; }
-  }
-
-  const ac = document.getElementById('advice-card');
-  const ai = document.getElementById('advice-icon');
-  const at = document.getElementById('advice-text');
-  if (ac && ai && at) {
-    let icon, text, bc;
-    if (player.drinks.length === 0) {
-      icon='👋'; text='Adicione a primeira bebida pra começar!'; bc='#7c3aed';
-    } else if (diff > 0.03) {
-      const gr = ((diff / 100) * profile.weight * 1000 * r / af).toFixed(0);
-      icon='🍺'; text=`Faltam ~<span class="advice-highlight" style="color:${target.color}">${gr}g de álcool puro</span> pro nível ${target.name}. Pode mandar ver.`; bc='#22c55e';
-    } else if (diff > -0.01) {
-      icon='🎯'; text=`Tá no <span class="advice-highlight" style="color:${target.color}">nível certo</span>! Lembra que o BAC ainda sobe por ~30min. Segura.`; bc=target.color;
-    } else if (bac > 0.20) {
-      icon='🚨'; text=`BAC muito alto! <span class="advice-highlight" style="color:#ef4444">Para tudo agora.</span> Bebe água, come algo, não dirige.`; bc='#ef4444';
-    } else {
-      icon='⏳'; text=`Passou do alvo. Vai normalizar em ~<span class="advice-highlight" style="color:#f97316">${Math.round(-diff / 0.00025)} min</span>. Para e hidrata.`; bc='#f97316';
-    }
-    ai.textContent = icon;
-    at.innerHTML = text;
-    ac.style.borderLeftColor = bc;
-  }
-
-  checkNotifs(bac, target, diff, profile, player);
-}
-
-// ===== DRINK ACTIONS =====
-function addDrink() {
-  const ap     = getActiveParty();
-  const player = getPlayerData();
-  if (!ap || !player) return;
-
-  const ml    = Math.round(mon.selectedCup.ml * mon.fillPercent / 100);
-  const grams = ml * (mon.selectedDrink.abv / 100) * 0.789;
-  if (grams <= 0) { showToast('Seleciona uma quantidade!'); return; }
-
-  player.drinks.push({ id: Date.now(), name: mon.selectedDrink.name, emoji: mon.selectedDrink.emoji, ml, grams, time: Date.now() });
-  saveDB();
-  renderLog(player.drinks);
-  updateBAC();
-
-  const v = document.getElementById('bac-value');
-  if (v) { v.style.transform = 'scale(1.08)'; setTimeout(() => v.style.transform = 'scale(1)', 300); }
-  showToast(`${mon.selectedDrink.emoji} +${grams.toFixed(1)}g`);
-}
-
-function removeDrink(id) {
-  const player = getPlayerData();
-  if (!player) return;
-  player.drinks = player.drinks.filter(d => d.id !== id);
-  saveDB();
-  renderLog(player.drinks);
-  updateBAC();
-}
-
-function renderLog(drinks) {
-  const list = document.getElementById('log-list');
-  if (!list) return;
-  if (!drinks || drinks.length === 0) { list.innerHTML = '<div class="empty-log">nenhuma bebida adicionada ainda...</div>'; return; }
-  list.innerHTML = [...drinks].reverse().map(d => {
-    const t = new Date(d.time);
-    const ts = t.getHours().toString().padStart(2,'0') + ':' + t.getMinutes().toString().padStart(2,'0');
-    return `<div class="log-item">
-      <span class="log-time">${ts}</span><span>${d.emoji}</span>
-      <span class="log-drink">${d.name} · ${d.ml}ml</span>
-      <span class="log-grams">${d.grams.toFixed(1)}g</span>
-      <button class="log-remove" onclick="removeDrink(${d.id})">✕</button>
-    </div>`;
-  }).join('');
-}
-
-// ===== DRINK/CUP PICKERS =====
-function renderDrinks() {
-  const el = document.getElementById('drinks-grid');
-  if (!el) return;
-  el.innerHTML = DRINKS.map(d => `
-    <div class="drink-btn${d.id===mon.selectedDrink.id?' selected':''}" onclick="selectDrink('${d.id}')">
-      <div class="drink-emoji">${d.emoji}</div>
-      <div class="drink-name">${d.name}</div>
-      <div class="drink-abv">${d.abv}% ABV</div>
-    </div>`).join('');
-}
-
-function renderCups() {
-  const el = document.getElementById('cup-selector-row');
-  if (!el) return;
-  el.innerHTML = CUPS.map(c => `
-    <div class="cup-option${c.id===mon.selectedCup.id?' selected':''}" onclick="selectCup('${c.id}')">
-      ${cupSVG(c.shape, 45, mon.selectedDrink.color, 44, 54)}
-      <div class="cup-option-label">${c.label}</div>
-    </div>`).join('');
-}
-
-function renderCupPreview() {
-  const el = document.getElementById('cup-preview');
-  if (!el) return;
-  el.innerHTML = cupSVG(mon.selectedCup.shape, mon.fillPercent, mon.selectedDrink.color, 72, 96);
-}
-
-function updateFill() {
-  mon.fillPercent = parseInt(document.getElementById('fill-slider')?.value || 30);
-  renderCupPreview();
-  updateFillInfo();
-}
-
-function updateFillInfo() {
-  const ml  = Math.round(mon.selectedCup.ml * mon.fillPercent / 100);
-  const g   = ml * (mon.selectedDrink.abv / 100) * 0.789;
-  const mlEl  = document.getElementById('fill-ml');
-  const alcEl = document.getElementById('fill-alcohol');
-  if (mlEl)  mlEl.textContent  = ml + 'ml';
-  if (alcEl) alcEl.textContent = '~' + g.toFixed(1) + 'g álcool';
-}
-
-function selectDrink(id) {
-  mon.selectedDrink = DRINKS.find(d => d.id === id) || DRINKS[0];
-  renderDrinks(); renderCups(); renderCupPreview(); updateFillInfo();
-}
-
-function selectCup(id) {
-  mon.selectedCup = CUPS.find(c => c.id === id) || CUPS[0];
-  renderCups(); renderCupPreview(); updateFillInfo();
-}
-
-// ===== END PARTY =====
-function endParty() {
-  if (!confirm('Encerrar a pré? O histórico vai ser salvo.')) return;
-  const ap = getActiveParty();
-  if (!ap) return;
-  ap.endTime = Date.now();
-  db.activePartyId = null;
-  stopMonitorTimers();
-  saveDB();
-  updateNavDot();
-  showToast('Pré encerrada! 🎉');
-  renderPre();
-}
-
-// ===== NAV DOT =====
-function updateNavDot() {
-  const dot = document.getElementById('nav-pre-dot');
-  if (dot) dot.style.display = db.activePartyId ? 'block' : 'none';
-}
-
-// ===== NOTIFICATIONS =====
-async function toggleNotifications() {
-  const toggle = document.getElementById('notif-toggle');
-  const sub    = document.getElementById('notif-status-text');
-  if (!toggle) return;
-  if (!toggle.checked) { mon.notificationsEnabled = false; if (sub) sub.textContent = 'Ativar para avisar quando precisar beber'; return; }
-  if (!('Notification' in window)) { toggle.checked = false; if (sub) sub.textContent = '❌ Browser não suporta notificações'; return; }
-  if (Notification.permission === 'denied') { toggle.checked = false; if (sub) sub.textContent = '🔒 Bloqueado nas config do browser'; return; }
-  if (Notification.permission !== 'granted') {
-    const p = await Notification.requestPermission();
-    if (p !== 'granted') { toggle.checked = false; if (sub) sub.textContent = '❌ Permissão negada'; return; }
-  }
-  mon.notificationsEnabled = true;
-  if (sub) sub.textContent = '✅ Ativo — você vai receber alertas';
-  sendNotif('🍺 PRÉ ativado!', 'Alertas de dose ligados. Bora!');
-}
-
-function sendNotif(title, body) {
-  if (!mon.notificationsEnabled || Notification.permission !== 'granted') return;
-  new Notification(title, { body });
-}
-
-function checkNotifs(bac, target, diff, profile, player) {
-  if (!mon.notificationsEnabled) return;
-  const now = Date.now(), cooldown = 5 * 60 * 1000;
-  const r  = profile.sex === 'M' ? 0.68 : 0.55;
-  const af = (stomachMult[player.stomach] || 1) * (hydrationMult[player.hydration] || 1);
-  if (diff > 0.025 && player.drinks.length > 0 && now - mon.lastNotifTime > cooldown) {
-    sendNotif('🍺 Hora de beber!', `Faltam ~${((diff/100)*profile.weight*1000*r/af).toFixed(0)}g pro nível ${target.name}.`);
-    mon.lastNotifTime = now;
-  }
-  if (diff < -0.03 && !mon.wasAboveTarget) {
-    sendNotif('⚠️ Passou do alvo!', 'BAC acima do objetivo. Beba água!');
-    mon.wasAboveTarget = true; mon.lastNotifTime = now;
-  }
-  if (diff > -0.01) mon.wasAboveTarget = false;
-}
-
-// ===== GRUPO / PLAYERS =====
-function playerCurrentBAC(party, player) {
-  const profile = getProfile(player.profileId);
-  if (!profile) return 0;
-  const totalGrams = player.drinks.reduce((s, d) => s + d.grams, 0);
-  const minutes    = (Date.now() - (player.joinedAt || party.startTime)) / 60000;
-  return calcBAC(totalGrams, minutes, profile.weight, profile.sex, player.stomach, player.hydration);
-}
-
-function renderPlayersBar() {
-  const bar = document.getElementById('players-bar');
-  if (!bar) return;
-  const ap = getActiveParty();
-  if (!ap) return;
-
-  bar.innerHTML = ap.players.map(player => {
-    const profile = getProfile(player.profileId);
-    if (!profile) return '';
-    const bac      = playerCurrentBAC(ap, player);
-    const isActive = player.profileId === mon.activePlayerId;
-    const lvl      = getLevelInfo(bac);
-    const border   = isActive ? profile.color : 'var(--border)';
-    return `
-      <div class="player-chip${isActive ? ' active' : ''}" style="border-color:${border}" onclick="switchMonitorPlayer('${player.profileId}')">
-        <div class="player-chip-avatar" style="border-color:${profile.color};background:${profile.color}22">${profile.avatar}</div>
-        <div class="player-chip-info">
-          <div class="player-chip-name">${esc(profile.name.split(' ')[0].substring(0,10))}</div>
-          <div class="player-chip-bac" style="color:${lvl.color}">${(bac * 100).toFixed(2)}%</div>
-        </div>
-      </div>`;
-  }).join('') + `
-    <div class="player-chip player-chip-add" onclick="openAddPlayerModal()">
-      <div class="player-chip-avatar" style="border-color:var(--border);background:var(--surface);font-size:16px;border-style:dashed">+</div>
-      <div class="player-chip-info">
-        <div class="player-chip-name" style="color:var(--muted);font-size:11px">Adicionar</div>
-      </div>
-    </div>`;
-}
-
-function switchMonitorPlayer(profileId) {
-  const ap = getActiveParty();
-  if (!ap) return;
-  const player = ap.players.find(pl => pl.profileId === profileId);
-  if (!player) return;
-
-  mon.activePlayerId = profileId;
-  const profile = getProfile(profileId);
-  const target  = LEVELS_CONFIG[player.targetLevel] || LEVELS_CONFIG.flow;
-
-  const sub = document.getElementById('monitor-player-sub');
-  if (sub && profile) sub.textContent = `// ${profile.avatar} ${profile.name} · alvo: ${target.name}`;
-
-  const marker = document.getElementById('target-marker');
-  if (marker) marker.style.left = Math.min(100, (target.bac / 0.22) * 100) + '%';
-
-  renderPlayersBar();
-  renderLog(player.drinks);
-  updateBAC();
-  showToast(`${profile?.avatar} ${profile?.name}`);
-}
-
-function openAddPlayerModal() {
-  const ap = getActiveParty();
-  if (!ap) return;
-  const available = db.profiles.filter(p => !ap.playerIds.includes(p.id));
-  const list = document.getElementById('add-player-list');
-  if (!list) return;
-
-  if (available.length === 0) {
-    list.innerHTML = `<div class="empty-log" style="padding:24px 0;text-align:center">Todos os perfis já estão na pré.<br><br>Cria um perfil novo!</div>`;
-  } else {
-    list.innerHTML = available.map(p => `
-      <div class="profile-switch-item" onclick="addPlayerToParty('${p.id}')">
-        <div class="profile-switch-avatar" style="border-color:${p.color};background:${p.color}22">${p.avatar}</div>
-        <div class="profile-switch-info">
-          <div class="profile-switch-name">${esc(p.name)}</div>
-          <div class="profile-switch-sub">${db.parties.filter(pt => pt.playerIds.includes(p.id)).length} prés</div>
-        </div>
-        <span style="color:var(--accent2);font-size:18px">+</span>
-      </div>`).join('');
-  }
-  openModal('modal-add-player');
-}
-
-function addPlayerToParty(profileId) {
-  const ap = getActiveParty();
-  if (!ap) return;
-  if (ap.playerIds.includes(profileId)) { showToast('Jogador já na pré!'); return; }
-
-  ap.playerIds.push(profileId);
-  ap.players.push({
-    profileId,
-    stomach: 'medium',
-    hydration: 'ok',
-    targetLevel: 'flow',
-    joinedAt: Date.now(),
-    drinks: [],
-    maxBac: 0,
-  });
-  saveDB();
-  closeModal('modal-add-player');
-  renderPlayersBar();
-  const p = getProfile(profileId);
-  showToast(`${p?.avatar} ${p?.name} entrou na pré!`);
-}
-
-function openLiveRanking() {
-  const ap = getActiveParty();
-  if (!ap) return;
-
-  const ranked = ap.players.map(player => {
-    const profile = getProfile(player.profileId);
-    const bac     = playerCurrentBAC(ap, player);
-    return { player, profile, bac, drinks: player.drinks.length, alc: player.drinks.reduce((s, d) => s + d.grams, 0) };
-  }).sort((a, b) => b.bac - a.bac);
-
-  const sub = document.getElementById('live-ranking-party-name');
-  if (sub) sub.textContent = `// ${esc(ap.name)} · ${ranked.length} jogador${ranked.length > 1 ? 'es' : ''}`;
-
-  const medals = ['🥇','🥈','🥉'];
-  const list = document.getElementById('live-ranking-list');
-  if (!list) return;
-
-  list.innerHTML = ranked.map((r, i) => {
-    if (!r.profile) return '';
-    const lvl = getLevelInfo(r.bac);
-    return `
-      <div class="live-rank-item">
-        <div class="live-rank-pos">${medals[i] || (i + 1)}</div>
-        <div class="live-rank-avatar" style="border-color:${r.profile.color};background:${r.profile.color}22">${r.profile.avatar}</div>
-        <div class="live-rank-info">
-          <div class="live-rank-name">${esc(r.profile.name)}</div>
-          <div class="live-rank-sub">${r.drinks} doses · ${r.alc.toFixed(0)}g</div>
-        </div>
-        <div class="live-rank-bac" style="color:${lvl.color}">${(r.bac * 100).toFixed(2)}%</div>
-      </div>`;
-  }).join('');
-
-  openModal('modal-live-ranking');
-}
-
-// ===== FOTOS =====
-function compressImage(file) {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 900;
-        let w = img.width, h = img.height;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else       { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.72));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handlePhotoUpload(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  e.target.value = '';          // reset input pra poder reusar
-
-  const ap = getActiveParty();
-  if (!ap) return;
-
-  try {
-    showToast('📷 Comprimindo...');
-    const url = await compressImage(file);
-    const photo = {
-      id: Date.now(),
-      url,
-      playerId: mon.activePlayerId || getCurrentProfile()?.id,
-      time: Date.now(),
-    };
-    if (!ap.photos) ap.photos = [];
-    ap.photos.push(photo);
-
-    try { saveDB(); } catch (storageErr) {
-      ap.photos.pop();
-      showToast('⚠️ Armazenamento cheio — apaga fotos antigas!', 4000);
-      return;
-    }
-    renderPhotoStrip();
-    showToast('Foto adicionada! 📸');
-  } catch (err) {
-    showToast('Erro ao processar foto');
-  }
-}
-
-function renderPhotoStrip() {
-  const strip = document.getElementById('photo-strip');
-  if (!strip) return;
-  const ap = getActiveParty();
-  if (!ap) return;
-
-  const photos = (ap.photos || []);
-  const thumbs = [...photos].reverse().map(p => {
-    const profile = getProfile(p.playerId);
-    const title   = profile ? `${profile.name}` : '';
-    return `<img class="photo-strip-thumb" src="${p.url}" title="${title}" onclick="openPhotoViewer('${ap.id}',${p.id})" alt="">`;
-  }).join('');
-
-  strip.innerHTML = `
-    <label class="add-photo-btn" for="photo-input">
-      <span class="photo-icon">📷</span><span>Foto</span>
-    </label>
-    ${thumbs}`;
-}
-
-let _pvPartyId = null;
-let _pvPhotoId = null;
-
-function openPhotoViewer(partyId, photoId) {
-  const party = getParty(partyId);
-  if (!party) return;
-  const photo = (party.photos || []).find(p => p.id == photoId);
-  if (!photo) return;
-
-  _pvPartyId = partyId;
-  _pvPhotoId = photoId;
-
-  const profile = getProfile(photo.playerId);
-  const t = new Date(photo.time);
-  const timeStr = t.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-
-  document.getElementById('pv-img').src    = photo.url;
-  document.getElementById('pv-who').textContent  = profile ? `${profile.avatar} ${profile.name}` : '';
-  document.getElementById('pv-time').textContent = timeStr;
-  document.getElementById('pv-delete').onclick   = () => deletePhoto(partyId, photoId);
-
-  document.getElementById('photo-viewer').classList.add('open');
-}
-
-function closePhotoViewer() {
-  document.getElementById('photo-viewer').classList.remove('open');
-  document.getElementById('pv-img').src = '';
-  _pvPartyId = null; _pvPhotoId = null;
-}
-
-function deletePhoto(partyId, photoId) {
-  if (!confirm('Apagar esta foto?')) return;
-  const party = getParty(partyId);
-  if (!party) return;
-  party.photos = (party.photos || []).filter(p => p.id != photoId);
-  saveDB();
-  closePhotoViewer();
-  // Atualiza a UI conforme onde estamos
-  renderPhotoStrip();
-  if (document.getElementById('modal-party-detail')?.classList.contains('open')) {
-    openPartyDetail(partyId);
-  }
-  showToast('Foto apagada');
-}
-
-// ===== PARTY DETAIL =====
-function openPartyDetail(id) {
-  if (id === db.activePartyId) { navTo('pre'); return; }
-
-  const party = getParty(id);
-  if (!party) return;
-
-  // Título e meta
-  const dur = party.endTime ? formatDuration(party.endTime - party.startTime) : '—';
-  document.getElementById('pd-title').textContent = party.name;
-  document.getElementById('pd-meta').textContent  = `// ${formatDate(party.startTime)} · ${dur}`;
-
-  // Stats gerais
-  const totalAlc  = party.players.reduce((s, pl) => s + pl.drinks.reduce((ss, d) => ss + d.grams, 0), 0);
-  const totalDrk  = party.players.reduce((s, pl) => s + pl.drinks.length, 0);
-  const maxBac    = Math.max(0, ...party.players.map(pl => pl.maxBac || 0));
-  document.getElementById('pd-stats').innerHTML = `
-    <div class="party-detail-stat"><div class="party-detail-stat-val">${totalAlc.toFixed(0)}g</div><div class="party-detail-stat-lbl">Álcool</div></div>
-    <div class="party-detail-stat"><div class="party-detail-stat-val">${totalDrk}</div><div class="party-detail-stat-lbl">Doses</div></div>
-    <div class="party-detail-stat"><div class="party-detail-stat-val" style="color:${getLevelInfo(maxBac).color}">${(maxBac*100).toFixed(2)}%</div><div class="party-detail-stat-lbl">Pico BAC</div></div>`;
-
-  // Jogadores
-  const sortedPlayers = [...party.players].sort((a, b) => (b.maxBac || 0) - (a.maxBac || 0));
-  document.getElementById('pd-players').innerHTML = sortedPlayers.map(pl => {
-    const prof  = getProfile(pl.profileId);
-    if (!prof) return '';
-    const alc   = pl.drinks.reduce((s, d) => s + d.grams, 0);
-    const bac   = pl.maxBac || 0;
-    const lvl   = getLevelInfo(bac);
-    return `
-      <div class="party-player-row">
-        <div class="party-player-avatar" style="border-color:${prof.color};background:${prof.color}22">${prof.avatar}</div>
-        <div class="party-player-info">
-          <div class="party-player-name">${esc(prof.name)}</div>
-          <div class="party-player-sub">${pl.drinks.length} doses · ${alc.toFixed(0)}g</div>
-        </div>
-        <div class="party-player-bac" style="color:${lvl.color}">${(bac*100).toFixed(2)}%</div>
-      </div>`;
-  }).join('');
-
-  // Galeria de fotos
-  const photos = party.photos || [];
-  const photosSection = document.getElementById('pd-photos-section');
-  const gallery = document.getElementById('pd-gallery');
-  if (photos.length === 0) {
-    photosSection.style.display = 'none';
-  } else {
-    photosSection.style.display = 'block';
-    gallery.innerHTML = photos.map(p => `
-      <div class="party-detail-photo" onclick="openPhotoViewer('${party.id}',${p.id})">
-        <img src="${p.url}" alt="" loading="lazy">
-      </div>`).join('');
-  }
-
-  openModal('modal-party-detail');
-}
-
-// ===== HELPERS =====
-function getLevelInfo(bac) {
-  if (bac < 0.04) return { name: 'Sóbrio', color: '#64748b' };
-  if (bac < 0.08) return { name: '😊 Alto', color: '#22c55e' };
-  if (bac < 0.13) return { name: '🔥 Flow', color: '#eab308' };
-  if (bac < 0.19) return { name: '🥴 Bêbado', color: '#f97316' };
-  return { name: '💀 Destruição', color: '#ef4444' };
-}
-
-function formatDate(ts) {
-  if (!ts) return '—';
-  return new Date(ts).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' });
-}
-
-function formatDuration(ms) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  return h > 0 ? `${h}h${m.toString().padStart(2,'0')}` : `${m}min`;
+// ===== APP STATE =====
+let myProfile = null;
+let peer = null;
+let hostConn = null;
+let guestConns = [];
+let isHost = false;
+let party = null;
+let currentPage = 'splash';
+let _pendingJoinCode = null;
+
+// ===== UTILS =====
+let _toastTimer = null;
+function toast(msg, duration) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), duration || 3000);
 }
 
 function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function showToast(msg, duration = 2500) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 }
 
+function generatePartyCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtDuration(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? h + 'h' + m + 'min' : m + 'min';
+}
+
+function stomachLabel(v) { return ({empty:'🫙 vazio',medium:'🍕 médio',full:'🍖 cheio'})[v]||v; }
+function hydrationLabel(v) { return ({dry:'🌵 seco',ok:'💧 ok',hydrated:'🚰 hidratado'})[v]||v; }
+function levelLabel(v) { return ({alto:'😊 alto',flow:'🔥 flow',bebado:'🥴 bêbado',destruicao:'💀 destruição'})[v]||v; }
+
+function rgbToHex(rgb) {
+  const m = String(rgb).match(/\d+/g);
+  if (!m) return '#7c3aed';
+  return '#' + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+// ===== PROFILE =====
+function loadProfile() {
+  try { const s = localStorage.getItem('pre_profile'); if (s) myProfile = JSON.parse(s); } catch(e) {}
+}
+function saveProfile() {
+  localStorage.setItem('pre_profile', JSON.stringify(myProfile));
+}
+
+// ===== NAVIGATION =====
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  currentPage = page;
+
+  const navVisible = (page === 'monitor' || page === 'ranking') && !!party;
+  document.getElementById('bottom-nav').classList.toggle('visible', navVisible);
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-' + page);
+  if (nb) nb.classList.add('active');
+
+  if (page === 'home') renderHome();
+  if (page === 'history') renderHistory();
+  if (page === 'lobby') renderLobby();
+  if (page === 'monitor' && party) {
+    const lbl = document.getElementById('monitor-party-label');
+    if (lbl) lbl.textContent = party.name;
+  }
+}
+
+// ===== PROFILE SETUP =====
+function renderProfileSetup() {
+  const selAv = myProfile?.avatar || AVATARS[2];
+  document.getElementById('ps-avatar-grid').innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===selAv?' selected':''}" onclick="selectPickerItem(this,'ps-avatar-grid')">${a}</div>`
+  ).join('');
+
+  const selC = myProfile?.color || COLORS[0];
+  document.getElementById('ps-color-row').innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===selC?' selected':''}" style="background:${c}" onclick="selectPickerItem(this,'ps-color-row')"></div>`
+  ).join('');
+
+  if (myProfile?.name) document.getElementById('ps-name').value = myProfile.name;
+  if (myProfile?.weight) document.getElementById('ps-weight').value = myProfile.weight;
+  if (myProfile?.sex) {
+    document.querySelectorAll('[data-group="ps-sex"]').forEach(b =>
+      b.classList.toggle('selected', b.dataset.value === myProfile.sex)
+    );
+  }
+}
+
+function saveProfileSetup() {
+  const name = document.getElementById('ps-name').value.trim();
+  if (!name) { toast('Coloca seu apelido primeiro 👆'); return; }
+
+  const av = document.querySelector('#ps-avatar-grid .avatar-opt.selected')?.textContent || AVATARS[2];
+  const colorEl = document.querySelector('#ps-color-row .color-opt.selected');
+  const rawColor = colorEl?.style.backgroundColor || COLORS[0];
+  const color = rawColor.startsWith('rgb') ? rgbToHex(rawColor) : rawColor;
+  const weight = parseInt(document.getElementById('ps-weight').value) || 70;
+  const sex = document.querySelector('[data-group="ps-sex"].selected')?.dataset.value || 'M';
+
+  myProfile = { id: myProfile?.id || uid(), name, avatar: av, color, weight, sex, createdAt: myProfile?.createdAt || Date.now() };
+  saveProfile();
+
+  if (_pendingJoinCode) {
+    const code = _pendingJoinCode; _pendingJoinCode = null;
+    doJoinParty(code);
+  } else {
+    navTo('home');
+  }
+}
+
+function selectPickerItem(el, gridId) {
+  document.querySelectorAll('#' + gridId + ' .avatar-opt, #' + gridId + ' .color-opt')
+    .forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ===== HOME =====
+function renderHome() {
+  if (!myProfile) return;
+  const av = document.getElementById('home-mini-avatar');
+  av.style.background = myProfile.color + '33';
+  av.style.borderColor = myProfile.color;
+  av.textContent = myProfile.avatar;
+  document.getElementById('home-mini-name').textContent = myProfile.name;
+
+  const history = getHistory();
+  const el = document.getElementById('home-history');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Crie ou entre numa pré pra começar</div></div>`;
+    return;
+  }
+  el.innerHTML = history.slice(0,3).map(p => `
+    <div class="history-item">
+      <div class="history-item-name">${esc(p.name)}</div>
+      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} jogadores · ${p.duration}</div>
+    </div>
+  `).join('');
+}
+
+// ===== CREATE PARTY =====
+function openCreateParty() {
+  document.getElementById('create-party-name').value = '';
+  openModal('modal-create');
+}
+
+function doCreateParty() {
+  const name = document.getElementById('create-party-name').value.trim() || ('Pré de ' + myProfile.name);
+  closeModal('modal-create');
+  createParty(name);
+}
+
+function createParty(partyName) {
+  const code = generatePartyCode();
+  isHost = true; guestConns = []; hostConn = null;
+
+  party = {
+    id: code, name: partyName, status: 'lobby',
+    startTime: null, createdAt: Date.now(),
+    players: [{ peerId:'host', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:null, drinks:[], maxBac:0 }]
+  };
+
+  navTo('lobby');
+  document.getElementById('lobby-status').textContent = '// conectando...';
+  document.getElementById('lobby-qr-btn').style.display = 'none';
+  document.getElementById('btn-start-party').style.display = 'none';
+
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  peer = new Peer(code, { debug:0 });
+
+  peer.on('open', () => {
+    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+    document.getElementById('lobby-qr-btn').style.display = '';
+    document.getElementById('btn-start-party').style.display = 'block';
+    document.getElementById('lobby-waiting-msg').style.display = 'block';
+    renderLobby();
+  });
+
+  peer.on('connection', (conn) => {
+    guestConns.push(conn);
+    conn.on('open', () => { conn.send({ type:'STATE', party }); });
+    conn.on('data', (data) => { handleGuestMessage(conn, data); });
+    conn.on('close', () => {
+      guestConns = guestConns.filter(c => c !== conn);
+      party.players = party.players.filter(p => p.peerId !== conn.peer);
+      broadcastState();
+      if (currentPage === 'lobby') renderLobby();
+    });
+    conn.on('error', () => { guestConns = guestConns.filter(c => c !== conn); });
+  });
+
+  peer.on('error', (err) => {
+    if (err.type === 'unavailable-id') {
+      peer.destroy(); peer = null; createParty(partyName);
+    } else {
+      toast('Erro de conexão: ' + err.type);
+    }
+  });
+}
+
+function handleGuestMessage(conn, data) {
+  if (!party) return;
+  if (data.type === 'JOIN') {
+    const ex = party.players.find(p => p.peerId === conn.peer);
+    if (!ex) {
+      party.players.push({ peerId:conn.peer, profile:data.profile, prefs:data.prefs||{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:party.status==='active'?Date.now():null, drinks:[], maxBac:0 });
+    } else { ex.profile = data.profile; if (data.prefs) ex.prefs = data.prefs; }
+    broadcastState();
+    if (currentPage === 'lobby') renderLobby();
+  } else if (data.type === 'UPDATE_PREFS') {
+    const p = party.players.find(pl => pl.peerId === conn.peer);
+    if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
+  } else if (data.type === 'ADD_DRINK') {
+    const p = party.players.find(pl => pl.peerId === conn.peer);
+    if (p && data.drink) { p.drinks.push(data.drink); broadcastState(); }
+  } else if (data.type === 'REMOVE_DRINK') {
+    const p = party.players.find(pl => pl.peerId === conn.peer);
+    if (p) { p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState(); }
+  }
+}
+
+function broadcastState() {
+  const msg = { type:'STATE', party };
+  guestConns.forEach(c => { if (c.open) c.send(msg); });
+}
+
+// ===== JOIN PARTY =====
+function openJoinParty() {
+  document.getElementById('join-code-input').value = '';
+  openModal('modal-join');
+}
+
+function joinByCode() {
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  if (!code || code.length < 4) { toast('Coloca o código da festa 👆'); return; }
+  closeModal('modal-join');
+  doJoinParty(code);
+}
+
+function doJoinParty(code) {
+  isHost = false; party = null; hostConn = null;
+
+  navTo('lobby');
+  document.getElementById('lobby-party-name').textContent = 'Conectando...';
+  document.getElementById('lobby-code').textContent = code;
+  document.getElementById('lobby-status').textContent = '// conectando ao host';
+  document.getElementById('lobby-players').innerHTML = '';
+  document.getElementById('lobby-qr-btn').style.display = 'none';
+  document.getElementById('btn-start-party').style.display = 'none';
+  document.getElementById('btn-guest-waiting').style.display = 'block';
+  document.getElementById('lobby-waiting-msg').style.display = 'none';
+
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  peer = new Peer({ debug:0 });
+
+  peer.on('open', () => {
+    hostConn = peer.connect(code, { reliable:true });
+    hostConn.on('open', () => {
+      hostConn.send({ type:'JOIN', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'} });
+    });
+    hostConn.on('data', (data) => { handleHostMessage(data); });
+    hostConn.on('close', () => {
+      toast('Conexão com o host perdida');
+      if (currentPage === 'lobby') document.getElementById('lobby-status').textContent = '// host desconectado';
+    });
+    hostConn.on('error', () => { toast('Erro ao conectar. Tente novamente.'); navTo('home'); });
+  });
+
+  peer.on('error', (err) => {
+    toast(err.type === 'peer-unavailable' ? 'Festa não encontrada. Verifique o código.' : 'Erro: ' + err.type);
+    navTo('home');
+  });
+}
+
+function handleHostMessage(data) {
+  if (data.type === 'STATE') {
+    party = data.party;
+    if (party.status === 'active' && currentPage !== 'monitor') { navTo('monitor'); return; }
+    if (currentPage === 'lobby') renderLobby();
+  } else if (data.type === 'START') {
+    party = data.party;
+    navTo('monitor');
+  } else if (data.type === 'END') {
+    party = data.party;
+    savePartyToHistory(party);
+    navTo('home');
+    toast('Pré encerrada! Confira o histórico 📋');
+  }
+}
+
+function sendToHost(data) {
+  if (hostConn?.open) hostConn.send(data);
+}
+
+// ===== START PARTY (host only) =====
+function startParty() {
+  if (!party || !isHost) return;
+  party.status = 'active';
+  party.startTime = Date.now();
+  party.players.forEach(p => { p.joinedAt = Date.now(); });
+  guestConns.forEach(c => { if (c.open) c.send({ type:'START', party }); });
+  navTo('monitor');
+}
+
+// ===== LOBBY RENDER =====
+function renderLobby() {
+  if (!party) return;
+
+  document.getElementById('lobby-party-name').textContent = party.name;
+  document.getElementById('lobby-code').textContent = party.id;
+  document.getElementById('lobby-count').textContent = party.players.length;
+
+  if (isHost) {
+    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+    document.getElementById('btn-start-party').style.display = 'block';
+    document.getElementById('btn-guest-waiting').style.display = 'none';
+    document.getElementById('lobby-waiting-msg').style.display = party.players.length < 2 ? 'block' : 'none';
+    document.getElementById('lobby-qr-btn').style.display = '';
+  } else {
+    document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
+    document.getElementById('btn-start-party').style.display = 'none';
+    document.getElementById('btn-guest-waiting').style.display = 'block';
+    document.getElementById('lobby-waiting-msg').style.display = 'none';
+    document.getElementById('lobby-qr-btn').style.display = 'none';
+  }
+
+  document.getElementById('lobby-players').innerHTML = party.players.map(p => {
+    const isMe = isHost ? p.peerId === 'host' : p.profile?.id === myProfile?.id;
+    const isHostPlayer = p.peerId === 'host';
+    const prefs = p.prefs || {};
+    return `
+      <div class="lobby-player-row${isMe?' me':''}">
+        <div class="lobby-player-avatar" style="background:${esc(p.profile.color)}22;border-color:${esc(p.profile.color)}">
+          ${esc(p.profile.avatar)}
+        </div>
+        <div class="lobby-player-info">
+          <div class="lobby-player-name">
+            ${esc(p.profile.name)}
+            ${isMe ? '<span class="me-badge">você</span>' : ''}
+            ${isHostPlayer ? '<span class="host-badge">host</span>' : ''}
+          </div>
+          <div class="lobby-player-prefs">
+            ${stomachLabel(prefs.stomach||'medium')} · ${hydrationLabel(prefs.hydration||'ok')} · ${levelLabel(prefs.targetLevel||'flow')}
+          </div>
+        </div>
+        ${isMe ? `<button class="btn-edit-prefs" onclick="openPrefsModal()">⚙️</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ===== LEAVE LOBBY =====
+function leaveLobby() {
+  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+  hostConn = null; guestConns = []; isHost = false; party = null;
+  navTo('home');
+}
+
+// ===== PREFS MODAL =====
+function openPrefsModal() {
+  const me = getMyPlayer();
+  const prefs = me?.prefs || { stomach:'medium', hydration:'ok', targetLevel:'flow' };
+
+  document.querySelectorAll('[data-group="prefs-stomach"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === prefs.stomach));
+  document.querySelectorAll('[data-group="prefs-hydration"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === prefs.hydration));
+  document.querySelectorAll('[data-pref-level]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.prefLevel === prefs.targetLevel));
+
+  openModal('modal-prefs');
+}
+
+function selectPrefLevel(el) {
+  document.querySelectorAll('[data-pref-level]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function savePrefs() {
+  const stomach = document.querySelector('[data-group="prefs-stomach"].selected')?.dataset.value || 'medium';
+  const hydration = document.querySelector('[data-group="prefs-hydration"].selected')?.dataset.value || 'ok';
+  const targetLevel = document.querySelector('[data-pref-level].selected')?.dataset.prefLevel || 'flow';
+  const prefs = { stomach, hydration, targetLevel };
+
+  const me = getMyPlayer();
+  if (me) me.prefs = prefs;
+
+  if (isHost) { broadcastState(); renderLobby(); }
+  else { sendToHost({ type:'UPDATE_PREFS', prefs }); if (currentPage === 'lobby') renderLobby(); }
+
+  closeModal('modal-prefs');
+  toast('Preferências salvas ✓');
+}
+
+function getMyPlayer() {
+  if (!party) return null;
+  if (isHost) return party.players.find(p => p.peerId === 'host');
+  return party.players.find(p => p.profile?.id === myProfile?.id);
+}
+
+// ===== QR MODAL =====
+function openQRModal() {
+  if (!party) return;
+  const baseUrl = window.location.href.split('?')[0];
+  const joinUrl = baseUrl + '?party=' + party.id;
+  document.getElementById('qr-img').src =
+    'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+    encodeURIComponent(joinUrl) + '&bgcolor=12121a&color=a855f7&qzone=2';
+  document.getElementById('qr-code-display').textContent = party.id;
+  openModal('modal-qr');
+}
+
+function copyPartyLink() {
+  const url = window.location.href.split('?')[0] + '?party=' + party.id;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('Link copiado! 📋')).catch(() => toast(url));
+  } else { toast('Link: ' + url); }
+  closeModal('modal-qr');
+}
+
+// ===== EDIT PROFILE =====
+function openEditProfile() {
+  if (!myProfile) return;
+  document.getElementById('edit-name').value = myProfile.name || '';
+  document.getElementById('edit-weight').value = myProfile.weight || 70;
+
+  document.getElementById('edit-avatar-grid').innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===myProfile.avatar?' selected':''}" onclick="selectPickerItem(this,'edit-avatar-grid')">${a}</div>`
+  ).join('');
+  document.getElementById('edit-color-row').innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===myProfile.color?' selected':''}" style="background:${c}" onclick="selectPickerItem(this,'edit-color-row')"></div>`
+  ).join('');
+  document.querySelectorAll('[data-group="edit-sex"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === (myProfile.sex||'M')));
+
+  openModal('modal-edit-profile');
+}
+
+function saveEditProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { toast('Coloca seu apelido 👆'); return; }
+
+  const av = document.querySelector('#edit-avatar-grid .avatar-opt.selected')?.textContent || myProfile.avatar;
+  const colorEl = document.querySelector('#edit-color-row .color-opt.selected');
+  const rawColor = colorEl?.style.backgroundColor || myProfile.color;
+  const color = rawColor.startsWith('rgb') ? rgbToHex(rawColor) : rawColor;
+  const weight = parseInt(document.getElementById('edit-weight').value) || myProfile.weight || 70;
+  const sex = document.querySelector('[data-group="edit-sex"].selected')?.dataset.value || myProfile.sex || 'M';
+
+  myProfile = { ...myProfile, name, avatar:av, color, weight, sex };
+  saveProfile();
+  closeModal('modal-edit-profile');
+  toast('Perfil atualizado ✓');
+  if (currentPage === 'home') renderHome();
+}
+
+// ===== HISTORY =====
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('pre_history') || '[]'); } catch(e) { return []; }
+}
+
+function savePartyToHistory(p) {
+  const history = getHistory();
+  const end = p.endTime || Date.now();
+  const start = p.startTime || end;
+  history.unshift({
+    id: p.id, name: p.name, startTime: start,
+    playerCount: p.players?.length || 1,
+    duration: fmtDuration(end - start),
+    players: (p.players||[]).map(pl => ({ name:pl.profile.name, avatar:pl.profile.avatar, color:pl.profile.color })),
+  });
+  try { localStorage.setItem('pre_history', JSON.stringify(history.slice(0,30))); } catch(e) {}
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const el = document.getElementById('history-list');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Suas prés vão aparecer aqui</div></div>`;
+    return;
+  }
+  el.innerHTML = history.map(p => `
+    <div class="history-item">
+      <div class="history-item-name">${esc(p.name)}</div>
+      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} jogador${p.playerCount!==1?'es':''} · ${p.duration}</div>
+      ${p.players?.length ? `<div class="history-item-players">${p.players.map(pl=>`<div class="history-player-chip" style="border-left-color:${esc(pl.color)}">${esc(pl.avatar)} ${esc(pl.name)}</div>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ===== MODAL HELPERS =====
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Fechar modal clicando fora
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
 });
 
-// btn-option toggle
+// Generic btn-option toggle handler
 document.addEventListener('click', e => {
   const btn = e.target.closest('[data-group]');
   if (!btn) return;
-  document.querySelectorAll(`[data-group="${btn.dataset.group}"]`).forEach(b => b.classList.remove('selected'));
+  const group = btn.dataset.group;
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 });
 
 // ===== INIT =====
 function initApp() {
-  document.getElementById('page-onboarding').style.display = 'none';
-  document.getElementById('bottom-nav').style.display = 'flex';
-  updateNavDot();
-  // Restaura jogador ativo se havia pré em andamento
-  if (db.activePartyId) {
-    const ap = getActiveParty();
-    if (ap && !mon.activePlayerId) {
-      mon.activePlayerId = ap.players.find(pl => pl.profileId === currentProfileId)?.profileId
-                        || ap.players[0]?.profileId;
+  loadProfile();
+  const urlParams = new URLSearchParams(window.location.search);
+  const partyCode = urlParams.get('party');
+  if (partyCode) window.history.replaceState({}, '', window.location.pathname);
+
+  setTimeout(() => {
+    document.getElementById('page-splash').style.display = 'none';
+    if (partyCode) {
+      if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
+      else { doJoinParty(partyCode.toUpperCase()); }
+    } else {
+      if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
+      else { navTo('home'); }
     }
-    initMonitorTimers();
-  }
-  navTo('feed');
+  }, 900);
 }
 
-function init() {
-  loadDB();
-  renderOnboarding();
-  if (currentProfileId && getProfile(currentProfileId)) {
-    initApp();
-  } else if (db.profiles.length > 0) {
-    currentProfileId = db.profiles[0].id;
-    localStorage.setItem('pre_current_profile', currentProfileId);
-    initApp();
-  } else {
-    showOnboarding();
-  }
-}
-
-init();
+initApp();
 </script>
 </body>
 </html>
