@@ -295,9 +295,15 @@ body::before {
 .bac-value { font-size: 64px; font-weight: 900; font-family: 'Courier New', monospace; line-height: 1; transition: color 0.5s; }
 .bac-unit { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
 .bac-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-top: 12px; border: 1px solid; transition: all 0.4s; }
-.bac-bar-wrap { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-top: 14px; }
-.bac-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.4s; }
-.bac-target-label { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; text-align: right; margin-top: 4px; }
+
+.zone-bar-wrap { position: relative; margin: 18px 0 6px; padding-top: 22px; }
+.zone-bar { display: flex; height: 16px; border-radius: 8px; overflow: hidden; }
+.zone-seg { display: flex; align-items: center; justify-content: center; font-size: 7px; font-weight: 800; letter-spacing: 0.5px; color: rgba(255,255,255,0.65); font-family: 'Courier New', monospace; overflow: hidden; }
+.zone-needle { position: absolute; bottom: 0; width: 4px; background: white; border-radius: 2px; height: 26px; transform: translateX(-50%); transition: left 0.6s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 0 8px rgba(0,0,0,0.6); pointer-events: none; }
+.zone-target-pin { position: absolute; top: 0; transform: translateX(-50%); font-size: 13px; transition: left 0.6s cubic-bezier(0.4,0,0.2,1); line-height: 1; }
+.zone-row { display: flex; justify-content: space-between; margin-top: 10px; }
+.zone-label { font-size: 9px; font-family: 'Courier New', monospace; color: var(--muted); }
+.bac-hint { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); line-height: 1.5; }
 
 .drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
 .drink-btn { padding: 12px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: all 0.15s; text-align: center; -webkit-tap-highlight-color: transparent; }
@@ -482,8 +488,22 @@ body::before {
     <div class="bac-value" id="bac-value">0.000</div>
     <div class="bac-unit">% g/dL</div>
     <div class="bac-badge" id="bac-badge">😐 SÓBRIO</div>
-    <div class="bac-bar-wrap"><div class="bac-bar" id="bac-bar" style="width:0%;background:#64748b"></div></div>
-    <div class="bac-target-label" id="bac-target-label"></div>
+    <div class="zone-bar-wrap">
+      <div class="zone-bar">
+        <div class="zone-seg" style="flex:12;background:#475569">SÓBRIO</div>
+        <div class="zone-seg" style="flex:16;background:#22c55e">ALTO</div>
+        <div class="zone-seg" style="flex:20;background:#eab308">FLOW</div>
+        <div class="zone-seg" style="flex:24;background:#f97316">BÊB</div>
+        <div class="zone-seg" style="flex:28;background:#ef4444">💀</div>
+      </div>
+      <div class="zone-needle" id="zone-needle" style="left:0%"></div>
+      <div class="zone-target-pin" id="zone-target-pin" style="left:50%">🎯</div>
+    </div>
+    <div class="zone-row">
+      <span class="zone-label" id="zone-you-label">você: 0.000%</span>
+      <span class="zone-label" id="zone-target-label">meta: —</span>
+    </div>
+    <div class="bac-hint" id="bac-hint"></div>
   </div>
 
   <div class="card-title">// Adicionar bebida</div>
@@ -1409,7 +1429,7 @@ function renderMonitor() {
   const bac = calcBAC(me, now);
   const lv = bacLevel(bac);
   const target = (LEVELS_CONFIG[me.prefs?.targetLevel||'flow']?.bac) || 0.10;
-  const pct = Math.min(100, Math.round(bac / (target * 1.5) * 100));
+  const BAC_MAX = 0.25; // bar covers 0 → 0.25%
 
   document.getElementById('bac-value').textContent = bac.toFixed(3);
   document.getElementById('bac-value').style.color = lv.color;
@@ -1418,9 +1438,38 @@ function renderMonitor() {
   badge.style.color = lv.color;
   badge.style.borderColor = lv.color + '44';
   badge.style.background = lv.color + '18';
-  document.getElementById('bac-bar').style.width = pct + '%';
-  document.getElementById('bac-bar').style.background = lv.color;
-  document.getElementById('bac-target-label').textContent = 'meta: ' + target.toFixed(3) + '% · ' + levelLabel(me.prefs?.targetLevel||'flow');
+
+  // Zone bar needle + target pin
+  const needlePct = Math.min(99, bac / BAC_MAX * 100).toFixed(1);
+  const targetPct = Math.min(97, target / BAC_MAX * 100).toFixed(1);
+  document.getElementById('zone-needle').style.left = needlePct + '%';
+  document.getElementById('zone-target-pin').style.left = targetPct + '%';
+  document.getElementById('zone-you-label').textContent = 'você: ' + bac.toFixed(3) + '%';
+  document.getElementById('zone-target-label').textContent = 'meta: ' + target.toFixed(3) + '% (' + levelLabel(me.prefs?.targetLevel||'flow') + ')';
+
+  // Hint: how much more to drink
+  const hint = document.getElementById('bac-hint');
+  if (bac >= target) {
+    hint.textContent = '✅ Você está no nível! Beba água e monitore.';
+    hint.style.color = lv.color;
+  } else {
+    const r = me.profile.sex === 'F' ? 0.55 : 0.68;
+    const weight = me.profile.weight || 70;
+    const stomachF = stomachMult[me.prefs?.stomach||'medium'] || 1;
+    const hydF = hydrationMult[me.prefs?.hydration||'ok'] || 1;
+    const gramsNeeded = (target - bac) * weight * r * 10 / (stomachF * hydF);
+    const cup = CUPS.find(c=>c.id===_selCup) || CUPS[1];
+    const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType) || DRINK_TYPES[0];
+    const gramsPerDrink = Math.round(cup.ml * _fillPct/100) * (dt.pct/100) * 0.789;
+    const lvName = LEVELS_CONFIG[me.prefs?.targetLevel||'flow']?.name || '🔥 FLOW';
+    if (gramsPerDrink > 0) {
+      const n = Math.ceil(gramsNeeded / gramsPerDrink);
+      hint.textContent = `Faltam ~${n} ${cup.emoji} ${dt.label} pra chegar no ${lvName}`;
+    } else {
+      hint.textContent = `Faltam ~${Math.round(gramsNeeded)}g álcool pro ${lvName}`;
+    }
+    hint.style.color = '';
+  }
   document.getElementById('monitor-party-label').textContent = party.name;
   if (party.startTime) {
     const e = now - party.startTime;
@@ -1565,13 +1614,13 @@ function showSOSAlert(profile) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
 }
 
-// Periodic BAC refresh (every 60s while on monitor/ranking)
+// Refresh BAC every 30s (metabolism changes ~0.015%/hr)
 setInterval(() => {
   if (party) {
     if (currentPage === 'monitor') renderMonitor();
     if (currentPage === 'ranking') renderRanking();
   }
-}, 60000);
+}, 30000);
 
 // ===== INIT =====
 function initApp() {
