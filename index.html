@@ -632,6 +632,19 @@ let isHost = false;
 let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
+let _connectTimeout = null;
+
+// PeerJS config with STUN servers for better connectivity
+const PEER_CFG = {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' },
+    ]
+  }
+};
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -808,9 +821,17 @@ function createParty(partyName) {
   document.getElementById('btn-start-party').style.display = 'none';
 
   if (peer) { try { peer.destroy(); } catch(e) {} }
-  peer = new Peer(code, { debug:0 });
+  peer = new Peer(code, PEER_CFG);
+
+  clearTimeout(_connectTimeout);
+  _connectTimeout = setTimeout(() => {
+    if (currentPage === 'lobby' && document.getElementById('lobby-status').textContent.includes('conectando')) {
+      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => createParty(partyName));
+    }
+  }, 12000);
 
   peer.on('open', () => {
+    clearTimeout(_connectTimeout);
     document.getElementById('lobby-status').textContent = '// aguardando jogadores';
     document.getElementById('lobby-qr-btn').style.display = '';
     document.getElementById('btn-start-party').style.display = 'block';
@@ -832,10 +853,11 @@ function createParty(partyName) {
   });
 
   peer.on('error', (err) => {
+    clearTimeout(_connectTimeout);
     if (err.type === 'unavailable-id') {
       peer.destroy(); peer = null; createParty(partyName);
     } else {
-      toast('Erro de conexão: ' + err.type);
+      setLobbyError(peerErrMsg(err.type), () => createParty(partyName));
     }
   });
 }
@@ -893,11 +915,30 @@ function doJoinParty(code) {
   document.getElementById('lobby-waiting-msg').style.display = 'none';
 
   if (peer) { try { peer.destroy(); } catch(e) {} }
-  peer = new Peer({ debug:0 });
+  peer = new Peer(PEER_CFG);
+
+  clearTimeout(_connectTimeout);
+  _connectTimeout = setTimeout(() => {
+    if (currentPage === 'lobby') {
+      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => doJoinParty(code));
+    }
+  }, 12000);
 
   peer.on('open', () => {
+    clearTimeout(_connectTimeout);
+    document.getElementById('lobby-status').textContent = '// conectando à festa...';
     hostConn = peer.connect(code, { reliable:true });
+
+    // timeout para conexão com o host especificamente
+    const hostTimeout = setTimeout(() => {
+      if (!hostConn?.open && currentPage === 'lobby') {
+        setLobbyError('Não foi possível conectar ao host. O código está correto?', () => doJoinParty(code));
+      }
+    }, 10000);
+
     hostConn.on('open', () => {
+      clearTimeout(hostTimeout);
+      document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
       hostConn.send({ type:'JOIN', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'} });
     });
     hostConn.on('data', (data) => { handleHostMessage(data); });
@@ -905,13 +946,44 @@ function doJoinParty(code) {
       toast('Conexão com o host perdida');
       if (currentPage === 'lobby') document.getElementById('lobby-status').textContent = '// host desconectado';
     });
-    hostConn.on('error', () => { toast('Erro ao conectar. Tente novamente.'); navTo('home'); });
+    hostConn.on('error', (err) => {
+      clearTimeout(hostTimeout);
+      setLobbyError('Erro ao conectar ao host: ' + (err.type || err), () => doJoinParty(code));
+    });
   });
 
   peer.on('error', (err) => {
-    toast(err.type === 'peer-unavailable' ? 'Festa não encontrada. Verifique o código.' : 'Erro: ' + err.type);
-    navTo('home');
+    clearTimeout(_connectTimeout);
+    if (err.type === 'peer-unavailable') {
+      setLobbyError('Festa não encontrada. Verifique o código e tente de novo.', () => { navTo('home'); openJoinParty(); });
+    } else {
+      setLobbyError(peerErrMsg(err.type), () => doJoinParty(code));
+    }
   });
+}
+
+// ===== ERROR HELPERS =====
+function peerErrMsg(type) {
+  const msgs = {
+    'network':       'Sem internet ou servidor PeerJS inacessível.',
+    'server-error':  'Servidor PeerJS fora do ar. Tente em instantes.',
+    'socket-error':  'Erro de rede (socket). Verifique sua conexão.',
+    'socket-closed': 'Conexão fechada pelo servidor. Tente de novo.',
+    'browser-incompatible': 'Seu navegador não suporta WebRTC. Use Chrome ou Firefox.',
+  };
+  return msgs[type] || ('Erro de conexão: ' + type + '. Verifique sua internet.');
+}
+
+function setLobbyError(msg, retryFn) {
+  document.getElementById('lobby-status').textContent = '// erro de conexão';
+  document.getElementById('btn-start-party').style.display = 'none';
+  document.getElementById('btn-guest-waiting').style.display = 'none';
+  document.getElementById('lobby-waiting-msg').style.display = 'none';
+  document.getElementById('lobby-players').innerHTML = `
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px 18px;margin-bottom:8px">
+      <div style="font-size:13px;color:var(--red);margin-bottom:10px">⚠️ ${esc(msg)}</div>
+      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">↺ Tentar novamente</button>
+    </div>`;
 }
 
 function handleHostMessage(data) {
@@ -1148,6 +1220,12 @@ document.addEventListener('click', e => {
 
 // ===== INIT =====
 function initApp() {
+  if (typeof Peer === 'undefined') {
+    document.querySelector('.splash-sub').textContent = 'erro: peerjs não carregou';
+    document.querySelector('.splash-dots').innerHTML = '<div style="color:#ef4444;font-size:12px;font-family:monospace;text-align:center">Verifique sua internet e recarregue a página.</div>';
+    return;
+  }
+
   loadProfile();
   const urlParams = new URLSearchParams(window.location.search);
   const partyCode = urlParams.get('party');
