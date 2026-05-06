@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PRÉ</title>
+<style>
+/* ===== RESET & VARS ===== */
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: #2a2a3d;
+  --accent: #7c3aed;
+  --accent2: #a855f7;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --orange: #f97316;
+  --red: #ef4444;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --glow: rgba(124,58,237,0.4);
+  --nav-h: 64px;
+}
+html { background: #0a0a0f; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(ellipse at 60% 20%, rgba(124,58,237,0.08) 0%, transparent 50%),
+              radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.05) 0%, transparent 40%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ===== PAGES ===== */
+.page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; position: relative; z-index: 1; min-height: 100vh; }
+.page.active { display: block; }
+.page-with-nav { padding-bottom: calc(var(--nav-h) + 24px); }
+
+/* ===== SPLASH ===== */
+#page-splash {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; position: relative; z-index: 1;
+}
+.splash-logo { font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2); text-shadow: 0 0 60px rgba(168,85,247,0.8); }
+.splash-sub { color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
+.splash-dots { display: flex; gap: 8px; margin-top: 40px; }
+.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: dotPulse 1.4s infinite; opacity: 0.3; }
+.splash-dot:nth-child(2) { animation-delay: 0.2s; }
+.splash-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotPulse { 0%,80%,100%{opacity:0.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.2)} }
+
+/* ===== PROFILE SETUP ===== */
+#page-profile-setup {
+  display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+  min-height: 100vh; padding: 32px 24px 48px; max-width: 480px; margin: 0 auto;
+  position: relative; z-index: 1; overflow-y: auto;
+}
+#page-profile-setup.active { display: flex; }
+.setup-logo { font-size: 64px; font-weight: 900; letter-spacing: 10px; color: var(--accent2); text-shadow: 0 0 40px rgba(168,85,247,0.7); margin-bottom: 6px; }
+.setup-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-bottom: 32px; }
+.setup-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; }
+.setup-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
+
+/* ===== HOME ===== */
+.home-header { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-bottom: 40px; }
+.home-logo { font-size: 42px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); text-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.home-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+.action-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+  padding: 24px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.action-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+.action-card:active { transform: translateY(0); opacity: 0.9; }
+.action-card-emoji { font-size: 40px; margin-bottom: 10px; }
+.action-card-title { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+.action-card-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
+.action-card.join { background: var(--surface2); }
+
+/* ===== LOBBY ===== */
+.lobby-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-top: 4px; }
+.lobby-back { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px 8px; flex-shrink: 0; }
+.lobby-top-info { flex: 1; min-width: 0; }
+.lobby-party-name { font-size: 20px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lobby-status { font-size: 10px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 2px; margin-top: 2px; }
+
+.lobby-code-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px;
+}
+.lobby-code-label { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+.lobby-code-value { font-family: 'Courier New', monospace; font-size: 26px; font-weight: 900; color: var(--accent2); letter-spacing: 4px; }
+.lobby-qr-btn { margin-left: auto; background: rgba(124,58,237,0.15); border: 1px solid rgba(168,85,247,0.3); border-radius: 12px; padding: 10px 14px; color: var(--accent2); cursor: pointer; font-size: 12px; font-family: inherit; white-space: nowrap; transition: all 0.15s; flex-shrink: 0; }
+.lobby-qr-btn:hover { background: rgba(124,58,237,0.25); }
+
+.lobby-players-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.lobby-players-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.lobby-count-badge { font-family: 'Courier New', monospace; font-size: 12px; color: var(--accent2); }
+
+.lobby-player-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.lobby-player-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px;
+  transition: border-color 0.15s; animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.lobby-player-row.me { border-color: rgba(168,85,247,0.4); background: rgba(124,58,237,0.06); }
+.lobby-player-avatar { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid; flex-shrink: 0; }
+.lobby-player-info { flex: 1; min-width: 0; }
+.lobby-player-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.me-badge { font-size: 9px; background: rgba(168,85,247,0.2); border: 1px solid rgba(168,85,247,0.4); color: var(--accent2); padding: 2px 7px; border-radius: 100px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+.host-badge { font-size: 9px; background: rgba(234,179,8,0.15); border: 1px solid rgba(234,179,8,0.3); color: #eab308; padding: 2px 7px; border-radius: 100px; font-family: 'Courier New', monospace; letter-spacing: 1px; }
+.lobby-player-prefs { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 3px; line-height: 1.5; }
+.btn-edit-prefs { background: rgba(124,58,237,0.12); border: 1px solid rgba(168,85,247,0.2); color: var(--accent2); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 14px; transition: all 0.15s; flex-shrink: 0; }
+.btn-edit-prefs:hover { background: rgba(124,58,237,0.22); }
+
+.lobby-waiting { text-align: center; padding: 12px; color: var(--muted); font-size: 11px; font-family: 'Courier New', monospace; }
+
+/* ===== QR MODAL ===== */
+.qr-container { display: flex; flex-direction: column; align-items: center; padding: 8px 0 16px; }
+.qr-img { width: 220px; height: 220px; border-radius: 16px; border: 2px solid var(--border); background: var(--surface2); }
+.qr-code-big { font-family: 'Courier New', monospace; font-size: 30px; font-weight: 900; color: var(--accent2); letter-spacing: 8px; margin-top: 16px; }
+.qr-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; font-family: 'Courier New', monospace; line-height: 1.6; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h);
+  background: rgba(18,18,26,0.97); backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border); display: none; z-index: 100;
+}
+.bottom-nav.visible { display: flex; }
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 10px; font-family: inherit; transition: color 0.15s; padding: 8px 0 12px;
+  letter-spacing: 0.5px; text-transform: uppercase; position: relative;
+}
+.nav-btn .nav-icon { font-size: 22px; transition: transform 0.15s; line-height: 1; }
+.nav-btn.active { color: var(--accent2); }
+.nav-btn.active .nav-icon { transform: scale(1.12); }
+
+/* ===== CARDS & SHARED ===== */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.card-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.section-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 12px; color: white; font-size: 15px;
+  font-weight: 600; font-family: inherit; cursor: pointer; letter-spacing: 0.5px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn-primary:active { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary {
+  width: 100%; padding: 13px; background: transparent;
+  border: 1px solid var(--border); border-radius: 12px;
+  color: var(--muted); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-danger {
+  width: 100%; padding: 13px; background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.25); border-radius: 12px;
+  color: var(--red); font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-danger:hover { background: rgba(239,68,68,0.15); border-color: var(--red); }
+
+/* ===== FORMS ===== */
+.form-group { margin-bottom: 20px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
+.form-label span { color: var(--muted); font-weight: 300; font-size: 12px; }
+.form-input {
+  width: 100%; padding: 12px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 15px; font-family: inherit;
+  outline: none; transition: border-color 0.15s;
+}
+.form-input:focus { border-color: var(--accent2); }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-option {
+  flex: 1; min-width: 70px; padding: 10px 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--muted); font-size: 12px;
+  font-family: inherit; cursor: pointer; transition: all 0.15s; text-align: center;
+}
+.btn-option.selected { background: rgba(124,58,237,0.2); border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
+.weight-row { display: flex; align-items: center; gap: 12px; }
+.weight-row input {
+  width: 90px; padding: 10px 14px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 20px; font-family: 'Courier New', monospace;
+  font-weight: 700; text-align: center; outline: none; transition: border-color 0.15s;
+}
+.weight-row input:focus { border-color: var(--accent2); }
+.weight-row .unit { color: var(--muted); font-size: 13px; }
+
+/* ===== AVATAR / COLOR PICKERS ===== */
+.avatar-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 8px; }
+.avatar-opt {
+  aspect-ratio: 1; font-size: 26px; background: var(--surface2);
+  border: 2px solid var(--border); border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.avatar-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); transform: scale(1.05); }
+.color-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.color-opt {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: all 0.15s; outline: 3px solid transparent;
+}
+.color-opt.selected { outline: 3px solid white; outline-offset: 2px; transform: scale(1.1); }
+
+/* ===== LEVELS ===== */
+.levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.level-btn { padding: 14px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; text-align: center; }
+.level-emoji { font-size: 24px; margin-bottom: 4px; }
+.level-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+.level-desc { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
+.level-bac { font-family: 'Courier New', monospace; font-size: 10px; margin-top: 4px; }
+.level-alto .level-name { color: #22c55e; } .level-alto.selected { border-color: #22c55e; background: rgba(34,197,94,0.1); } .level-alto .level-bac { color: #22c55e; }
+.level-flow .level-name { color: #eab308; } .level-flow.selected { border-color: #eab308; background: rgba(234,179,8,0.1); } .level-flow .level-bac { color: #eab308; }
+.level-bebado .level-name { color: #f97316; } .level-bebado.selected { border-color: #f97316; background: rgba(249,115,22,0.1); } .level-bebado .level-bac { color: #f97316; }
+.level-destruicao .level-name { color: #ef4444; } .level-destruicao.selected { border-color: #ef4444; background: rgba(239,68,68,0.1); } .level-destruicao .level-bac { color: #ef4444; }
+
+/* ===== MINI PROFILE CHIP ===== */
+.mini-profile-chip {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 6px 10px 6px 6px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 100px; transition: border-color 0.15s;
+}
+.mini-profile-chip:hover { border-color: var(--accent2); }
+.mini-avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid; }
+.mini-name { font-size: 13px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 100px;
+  padding: 10px 20px; font-size: 13px; font-weight: 500; z-index: 500;
+  opacity: 0; transition: all 0.3s cubic-bezier(0.4,0,0.2,1); white-space: nowrap;
+  pointer-events: none; max-width: calc(100vw - 32px); text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200;
+  display: none; align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface); border-radius: 24px 24px 0 0; padding: 12px 20px 40px;
+  width: 100%; max-width: 480px; max-height: 92vh; overflow-y: auto;
+  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-bottom: 24px; }
+.modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; margin-top: -2px; }
+
+/* ===== EMPTY STATE ===== */
+.empty-state { text-align: center; padding: 32px 24px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.empty-state-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ===== HISTORY ===== */
+.history-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+}
+.history-item-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.history-item-meta { font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; }
+.history-item-players { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.history-player-chip { display: flex; align-items: center; gap: 5px; padding: 3px 8px 3px 5px; background: var(--surface2); border-radius: 100px; font-size: 11px; border-left: 3px solid var(--border); }
+
+/* ===== PAGE HEADER ===== */
+.page-back-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-top: 4px; }
+.page-back-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+.page-back-title { font-size: 22px; font-weight: 900; }
+
+/* ===== MONITOR STUB ===== */
+.monitor-stub { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; gap: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="page-splash">
+  <div class="splash-logo">PRÉ</div>
+  <div class="splash-sub">rede social de festa</div>
+  <div class="splash-dots">
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+    <div class="splash-dot"></div>
+  </div>
+</div>
+
+<!-- ===== PROFILE SETUP ===== -->
+<div id="page-profile-setup" class="page">
+  <div style="text-align:center;margin-bottom:28px;padding-top:8px">
+    <div class="setup-logo">PRÉ</div>
+    <div class="setup-sub">crie seu perfil</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="setup-step-label">// Quem é você na festa?</div>
+
+    <div class="form-group">
+      <label class="form-label">Seu apelido</label>
+      <input class="form-input" id="ps-name" type="text" placeholder="como te chamam na pré..." maxlength="20" autocomplete="off">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Seu avatar</label>
+      <div class="avatar-grid" id="ps-avatar-grid"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Sua cor</label>
+      <div class="color-row" id="ps-color-row"></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Peso <span>(pra calcular o BAC)</span></label>
+      <div class="weight-row">
+        <input type="number" id="ps-weight" value="70" min="40" max="200">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Sexo biológico <span>(afeta metabolismo)</span></label>
+      <div class="btn-group">
+        <button class="btn-option selected" data-group="ps-sex" data-value="M">Masculino</button>
+        <button class="btn-option" data-group="ps-sex" data-value="F">Feminino</button>
+      </div>
+    </div>
+  </div>
+
+  <br>
+  <button class="btn-primary" onclick="saveProfileSetup()">Entrar na festa 🍺</button>
+</div>
+
+<!-- ===== HOME ===== -->
+<div id="page-home" class="page">
+  <div class="home-header">
+    <div class="home-logo">PRÉ</div>
+    <div class="mini-profile-chip" onclick="openEditProfile()">
+      <div class="mini-avatar" id="home-mini-avatar"></div>
+      <div class="mini-name" id="home-mini-name"></div>
+    </div>
+  </div>
+
+  <div class="home-actions">
+    <div class="action-card" onclick="openCreateParty()">
+      <div class="action-card-emoji">🍺</div>
+      <div class="action-card-title">Criar pré</div>
+      <div class="action-card-sub">// você é o anfitrião</div>
+    </div>
+    <div class="action-card join" onclick="openJoinParty()">
+      <div class="action-card-emoji">📲</div>
+      <div class="action-card-title">Entrar numa pré</div>
+      <div class="action-card-sub">// escaneie o QR ou coloque o código</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">// Histórico</span>
+    <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" onclick="navTo('history')">Ver tudo</button>
+  </div>
+  <div id="home-history"></div>
+</div>
+
+<!-- ===== LOBBY ===== -->
+<div id="page-lobby" class="page">
+  <div class="lobby-top">
+    <button class="lobby-back" onclick="leaveLobby()">←</button>
+    <div class="lobby-top-info">
+      <div class="lobby-party-name" id="lobby-party-name">Pré da galera</div>
+      <div class="lobby-status" id="lobby-status">// conectando...</div>
+    </div>
+  </div>
+
+  <div class="lobby-code-block">
+    <div>
+      <div class="lobby-code-label">Código da festa</div>
+      <div class="lobby-code-value" id="lobby-code">------</div>
+    </div>
+    <button class="lobby-qr-btn" onclick="openQRModal()" id="lobby-qr-btn" style="display:none">📱 QR Code</button>
+  </div>
+
+  <div class="lobby-players-header">
+    <span class="lobby-players-title">// jogadores</span>
+    <span class="lobby-count-badge"><span id="lobby-count">0</span> conectados</span>
+  </div>
+
+  <div class="lobby-player-list" id="lobby-players"></div>
+
+  <div class="lobby-waiting" id="lobby-waiting-msg" style="display:none">
+    Compartilhe o código ou QR pra chamar a galera...
+  </div>
+
+  <br>
+  <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none">🚀 Começar a pré!</button>
+  <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled>⏳ Aguardando o anfitrião começar...</button>
+  <br><br>
+  <button class="btn-danger" onclick="leaveLobby()">Sair da pré</button>
+</div>
+
+<!-- ===== MONITOR (stub — Parte 2) ===== -->
+<div id="page-monitor" class="page page-with-nav">
+  <div id="monitor-content">
+    <div class="monitor-stub">
+      <div style="font-size:56px">🍺</div>
+      <div style="font-size:22px;font-weight:800">Pré rolando!</div>
+      <div id="monitor-party-label" style="font-size:13px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px"></div>
+      <div style="margin-top:24px;font-size:12px;color:var(--muted);font-family:'Courier New',monospace">monitor de bebidas vem na parte 2...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RANKING (stub — Parte 2) ===== -->
+<div id="page-ranking" class="page page-with-nav">
+  <div class="page-back-row">
+    <div class="page-back-title">Ranking</div>
+  </div>
+  <div class="empty-state">
+    <div class="empty-state-icon">🏆</div>
+    <div class="empty-state-title">Ranking ao vivo</div>
+    <div class="empty-state-text">Disponível na parte 2</div>
+  </div>
+</div>
+
+<!-- ===== HISTORY ===== -->
+<div id="page-history" class="page">
+  <div class="page-back-row">
+    <button class="page-back-btn" onclick="navTo('home')">←</button>
+    <div class="page-back-title">Histórico</div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- ===== MODAL: QR CODE ===== -->
+<div class="modal-overlay" id="modal-qr">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-qr')">✕</button>
+    <div class="modal-title">Entrar na pré</div>
+    <div class="modal-sub">// escaneie o QR ou copie o código</div>
+    <div class="qr-container">
+      <img class="qr-img" id="qr-img" src="" alt="QR Code">
+      <div class="qr-code-big" id="qr-code-display">------</div>
+      <div class="qr-hint">Aponte a câmera do celular pro QR<br>ou coloque o código manualmente</div>
+    </div>
+    <br>
+    <button class="btn-primary" onclick="copyPartyLink()">📋 Copiar link</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: ENTRAR COM CÓDIGO ===== -->
+<div class="modal-overlay" id="modal-join">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-join')">✕</button>
+    <div class="modal-title">Entrar numa pré</div>
+    <div class="modal-sub">// coloque o código da festa</div>
+    <div class="form-group">
+      <label class="form-label">Código</label>
+      <input class="form-input" id="join-code-input" type="text" placeholder="ex: ABC123"
+        maxlength="10" autocomplete="off"
+        style="text-transform:uppercase;font-family:'Courier New',monospace;font-size:24px;letter-spacing:6px;text-align:center"
+        oninput="this.value=this.value.toUpperCase()">
+    </div>
+    <button class="btn-primary" onclick="joinByCode()">Entrar 🎉</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: CRIAR PRÉ ===== -->
+<div class="modal-overlay" id="modal-create">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    <div class="modal-title">Criar pré</div>
+    <div class="modal-sub">// você é o anfitrião</div>
+    <div class="form-group">
+      <label class="form-label">Nome da festa <span>(opcional)</span></label>
+      <input class="form-input" id="create-party-name" type="text"
+        placeholder="ex: Pré do Leo, Aniversário..." maxlength="40" autocomplete="off">
+    </div>
+    <button class="btn-primary" onclick="doCreateParty()">Criar e gerar QR 📱</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: MINHAS PREFERÊNCIAS ===== -->
+<div class="modal-overlay" id="modal-prefs">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-prefs')">✕</button>
+    <div class="modal-title">Minhas preferências</div>
+    <div class="modal-sub">// afeta o cálculo do BAC</div>
+
+    <div class="form-group">
+      <label class="form-label">Estômago <span>(comeu hoje?)</span></label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="prefs-stomach" data-value="empty">🫙 Vazio</button>
+        <button class="btn-option selected" data-group="prefs-stomach" data-value="medium">🍕 Médio</button>
+        <button class="btn-option" data-group="prefs-stomach" data-value="full">🍖 Cheio</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Hidratação</label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="prefs-hydration" data-value="dry">🌵 Seco</button>
+        <button class="btn-option selected" data-group="prefs-hydration" data-value="ok">💧 OK</button>
+        <button class="btn-option" data-group="prefs-hydration" data-value="hydrated">🚰 Hidratado</button>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Meta de álcool</label>
+      <div class="levels-grid">
+        <div class="level-btn level-alto" data-pref-level="alto" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">😊</div><div class="level-name">ALTO</div>
+          <div class="level-desc">leve e animado</div><div class="level-bac">~0.055%</div>
+        </div>
+        <div class="level-btn level-flow selected" data-pref-level="flow" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">🔥</div><div class="level-name">FLOW</div>
+          <div class="level-desc">zona perfeita</div><div class="level-bac">~0.10%</div>
+        </div>
+        <div class="level-btn level-bebado" data-pref-level="bebado" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">🥴</div><div class="level-name">BÊBADO</div>
+          <div class="level-desc">vai ficar pesado</div><div class="level-bac">~0.155%</div>
+        </div>
+        <div class="level-btn level-destruicao" data-pref-level="destruicao" onclick="selectPrefLevel(this)">
+          <div class="level-emoji">💀</div><div class="level-name">DESTRUIÇÃO</div>
+          <div class="level-desc">modo difícil</div><div class="level-bac">~0.22%</div>
+        </div>
+      </div>
+    </div>
+
+    <br>
+    <button class="btn-primary" onclick="savePrefs()">Salvar ✓</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: EDITAR PERFIL ===== -->
+<div class="modal-overlay" id="modal-edit-profile">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-edit-profile')">✕</button>
+    <div class="modal-title">Editar perfil</div>
+    <div class="modal-sub">// suas informações</div>
+
+    <div class="form-group">
+      <label class="form-label">Apelido</label>
+      <input class="form-input" id="edit-name" type="text" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Avatar</label>
+      <div class="avatar-grid" id="edit-avatar-grid"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cor</label>
+      <div class="color-row" id="edit-color-row"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Peso</label>
+      <div class="weight-row">
+        <input type="number" id="edit-weight" min="40" max="200">
+        <span class="unit">kg</span>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:24px">
+      <label class="form-label">Sexo biológico</label>
+      <div class="btn-group">
+        <button class="btn-option" data-group="edit-sex" data-value="M">Masculino</button>
+        <button class="btn-option" data-group="edit-sex" data-value="F">Feminino</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveEditProfile()">Salvar</button>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div id="toast" class="toast"></div>
+
+<!-- ===== BOTTOM NAV ===== -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
+    <span class="nav-icon">🍺</span><span>Bebidas</span>
+  </button>
+  <button class="nav-btn" id="nav-ranking" onclick="navTo('ranking')">
+    <span class="nav-icon">🏆</span><span>Ranking</span>
+  </button>
+</nav>
+
+<!-- PeerJS -->
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script>
+// ===== CONSTANTS =====
+const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🤖','👽','🎭','🔥','💫','⚡','🌙','🎪','🌈','🍀'];
+const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
+const LEVELS_CONFIG = {
+  alto:       { bac:0.055, name:'😊 ALTO',       color:'#22c55e' },
+  flow:       { bac:0.10,  name:'🔥 FLOW',       color:'#eab308' },
+  bebado:     { bac:0.155, name:'🥴 BÊBADO',     color:'#f97316' },
+  destruicao: { bac:0.22,  name:'💀 DESTRUIÇÃO', color:'#ef4444' },
+};
+const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
+const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
+
+// ===== APP STATE =====
+let myProfile = null;
+let peer = null;
+let hostConn = null;
+let guestConns = [];
+let isHost = false;
+let party = null;
+let currentPage = 'splash';
+let _pendingJoinCode = null;
+let _connectTimeout = null;
+let bc = null;             // BroadcastChannel (same-device tabs)
+const MY_ID = uid();       // stable ID for this tab/session
+
+// PeerJS config with STUN + TURN for better NAT traversal
+const PEER_CFG = {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      // Free TURN relay — allows crossing strict NATs/firewalls
+      { urls: 'turn:openrelay.metered.ca:80',              username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443',             username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    ]
+  }
+};
+
+// ===== UTILS =====
+let _toastTimer = null;
+function toast(msg, duration) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), duration || 3000);
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+}
+
+function generatePartyCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function fmtDate(ts) {
+  return new Date(ts).toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function fmtDuration(ms) {
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? h + 'h' + m + 'min' : m + 'min';
+}
+
+function stomachLabel(v) { return ({empty:'🫙 vazio',medium:'🍕 médio',full:'🍖 cheio'})[v]||v; }
+function hydrationLabel(v) { return ({dry:'🌵 seco',ok:'💧 ok',hydrated:'🚰 hidratado'})[v]||v; }
+function levelLabel(v) { return ({alto:'😊 alto',flow:'🔥 flow',bebado:'🥴 bêbado',destruicao:'💀 destruição'})[v]||v; }
+
+function rgbToHex(rgb) {
+  const m = String(rgb).match(/\d+/g);
+  if (!m) return '#7c3aed';
+  return '#' + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+// ===== BROADCAST CHANNEL (same-device, same-origin tabs) =====
+function initBC(code) {
+  destroyBC();
+  try {
+    bc = new BroadcastChannel('pre_' + code);
+    bc.onmessage = e => {
+      const data = e.data;
+      if (!data || data._from === MY_ID) return; // ignore own messages
+      if (isHost) handleGuestMessage(null, data);
+      else handleHostMessage(data);
+    };
+  } catch(e) { bc = null; }
+}
+
+function destroyBC() {
+  if (bc) { try { bc.close(); } catch(e) {} bc = null; }
+}
+
+// ===== PROFILE =====
+function loadProfile() {
+  try { const s = localStorage.getItem('pre_profile'); if (s) myProfile = JSON.parse(s); } catch(e) {}
+}
+function saveProfile() {
+  localStorage.setItem('pre_profile', JSON.stringify(myProfile));
+}
+
+// ===== NAVIGATION =====
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  currentPage = page;
+
+  const navVisible = (page === 'monitor' || page === 'ranking') && !!party;
+  document.getElementById('bottom-nav').classList.toggle('visible', navVisible);
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nav-' + page);
+  if (nb) nb.classList.add('active');
+
+  if (page === 'home') renderHome();
+  if (page === 'history') renderHistory();
+  if (page === 'lobby') renderLobby();
+  if (page === 'monitor' && party) {
+    const lbl = document.getElementById('monitor-party-label');
+    if (lbl) lbl.textContent = party.name;
+  }
+}
+
+// ===== PROFILE SETUP =====
+function renderProfileSetup() {
+  const selAv = myProfile?.avatar || AVATARS[2];
+  document.getElementById('ps-avatar-grid').innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===selAv?' selected':''}" onclick="selectPickerItem(this,'ps-avatar-grid')">${a}</div>`
+  ).join('');
+
+  const selC = myProfile?.color || COLORS[0];
+  document.getElementById('ps-color-row').innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===selC?' selected':''}" style="background:${c}" onclick="selectPickerItem(this,'ps-color-row')"></div>`
+  ).join('');
+
+  if (myProfile?.name) document.getElementById('ps-name').value = myProfile.name;
+  if (myProfile?.weight) document.getElementById('ps-weight').value = myProfile.weight;
+  if (myProfile?.sex) {
+    document.querySelectorAll('[data-group="ps-sex"]').forEach(b =>
+      b.classList.toggle('selected', b.dataset.value === myProfile.sex)
+    );
+  }
+}
+
+function saveProfileSetup() {
+  const name = document.getElementById('ps-name').value.trim();
+  if (!name) { toast('Coloca seu apelido primeiro 👆'); return; }
+
+  const av = document.querySelector('#ps-avatar-grid .avatar-opt.selected')?.textContent || AVATARS[2];
+  const colorEl = document.querySelector('#ps-color-row .color-opt.selected');
+  const rawColor = colorEl?.style.backgroundColor || COLORS[0];
+  const color = rawColor.startsWith('rgb') ? rgbToHex(rawColor) : rawColor;
+  const weight = parseInt(document.getElementById('ps-weight').value) || 70;
+  const sex = document.querySelector('[data-group="ps-sex"].selected')?.dataset.value || 'M';
+
+  myProfile = { id: myProfile?.id || uid(), name, avatar: av, color, weight, sex, createdAt: myProfile?.createdAt || Date.now() };
+  saveProfile();
+
+  if (_pendingJoinCode) {
+    const code = _pendingJoinCode; _pendingJoinCode = null;
+    doJoinParty(code);
+  } else {
+    navTo('home');
+  }
+}
+
+function selectPickerItem(el, gridId) {
+  document.querySelectorAll('#' + gridId + ' .avatar-opt, #' + gridId + ' .color-opt')
+    .forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ===== HOME =====
+function renderHome() {
+  if (!myProfile) return;
+  const av = document.getElementById('home-mini-avatar');
+  av.style.background = myProfile.color + '33';
+  av.style.borderColor = myProfile.color;
+  av.textContent = myProfile.avatar;
+  document.getElementById('home-mini-name').textContent = myProfile.name;
+
+  const history = getHistory();
+  const el = document.getElementById('home-history');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Crie ou entre numa pré pra começar</div></div>`;
+    return;
+  }
+  el.innerHTML = history.slice(0,3).map(p => `
+    <div class="history-item">
+      <div class="history-item-name">${esc(p.name)}</div>
+      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} jogadores · ${p.duration}</div>
+    </div>
+  `).join('');
+}
+
+// ===== CREATE PARTY =====
+function openCreateParty() {
+  document.getElementById('create-party-name').value = '';
+  openModal('modal-create');
+}
+
+function doCreateParty() {
+  const name = document.getElementById('create-party-name').value.trim() || ('Pré de ' + myProfile.name);
+  closeModal('modal-create');
+  createParty(name);
+}
+
+function createParty(partyName) {
+  const code = generatePartyCode();
+  isHost = true; guestConns = []; hostConn = null;
+
+  party = {
+    id: code, name: partyName, status: 'lobby',
+    startTime: null, createdAt: Date.now(),
+    players: [{ peerId:'host', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:null, drinks:[], maxBac:0 }]
+  };
+
+  initBC(code); // same-device tab sync (works without internet)
+  navTo('lobby');
+  document.getElementById('lobby-status').textContent = '// conectando...';
+  document.getElementById('lobby-qr-btn').style.display = 'none';
+  document.getElementById('btn-start-party').style.display = 'none';
+
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  peer = new Peer(code, PEER_CFG);
+
+  clearTimeout(_connectTimeout);
+  _connectTimeout = setTimeout(() => {
+    if (currentPage === 'lobby' && document.getElementById('lobby-status').textContent.includes('conectando')) {
+      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => createParty(partyName));
+    }
+  }, 12000);
+
+  peer.on('open', () => {
+    clearTimeout(_connectTimeout);
+    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+    document.getElementById('lobby-qr-btn').style.display = '';
+    document.getElementById('btn-start-party').style.display = 'block';
+    document.getElementById('lobby-waiting-msg').style.display = 'block';
+    renderLobby();
+  });
+
+  peer.on('connection', (conn) => {
+    guestConns.push(conn);
+    conn.on('open', () => { conn.send({ type:'STATE', party }); });
+    conn.on('data', (data) => { handleGuestMessage(conn, data); });
+    conn.on('close', () => {
+      guestConns = guestConns.filter(c => c !== conn);
+      party.players = party.players.filter(p => p.peerId !== conn.peer);
+      broadcastState();
+      if (currentPage === 'lobby') renderLobby();
+    });
+    conn.on('error', () => { guestConns = guestConns.filter(c => c !== conn); });
+  });
+
+  peer.on('error', (err) => {
+    clearTimeout(_connectTimeout);
+    if (err.type === 'unavailable-id') {
+      peer.destroy(); peer = null; createParty(partyName);
+    } else {
+      setLobbyError(peerErrMsg(err.type), () => createParty(partyName));
+    }
+  });
+}
+
+function handleGuestMessage(conn, data) {
+  if (!party) return;
+  // conn is null for BroadcastChannel messages; use _from to build a stable peerId
+  const peerId = conn ? conn.peer : ('bc_' + (data._from || 'anon'));
+
+  if (data.type === 'JOIN') {
+    // Deduplicate: same person might arrive via both PeerJS and BC
+    let ex = party.players.find(p => p.profile?.id === data.profile?.id && p.peerId !== 'host');
+    if (!ex) ex = party.players.find(p => p.peerId === peerId);
+    if (!ex) {
+      party.players.push({ peerId, profile:data.profile, prefs:data.prefs||{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:party.status==='active'?Date.now():null, drinks:[], maxBac:0 });
+    } else { ex.profile = data.profile; if (data.prefs) ex.prefs = data.prefs; }
+    broadcastState();
+    if (currentPage === 'lobby') renderLobby();
+  } else if (data.type === 'UPDATE_PREFS') {
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
+    if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
+  } else if (data.type === 'ADD_DRINK') {
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
+    if (p && data.drink) { p.drinks.push(data.drink); broadcastState(); }
+  } else if (data.type === 'REMOVE_DRINK') {
+    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
+    if (p) { p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState(); }
+  }
+}
+
+function broadcastState() {
+  const msg = { type:'STATE', party, _from: MY_ID };
+  guestConns.forEach(c => { if (c.open) c.send(msg); });
+  if (bc) bc.postMessage(msg);
+}
+
+// ===== JOIN PARTY =====
+function openJoinParty() {
+  document.getElementById('join-code-input').value = '';
+  openModal('modal-join');
+}
+
+function joinByCode() {
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  if (!code || code.length < 4) { toast('Coloca o código da festa 👆'); return; }
+  closeModal('modal-join');
+  doJoinParty(code);
+}
+
+function doJoinParty(code) {
+  isHost = false; party = null; hostConn = null;
+  initBC(code); // will work immediately for same-device tabs
+
+  navTo('lobby');
+  document.getElementById('lobby-party-name').textContent = 'Conectando...';
+  document.getElementById('lobby-code').textContent = code;
+  document.getElementById('lobby-status').textContent = '// conectando ao host';
+  document.getElementById('lobby-players').innerHTML = '';
+  document.getElementById('lobby-qr-btn').style.display = 'none';
+  document.getElementById('btn-start-party').style.display = 'none';
+  document.getElementById('btn-guest-waiting').style.display = 'block';
+  document.getElementById('lobby-waiting-msg').style.display = 'none';
+
+  if (peer) { try { peer.destroy(); } catch(e) {} }
+  peer = new Peer(PEER_CFG);
+
+  clearTimeout(_connectTimeout);
+  _connectTimeout = setTimeout(() => {
+    if (currentPage === 'lobby') {
+      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => doJoinParty(code));
+    }
+  }, 12000);
+
+  peer.on('open', () => {
+    clearTimeout(_connectTimeout);
+    document.getElementById('lobby-status').textContent = '// conectando à festa...';
+    hostConn = peer.connect(code, { reliable:true });
+
+    // timeout para conexão com o host especificamente
+    const hostTimeout = setTimeout(() => {
+      if (!hostConn?.open && currentPage === 'lobby') {
+        setLobbyError('Não foi possível conectar ao host. O código está correto?', () => doJoinParty(code));
+      }
+    }, 10000);
+
+    hostConn.on('open', () => {
+      clearTimeout(hostTimeout);
+      document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
+      hostConn.send({ type:'JOIN', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'} });
+    });
+    hostConn.on('data', (data) => { handleHostMessage(data); });
+    hostConn.on('close', () => {
+      toast('Conexão com o host perdida');
+      if (currentPage === 'lobby') document.getElementById('lobby-status').textContent = '// host desconectado';
+    });
+    hostConn.on('error', (err) => {
+      clearTimeout(hostTimeout);
+      setLobbyError('Erro ao conectar ao host: ' + (err.type || err), () => doJoinParty(code));
+    });
+  });
+
+  peer.on('error', (err) => {
+    clearTimeout(_connectTimeout);
+    if (err.type === 'peer-unavailable') {
+      setLobbyError('Festa não encontrada. Verifique o código e tente de novo.', () => { navTo('home'); openJoinParty(); });
+    } else {
+      setLobbyError(peerErrMsg(err.type), () => doJoinParty(code));
+    }
+  });
+}
+
+// ===== ERROR HELPERS =====
+function peerErrMsg(type) {
+  const msgs = {
+    'network':       'Sem internet ou servidor PeerJS inacessível.',
+    'server-error':  'Servidor PeerJS fora do ar. Tente em instantes.',
+    'socket-error':  'Erro de rede (socket). Verifique sua conexão.',
+    'socket-closed': 'Conexão fechada pelo servidor. Tente de novo.',
+    'browser-incompatible': 'Seu navegador não suporta WebRTC. Use Chrome ou Firefox.',
+  };
+  return msgs[type] || ('Erro de conexão: ' + type + '. Verifique sua internet.');
+}
+
+function setLobbyError(msg, retryFn) {
+  document.getElementById('lobby-status').textContent = '// erro de conexão';
+  document.getElementById('btn-start-party').style.display = 'none';
+  document.getElementById('btn-guest-waiting').style.display = 'none';
+  document.getElementById('lobby-waiting-msg').style.display = 'none';
+  document.getElementById('lobby-players').innerHTML = `
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px 18px;margin-bottom:8px">
+      <div style="font-size:13px;color:var(--red);margin-bottom:10px">⚠️ ${esc(msg)}</div>
+      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">↺ Tentar novamente</button>
+    </div>`;
+}
+
+function handleHostMessage(data) {
+  if (data.type === 'STATE') {
+    party = data.party;
+    if (party.status === 'active' && currentPage !== 'monitor') { navTo('monitor'); return; }
+    if (currentPage === 'lobby') renderLobby();
+  } else if (data.type === 'START') {
+    party = data.party;
+    navTo('monitor');
+  } else if (data.type === 'END') {
+    party = data.party;
+    savePartyToHistory(party);
+    navTo('home');
+    toast('Pré encerrada! Confira o histórico 📋');
+  }
+}
+
+function sendToHost(data) {
+  const msg = { ...data, _from: MY_ID, _profileId: myProfile?.id };
+  if (hostConn?.open) hostConn.send(msg);
+  if (bc) bc.postMessage(msg);
+}
+
+// ===== START PARTY (host only) =====
+function startParty() {
+  if (!party || !isHost) return;
+  party.status = 'active';
+  party.startTime = Date.now();
+  party.players.forEach(p => { p.joinedAt = Date.now(); });
+  guestConns.forEach(c => { if (c.open) c.send({ type:'START', party }); });
+  navTo('monitor');
+}
+
+// ===== LOBBY RENDER =====
+function renderLobby() {
+  if (!party) return;
+
+  document.getElementById('lobby-party-name').textContent = party.name;
+  document.getElementById('lobby-code').textContent = party.id;
+  document.getElementById('lobby-count').textContent = party.players.length;
+
+  if (isHost) {
+    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+    document.getElementById('btn-start-party').style.display = 'block';
+    document.getElementById('btn-guest-waiting').style.display = 'none';
+    document.getElementById('lobby-waiting-msg').style.display = party.players.length < 2 ? 'block' : 'none';
+    document.getElementById('lobby-qr-btn').style.display = '';
+  } else {
+    document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
+    document.getElementById('btn-start-party').style.display = 'none';
+    document.getElementById('btn-guest-waiting').style.display = 'block';
+    document.getElementById('lobby-waiting-msg').style.display = 'none';
+    document.getElementById('lobby-qr-btn').style.display = 'none';
+  }
+
+  document.getElementById('lobby-players').innerHTML = party.players.map(p => {
+    const isMe = isHost ? p.peerId === 'host' : p.profile?.id === myProfile?.id;
+    const isHostPlayer = p.peerId === 'host';
+    const prefs = p.prefs || {};
+    return `
+      <div class="lobby-player-row${isMe?' me':''}">
+        <div class="lobby-player-avatar" style="background:${esc(p.profile.color)}22;border-color:${esc(p.profile.color)}">
+          ${esc(p.profile.avatar)}
+        </div>
+        <div class="lobby-player-info">
+          <div class="lobby-player-name">
+            ${esc(p.profile.name)}
+            ${isMe ? '<span class="me-badge">você</span>' : ''}
+            ${isHostPlayer ? '<span class="host-badge">host</span>' : ''}
+          </div>
+          <div class="lobby-player-prefs">
+            ${stomachLabel(prefs.stomach||'medium')} · ${hydrationLabel(prefs.hydration||'ok')} · ${levelLabel(prefs.targetLevel||'flow')}
+          </div>
+        </div>
+        ${isMe ? `<button class="btn-edit-prefs" onclick="openPrefsModal()">⚙️</button>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ===== LEAVE LOBBY =====
+function leaveLobby() {
+  clearTimeout(_connectTimeout);
+  destroyBC();
+  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+  hostConn = null; guestConns = []; isHost = false; party = null;
+  navTo('home');
+}
+
+// ===== PREFS MODAL =====
+function openPrefsModal() {
+  const me = getMyPlayer();
+  const prefs = me?.prefs || { stomach:'medium', hydration:'ok', targetLevel:'flow' };
+
+  document.querySelectorAll('[data-group="prefs-stomach"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === prefs.stomach));
+  document.querySelectorAll('[data-group="prefs-hydration"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === prefs.hydration));
+  document.querySelectorAll('[data-pref-level]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.prefLevel === prefs.targetLevel));
+
+  openModal('modal-prefs');
+}
+
+function selectPrefLevel(el) {
+  document.querySelectorAll('[data-pref-level]').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function savePrefs() {
+  const stomach = document.querySelector('[data-group="prefs-stomach"].selected')?.dataset.value || 'medium';
+  const hydration = document.querySelector('[data-group="prefs-hydration"].selected')?.dataset.value || 'ok';
+  const targetLevel = document.querySelector('[data-pref-level].selected')?.dataset.prefLevel || 'flow';
+  const prefs = { stomach, hydration, targetLevel };
+
+  const me = getMyPlayer();
+  if (me) me.prefs = prefs;
+
+  if (isHost) { broadcastState(); renderLobby(); }
+  else { sendToHost({ type:'UPDATE_PREFS', prefs }); if (currentPage === 'lobby') renderLobby(); }
+
+  closeModal('modal-prefs');
+  toast('Preferências salvas ✓');
+}
+
+function getMyPlayer() {
+  if (!party) return null;
+  if (isHost) return party.players.find(p => p.peerId === 'host');
+  return party.players.find(p => p.profile?.id === myProfile?.id);
+}
+
+// ===== QR MODAL =====
+function openQRModal() {
+  if (!party) return;
+  const baseUrl = window.location.href.split('?')[0];
+  const joinUrl = baseUrl + '?party=' + party.id;
+  document.getElementById('qr-img').src =
+    'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+    encodeURIComponent(joinUrl) + '&bgcolor=12121a&color=a855f7&qzone=2';
+  document.getElementById('qr-code-display').textContent = party.id;
+  openModal('modal-qr');
+}
+
+function copyPartyLink() {
+  const url = window.location.href.split('?')[0] + '?party=' + party.id;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('Link copiado! 📋')).catch(() => toast(url));
+  } else { toast('Link: ' + url); }
+  closeModal('modal-qr');
+}
+
+// ===== EDIT PROFILE =====
+function openEditProfile() {
+  if (!myProfile) return;
+  document.getElementById('edit-name').value = myProfile.name || '';
+  document.getElementById('edit-weight').value = myProfile.weight || 70;
+
+  document.getElementById('edit-avatar-grid').innerHTML = AVATARS.map(a =>
+    `<div class="avatar-opt${a===myProfile.avatar?' selected':''}" onclick="selectPickerItem(this,'edit-avatar-grid')">${a}</div>`
+  ).join('');
+  document.getElementById('edit-color-row').innerHTML = COLORS.map(c =>
+    `<div class="color-opt${c===myProfile.color?' selected':''}" style="background:${c}" onclick="selectPickerItem(this,'edit-color-row')"></div>`
+  ).join('');
+  document.querySelectorAll('[data-group="edit-sex"]').forEach(b =>
+    b.classList.toggle('selected', b.dataset.value === (myProfile.sex||'M')));
+
+  openModal('modal-edit-profile');
+}
+
+function saveEditProfile() {
+  const name = document.getElementById('edit-name').value.trim();
+  if (!name) { toast('Coloca seu apelido 👆'); return; }
+
+  const av = document.querySelector('#edit-avatar-grid .avatar-opt.selected')?.textContent || myProfile.avatar;
+  const colorEl = document.querySelector('#edit-color-row .color-opt.selected');
+  const rawColor = colorEl?.style.backgroundColor || myProfile.color;
+  const color = rawColor.startsWith('rgb') ? rgbToHex(rawColor) : rawColor;
+  const weight = parseInt(document.getElementById('edit-weight').value) || myProfile.weight || 70;
+  const sex = document.querySelector('[data-group="edit-sex"].selected')?.dataset.value || myProfile.sex || 'M';
+
+  myProfile = { ...myProfile, name, avatar:av, color, weight, sex };
+  saveProfile();
+  closeModal('modal-edit-profile');
+  toast('Perfil atualizado ✓');
+  if (currentPage === 'home') renderHome();
+}
+
+// ===== HISTORY =====
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('pre_history') || '[]'); } catch(e) { return []; }
+}
+
+function savePartyToHistory(p) {
+  const history = getHistory();
+  const end = p.endTime || Date.now();
+  const start = p.startTime || end;
+  history.unshift({
+    id: p.id, name: p.name, startTime: start,
+    playerCount: p.players?.length || 1,
+    duration: fmtDuration(end - start),
+    players: (p.players||[]).map(pl => ({ name:pl.profile.name, avatar:pl.profile.avatar, color:pl.profile.color })),
+  });
+  try { localStorage.setItem('pre_history', JSON.stringify(history.slice(0,30))); } catch(e) {}
+}
+
+function renderHistory() {
+  const history = getHistory();
+  const el = document.getElementById('history-list');
+  if (!history.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-title">Nenhuma pré ainda</div><div class="empty-state-text">Suas prés vão aparecer aqui</div></div>`;
+    return;
+  }
+  el.innerHTML = history.map(p => `
+    <div class="history-item">
+      <div class="history-item-name">${esc(p.name)}</div>
+      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} jogador${p.playerCount!==1?'es':''} · ${p.duration}</div>
+      ${p.players?.length ? `<div class="history-item-players">${p.players.map(pl=>`<div class="history-player-chip" style="border-left-color:${esc(pl.color)}">${esc(pl.avatar)} ${esc(pl.name)}</div>`).join('')}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// Generic btn-option toggle handler
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-group]');
+  if (!btn) return;
+  const group = btn.dataset.group;
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+});
+
+// ===== INIT =====
+function initApp() {
+  if (typeof Peer === 'undefined') {
+    document.querySelector('.splash-sub').textContent = 'erro: peerjs não carregou';
+    document.querySelector('.splash-dots').innerHTML = '<div style="color:#ef4444;font-size:12px;font-family:monospace;text-align:center">Verifique sua internet e recarregue a página.</div>';
+    return;
+  }
+
+  loadProfile();
+  const urlParams = new URLSearchParams(window.location.search);
+  const partyCode = urlParams.get('party');
+  if (partyCode) window.history.replaceState({}, '', window.location.pathname);
+
+  setTimeout(() => {
+    document.getElementById('page-splash').style.display = 'none';
+    if (partyCode) {
+      if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
+      else { doJoinParty(partyCode.toUpperCase()); }
+    } else {
+      if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
+      else { navTo('home'); }
+    }
+  }, 900);
+}
+
+initApp();
+</script>
+</body>
+</html>
