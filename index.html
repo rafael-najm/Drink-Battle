@@ -315,21 +315,16 @@ body::before {
 .drink-log-remove { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
 .drink-log-remove:hover { color: var(--red); }
 
-/* ===== DRINK MODAL ===== */
-.cup-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 4px; }
-.cup-opt { padding: 10px 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.15s; }
-.cup-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); }
-.cup-opt-emoji { font-size: 22px; }
-.cup-opt-label { font-size: 9px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 3px; }
-.cup-opt-ml { font-size: 9px; color: var(--accent2); font-family: 'Courier New', monospace; }
-.dtype-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; max-height: 200px; overflow-y: auto; margin-bottom: 4px; }
-.dtype-opt { padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: space-between; }
-.dtype-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); }
-.dtype-opt-name { font-size: 13px; font-weight: 600; }
-.dtype-opt-pct { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
-.fill-quick-row { display: flex; gap: 6px; margin-bottom: 12px; }
-.fill-quick { flex: 1; padding: 10px 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; text-align: center; }
-.fill-quick.selected { background: rgba(124,58,237,0.2); border-color: var(--accent2); color: var(--accent2); }
+/* ===== ADD DRINK SECTION ===== */
+.cup-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px; scrollbar-width: none; -ms-overflow-style: none; }
+.cup-scroll::-webkit-scrollbar { display: none; }
+.cup-chip { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 14px; background: var(--surface2); border: 2px solid var(--border); border-radius: 14px; cursor: pointer; flex-shrink: 0; transition: all 0.15s; min-width: 60px; -webkit-tap-highlight-color: transparent; }
+.cup-chip.selected { border-color: var(--accent2); background: rgba(124,58,237,0.15); }
+.cup-chip:active { transform: scale(0.93); }
+.cup-chip-emoji { font-size: 26px; }
+.cup-chip-label { font-size: 9px; color: var(--muted); font-family: 'Courier New', monospace; }
+.cup-chip-ml { font-size: 10px; font-weight: 700; color: var(--accent2); font-family: 'Courier New', monospace; }
+.fill-slider { width: 100%; accent-color: var(--accent2); cursor: pointer; height: 8px; margin-bottom: 4px; }
 
 /* ===== SOS ===== */
 .btn-sos { width: 100%; padding: 16px; background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.4); border-radius: 14px; color: var(--red); font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.15s; letter-spacing: 1px; }
@@ -491,7 +486,19 @@ body::before {
     <div class="bac-target-label" id="bac-target-label"></div>
   </div>
 
-  <div id="drink-panel"></div>
+  <div class="card-title">// Adicionar bebida</div>
+  <div class="cup-scroll" id="cup-scroll"></div>
+
+  <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <span style="font-size:13px;font-weight:500;color:var(--text)">Quanto tem no copo?</span>
+    <span id="fill-display" style="font-family:'Courier New',monospace;font-size:20px;font-weight:900;color:var(--accent2)">100%</span>
+  </div>
+  <input type="range" class="fill-slider" id="fill-slider" min="10" max="100" step="5" value="100" oninput="onFillChange(this.value)">
+  <div id="add-preview" style="text-align:center;font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin:10px 0 12px"></div>
+  <button class="btn-primary" onclick="confirmAddDrink()">➕ Adicionar</button>
+  <br><br>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div class="card-title" style="margin-bottom:0">// Histórico</div>
@@ -736,13 +743,25 @@ const LEVELS_CONFIG = {
 };
 const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
 const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
-const QUICK_DRINKS = [
-  { id:'cerveja', label:'Cerveja',    emoji:'🍺', ml:350, pct:5  },
-  { id:'longneck',label:'Long Neck',  emoji:'🍻', ml:355, pct:5  },
-  { id:'shot',    label:'Shot',       emoji:'🥃', ml:50,  pct:40 },
-  { id:'vinho',   label:'Vinho',      emoji:'🍷', ml:150, pct:12 },
-  { id:'caipira', label:'Caipirinha', emoji:'🍹', ml:200, pct:15 },
-  { id:'vodka',   label:'Vodka',      emoji:'🫗', ml:100, pct:40 },
+const CUPS = [
+  { id:'shot',     label:'Shot',    emoji:'🥃', ml:50  },
+  { id:'tulipa',   label:'Tulipa',  emoji:'🍺', ml:350 },
+  { id:'longneck', label:'Long',    emoji:'🍻', ml:355 },
+  { id:'taca',     label:'Taça',    emoji:'🍷', ml:150 },
+  { id:'caneca',   label:'Caneca',  emoji:'🫗', ml:500 },
+  { id:'garrafa',  label:'Garrafa', emoji:'🍾', ml:600 },
+];
+const DRINK_TYPES = [
+  { id:'cerveja',   label:'Cerveja',      pct:5  },
+  { id:'puro',      label:'Puro Malte',   pct:7  },
+  { id:'vinho_t',   label:'Vinho Tinto',  pct:13 },
+  { id:'vinho_b',   label:'Vinho Branco', pct:11 },
+  { id:'champagne', label:'Champagne',    pct:12 },
+  { id:'caipira',   label:'Caipirinha',   pct:15 },
+  { id:'vodka',     label:'Vodka',        pct:40 },
+  { id:'whisky',    label:'Whisky',       pct:40 },
+  { id:'rum',       label:'Rum',          pct:40 },
+  { id:'gin',       label:'Gin',          pct:40 },
 ];
 
 // ===== APP STATE =====
@@ -751,7 +770,8 @@ let isHost = false;
 let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
-let _fillPct = 100;
+let _selCup = 'tulipa', _selDrinkType = 'cerveja', _fillPct = 100;
+let _drinkSectionReady = false;
 let bc = null;             // BroadcastChannel (same-device tabs)
 const MY_ID = uid();       // stable ID for this tab/session
 
@@ -1202,7 +1222,7 @@ function renderLobby() {
 function leaveLobby() {
   destroyBC();
   mqttDisconnect();
-  isHost = false; party = null;
+  isHost = false; party = null; _drinkSectionReady = false;
   navTo('home');
 }
 
@@ -1408,23 +1428,8 @@ function renderMonitor() {
     document.getElementById('monitor-timer').textContent = (h?h+'h ':'') + m + 'min';
   }
 
-  // Drink panel: fill selector + drink grid (always re-render so fill reflects current state)
-  const fills = [25,50,75,100];
-  document.getElementById('drink-panel').innerHTML =
-    '<div class="card-title">// Adicionar bebida</div>' +
-    '<div class="fill-quick-row">' +
-      fills.map(f=>`<button class="fill-quick${_fillPct===f?' selected':''}" onclick="setFill(${f})">${f===100?'🍺 Cheio':f+'%'}</button>`).join('') +
-    '</div>' +
-    '<div class="drinks-grid">' +
-      QUICK_DRINKS.map(d=>{
-        const ml=Math.round(d.ml*_fillPct/100);
-        return `<div class="drink-btn" onclick="quickAddDrink('${d.id}')">
-          <div class="drink-btn-emoji">${d.emoji}</div>
-          <div class="drink-btn-label">${d.label}</div>
-          <div class="drink-btn-ml">${ml}ml</div>
-        </div>`;
-      }).join('') +
-    '</div>';
+  if (!_drinkSectionReady) initDrinkSection();
+  else updateAddPreview();
 
   // SOS indicator
   const meSos = me.sos;
@@ -1435,17 +1440,18 @@ function renderMonitor() {
   const log = [...(me.drinks||[])].reverse();
   document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
   document.getElementById('drink-log').innerHTML = log.length ? log.map(d => {
-    const qd = QUICK_DRINKS.find(x=>x.id===d.type)||{emoji:'🍶',label:'bebida',pct:d.pct||5};
+    const cup = CUPS.find(x=>x.id===d.cup)||{emoji:'🍶'};
+    const dt = DRINK_TYPES.find(x=>x.id===d.drinkType)||{label:'bebida',pct:d.pct||5};
     const t = new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     return `<div class="drink-log-item">
-      <div class="drink-log-emoji">${qd.emoji}</div>
+      <div class="drink-log-emoji">${cup.emoji}</div>
       <div class="drink-log-info">
-        <div class="drink-log-name">${esc(qd.label)}</div>
-        <div class="drink-log-time">${t} · ${d.ml||0}ml · ${qd.pct}%</div>
+        <div class="drink-log-name">${esc(dt.label)}</div>
+        <div class="drink-log-time">${t} · ${d.ml||0}ml · ${dt.pct}%</div>
       </div>
       <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
     </div>`;
-  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Toca uma bebida pra adicionar 👆</div>';
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Configure e adicione sua primeira bebida 👆</div>';
 }
 
 // ===== RANKING RENDER =====
@@ -1472,23 +1478,58 @@ function renderRanking() {
   }).join('');
 }
 
-// ===== DRINK PANEL =====
-function setFill(pct) {
-  _fillPct = pct;
-  if (currentPage === 'monitor') renderMonitor();
+// ===== ADD DRINK SECTION =====
+function initDrinkSection() {
+  _drinkSectionReady = true;
+  document.getElementById('cup-scroll').innerHTML = CUPS.map(c =>
+    `<div class="cup-chip${c.id===_selCup?' selected':''}" onclick="selectCupChip('${c.id}',this)">
+      <div class="cup-chip-emoji">${c.emoji}</div>
+      <div class="cup-chip-label">${c.label}</div>
+      <div class="cup-chip-ml">${c.ml}ml</div>
+    </div>`).join('');
+  const sel = document.getElementById('drink-type-select');
+  sel.innerHTML = DRINK_TYPES.map(d=>`<option value="${d.id}">${d.label} (${d.pct}%)</option>`).join('');
+  sel.value = _selDrinkType;
+  document.getElementById('fill-slider').value = _fillPct;
+  updateAddPreview();
 }
 
-function quickAddDrink(id) {
+function selectCupChip(id, el) {
+  _selCup = id;
+  document.querySelectorAll('.cup-chip').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  updateAddPreview();
+}
+
+function onFillChange(val) {
+  _fillPct = parseInt(val);
+  updateAddPreview();
+}
+
+function updateAddPreview() {
+  const sel = document.getElementById('drink-type-select');
+  if (sel) _selDrinkType = sel.value || _selDrinkType;
+  const cup = CUPS.find(c=>c.id===_selCup)||CUPS[1];
+  const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType)||DRINK_TYPES[0];
+  const ml = Math.round(cup.ml * _fillPct / 100);
+  const grams = Math.round(ml * dt.pct / 100 * 0.789 * 10) / 10;
+  const fillEl = document.getElementById('fill-display');
+  if (fillEl) fillEl.textContent = _fillPct + '%';
+  const prev = document.getElementById('add-preview');
+  if (prev) prev.textContent = `${cup.emoji} ${ml}ml de ${dt.label} ${dt.pct}% = ${grams}g álcool`;
+}
+
+function confirmAddDrink() {
   if (!party) return;
-  const qd = QUICK_DRINKS.find(d => d.id === id);
-  if (!qd) return;
-  const ml = Math.round(qd.ml * _fillPct / 100);
-  const drink = { id: uid(), type: id, ml, pct: qd.pct, fill: _fillPct, ts: Date.now() };
+  const cup = CUPS.find(c=>c.id===_selCup)||CUPS[1];
+  const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType)||DRINK_TYPES[0];
+  const ml = Math.round(cup.ml * _fillPct / 100);
+  const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml, pct: dt.pct, fill: _fillPct, ts: Date.now() };
   const me = getMyPlayer();
   if (me) me.drinks.push(drink);
   if (isHost) { broadcastState(); } else { sendToHost({ type:'ADD_DRINK', drink }); }
   renderMonitor();
-  toast(qd.emoji + ' adicionado!', 900);
+  toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1200);
 }
 
 function removeDrink(drinkId) {
