@@ -975,7 +975,7 @@ function mqttPublishState() {
 
 function mqttSendAction(data) {
   if (!mqttClient?.connected || !party) return;
-  mqttClient.publish(MQTT_PFX + party.id + '/action', JSON.stringify(data), { qos: 0 });
+  mqttClient.publish(MQTT_PFX + party.id + '/action', JSON.stringify(data), { qos: 1 });
 }
 
 function mqttDisconnect(clearRetained) {
@@ -1000,6 +1000,16 @@ function loadProfile() {
 }
 function saveProfile() {
   localStorage.setItem('pre_profile', JSON.stringify(myProfile));
+}
+
+// Per-guest drink log — source of truth for own drinks, survives host going stale
+function saveLocalDrinks(drinks) {
+  if (!party || !myProfile) return;
+  try { localStorage.setItem('pre_mydrinks_' + party.id + '_' + myProfile.id, JSON.stringify(drinks || [])); } catch(e) {}
+}
+function loadLocalDrinks() {
+  if (!party || !myProfile) return [];
+  try { const s = localStorage.getItem('pre_mydrinks_' + party.id + '_' + myProfile.id); return s ? JSON.parse(s) : []; } catch(e) { return []; }
 }
 
 // ===== NAVIGATION =====
@@ -1143,10 +1153,17 @@ function handleGuestMessage(conn, data) {
     if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
   } else if (data.type === 'ADD_DRINK') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p && data.drink) { p.drinks.push(data.drink); broadcastState(); }
+    if (p && data.drink?.id && !p.drinks.find(d => d.id === data.drink.id)) { p.drinks.push(data.drink); broadcastState(); }
   } else if (data.type === 'REMOVE_DRINK') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
     if (p) { p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState(); }
+  } else if (data.type === 'SYNC_DRINKS') {
+    const p = party.players.find(pl => pl.profile?.id === data._profileId);
+    if (p && Array.isArray(data.drinks)) {
+      const existingIds = new Set(p.drinks.map(d => d.id));
+      const toAdd = data.drinks.filter(d => d.id && !existingIds.has(d.id));
+      if (toAdd.length) { p.drinks = [...p.drinks, ...toAdd].sort((a, b) => a.ts - b.ts); broadcastState(); }
+    }
   } else if (data.type === 'SOS') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
     if (p) { p.sos = true; broadcastState(); }
@@ -1209,6 +1226,24 @@ function handleHostMessage(data) {
     const prev = party;
     party = data.party;
     try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: false })); } catch(e) {}
+
+    // Reconcile own drinks: merge local log with what host reports for us.
+    // Protects against host going offline and coming back with stale state.
+    const me = getMyPlayer();
+    if (me && myProfile) {
+      const local = loadLocalDrinks();
+      if (local.length) {
+        const hostIds = new Set((me.drinks || []).map(d => d.id));
+        const missing = local.filter(d => d.id && !hostIds.has(d.id));
+        if (missing.length) {
+          me.drinks = [...(me.drinks || []), ...missing].sort((a, b) => a.ts - b.ts);
+          sendToHost({ type: 'SYNC_DRINKS', drinks: me.drinks });
+        }
+      }
+      // Keep local log up-to-date with the merged result
+      if (me.drinks?.length) saveLocalDrinks(me.drinks);
+    }
+
     if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
     if (currentPage === 'lobby') renderLobby();
     if (currentPage === 'monitor') renderMonitor();
@@ -1312,6 +1347,7 @@ function renderLobby() {
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
   destroyBC();
+  if (party && myProfile) localStorage.removeItem('pre_mydrinks_' + party.id + '_' + myProfile.id);
   mqttDisconnect(true);
   localStorage.removeItem('pre_active_session');
   isHost = false; party = null; _drinkSectionReady = false;
@@ -1672,7 +1708,10 @@ function confirmAddDrink() {
   const ml = Math.round(cup.ml * _fillPct / 100);
   const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml, pct: dt.pct, fill: _fillPct, ts: Date.now() };
   const me = getMyPlayer();
-  if (me) me.drinks.push(drink);
+  if (me) {
+    me.drinks.push(drink);
+    if (!isHost) saveLocalDrinks(me.drinks);
+  }
   if (isHost) { broadcastState(); } else { sendToHost({ type:'ADD_DRINK', drink }); }
   renderMonitor();
   toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1200);
@@ -1681,7 +1720,10 @@ function confirmAddDrink() {
 function removeDrink(drinkId) {
   if (!party) return;
   const me = getMyPlayer();
-  if (me) me.drinks = me.drinks.filter(d => d.id !== drinkId);
+  if (me) {
+    me.drinks = me.drinks.filter(d => d.id !== drinkId);
+    if (!isHost) saveLocalDrinks(me.drinks);
+  }
   if (isHost) { broadcastState(); } else { sendToHost({ type:'REMOVE_DRINK', drinkId }); }
   renderMonitor();
 }
