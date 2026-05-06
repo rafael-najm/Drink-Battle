@@ -868,12 +868,19 @@ function destroyBC() {
 }
 
 // ===== MQTT NETWORKING =====
+function ensureMqttConnected() {
+  if (!party) return;
+  if (mqttClient?.connected || mqttClient?.reconnecting) return;
+  if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
+  mqttConnect(party.id);
+}
+
 function mqttConnect(code) {
   mqttDisconnect();
   const clientId = 'pre_' + MY_ID.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
   mqttClient = mqtt.connect(MQTT_URL, {
     clientId, clean: true,
-    connectTimeout: 10000, reconnectPeriod: 0, keepalive: 30,
+    connectTimeout: 10000, reconnectPeriod: 3000, keepalive: 20,
   });
 
   mqttClient.on('connect', () => {
@@ -898,6 +905,11 @@ function mqttConnect(code) {
     }
   });
 
+  mqttClient.on('reconnect', () => {
+    // Re-publish retained state so guests get it immediately after reconnect
+    if (isHost && party) mqttPublishState();
+  });
+
   mqttClient.on('message', (topic, payload) => {
     try {
       const data = JSON.parse(payload.toString());
@@ -914,7 +926,7 @@ function mqttConnect(code) {
   });
 
   mqttClient.on('error', () => {
-    if (currentPage === 'lobby') {
+    if (currentPage === 'lobby' && !party) {
       setLobbyError('Erro de conexão. Verifique sua internet.', () => mqttConnect(code));
     }
   });
@@ -1130,6 +1142,7 @@ function joinByCode() {
 
 function doJoinParty(code) {
   isHost = false; party = null;
+  requestNotifPermission();
   initBC(code);
 
   navTo('lobby');
@@ -1189,9 +1202,28 @@ function sendToHost(data) {
   mqttSendAction(msg);
 }
 
+// ===== NOTIFICATIONS =====
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function sendSOSNotification(profile) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(`🚨 ${profile.name} DEU PT!`, {
+      body: 'Vai lá ajudar! 👀',
+      tag: 'sos-' + (profile.id || profile.name),
+      requireInteraction: true,
+    });
+  } catch(e) {}
+}
+
 // ===== START PARTY (host only) =====
 function startParty() {
   if (!party || !isHost) return;
+  requestNotifPermission();
   party.status = 'active';
   party.startTime = Date.now();
   party.players.forEach(p => { p.joinedAt = Date.now(); });
@@ -1644,6 +1676,7 @@ function showSOSAlert(profile) {
   </div>`;
   document.body.appendChild(overlay);
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  sendSOSNotification(profile);
 }
 
 // Refresh BAC every 30s (metabolism changes ~0.015%/hr)
@@ -1654,10 +1687,23 @@ setInterval(() => {
   }
 }, 30000);
 
-// Close MQTT cleanly on tab close without wiping retained state
+// Close MQTT cleanly on tab close — do NOT clear retained state
 window.addEventListener('pagehide', () => {
   if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
 });
+
+// bfcache restore (Android suspends then unfreezes the tab with JS state intact)
+window.addEventListener('pageshow', e => {
+  if (e.persisted) ensureMqttConnected();
+});
+
+// App comes back to foreground (switch from another app on mobile)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) ensureMqttConnected();
+});
+
+// Network restored after going offline
+window.addEventListener('online', () => ensureMqttConnected());
 
 // ===== INIT =====
 function initApp() {
