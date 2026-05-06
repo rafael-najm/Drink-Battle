@@ -438,6 +438,9 @@ body::before {
     <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" onclick="navTo('history')">Ver tudo</button>
   </div>
   <div id="home-history"></div>
+  <div style="text-align:center;padding:20px 0 4px;font-size:10px;color:var(--muted);font-family:'Courier New',monospace;line-height:1.7">
+    🍺 Beba com responsabilidade e moderação.<br>Este app é um estimador — não substitui bom senso.
+  </div>
 </div>
 
 <!-- ===== LOBBY ===== -->
@@ -877,11 +880,13 @@ function mqttConnect(code) {
     if (isHost) {
       mqttClient.subscribe(MQTT_PFX + code + '/action', { qos: 0 });
       mqttPublishState();
-      document.getElementById('lobby-status').textContent = '// aguardando jogadores';
-      document.getElementById('lobby-qr-btn').style.display = '';
-      document.getElementById('btn-start-party').style.display = 'block';
-      document.getElementById('lobby-waiting-msg').style.display = 'block';
-      renderLobby();
+      if (currentPage === 'lobby') {
+        document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+        document.getElementById('lobby-qr-btn').style.display = '';
+        document.getElementById('btn-start-party').style.display = 'block';
+        document.getElementById('lobby-waiting-msg').style.display = 'block';
+        renderLobby();
+      }
     } else {
       mqttClient.subscribe(MQTT_PFX + code + '/state', { qos: 1 });
       clearTimeout(_stateTimeout);
@@ -929,10 +934,10 @@ function mqttSendAction(data) {
   mqttClient.publish(MQTT_PFX + party.id + '/action', JSON.stringify(data), { qos: 0 });
 }
 
-function mqttDisconnect() {
+function mqttDisconnect(clearRetained) {
   clearTimeout(_stateTimeout);
   if (mqttClient) {
-    if (isHost && party) {
+    if (clearRetained && isHost && party) {
       try { mqttClient.publish(MQTT_PFX + party.id + '/state', '', { retain: true, qos: 0 }); } catch(e) {}
     }
     try { mqttClient.end(true); } catch(e) {}
@@ -1107,6 +1112,7 @@ function handleGuestMessage(conn, data) {
 function broadcastState() {
   if (bc) bc.postMessage({ type:'STATE', party, _from: MY_ID });
   mqttPublishState();
+  try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
 }
 
 // ===== JOIN PARTY =====
@@ -1157,6 +1163,7 @@ function handleHostMessage(data) {
   if (data.type === 'STATE') {
     const prev = party;
     party = data.party;
+    try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: false })); } catch(e) {}
     if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
     if (currentPage === 'lobby') renderLobby();
     if (currentPage === 'monitor') renderMonitor();
@@ -1241,9 +1248,34 @@ function renderLobby() {
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
   destroyBC();
-  mqttDisconnect();
+  mqttDisconnect(true);
+  localStorage.removeItem('pre_active_session');
   isHost = false; party = null; _drinkSectionReady = false;
   navTo('home');
+}
+
+// ===== REJOIN SESSION =====
+function rejoinParty(savedParty, savedIsHost) {
+  isHost = savedIsHost;
+  party = savedParty;
+  const code = savedParty.id;
+  initBC(code);
+
+  if (savedParty.status === 'active') {
+    navTo('monitor');
+  } else {
+    navTo('lobby');
+    document.getElementById('lobby-party-name').textContent = savedParty.name || '...';
+    document.getElementById('lobby-code').textContent = code;
+    document.getElementById('lobby-status').textContent = '// reconectando...';
+    document.getElementById('lobby-qr-btn').style.display = 'none';
+    document.getElementById('btn-start-party').style.display = 'none';
+    document.getElementById('btn-guest-waiting').style.display = savedIsHost ? 'none' : 'block';
+    document.getElementById('lobby-waiting-msg').style.display = 'none';
+  }
+
+  mqttConnect(code);
+  toast('🔄 Sala restaurada');
 }
 
 // ===== PREFS MODAL =====
@@ -1622,6 +1654,11 @@ setInterval(() => {
   }
 }, 30000);
 
+// Close MQTT cleanly on tab close without wiping retained state
+window.addEventListener('pagehide', () => {
+  if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
+});
+
 // ===== INIT =====
 function initApp() {
   if (typeof mqtt === 'undefined') {
@@ -1640,10 +1677,20 @@ function initApp() {
     if (partyCode) {
       if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
       else { doJoinParty(partyCode.toUpperCase()); }
-    } else {
-      if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
-      else { navTo('home'); }
+      return;
     }
+    // Auto-rejoin saved session if profile exists
+    if (myProfile) {
+      const savedStr = localStorage.getItem('pre_active_session');
+      if (savedStr) {
+        try {
+          const { savedParty, savedIsHost } = JSON.parse(savedStr);
+          if (savedParty && savedParty.id) { rejoinParty(savedParty, !!savedIsHost); return; }
+        } catch(e) { localStorage.removeItem('pre_active_session'); }
+      }
+    }
+    if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
+    else { navTo('home'); }
   }, 900);
 }
 
