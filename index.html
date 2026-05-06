@@ -1247,15 +1247,12 @@ function handleHostMessage(data) {
       const restoredAt = data.party?._restoredAt || 0;
       const isHostRestore = restoredAt && restoredAt !== _lastRestoredAt;
       if (isHostRestore) {
-        // Host just reloaded from disk — send the full local log unconditionally
-        // so the host can reconcile ALL players, not just the ones that differ.
         _lastRestoredAt = restoredAt;
         if (local.length) {
           me.drinks = local.slice().sort((a, b) => a.ts - b.ts);
           sendToHost({ type: 'SYNC_DRINKS', drinks: local });
         }
       } else {
-        // Normal update: only sync if host is missing drinks from local log
         if (local.length) {
           const hostIds = new Set((me.drinks || []).map(d => d.id));
           const missing = local.filter(d => d.id && !hostIds.has(d.id));
