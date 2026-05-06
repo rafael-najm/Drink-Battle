@@ -607,8 +607,8 @@ body::before {
   </button>
 </nav>
 
-<!-- PeerJS -->
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<!-- MQTT.js (WebSocket transport — works through all NATs/firewalls) -->
+<script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
 
 <script>
 // ===== CONSTANTS =====
@@ -625,31 +625,18 @@ const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
 
 // ===== APP STATE =====
 let myProfile = null;
-let peer = null;
-let hostConn = null;
-let guestConns = [];
 let isHost = false;
 let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
-let _connectTimeout = null;
 let bc = null;             // BroadcastChannel (same-device tabs)
 const MY_ID = uid();       // stable ID for this tab/session
 
-// PeerJS config with STUN + TURN for better NAT traversal
-const PEER_CFG = {
-  debug: 0,
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      // Free TURN relay — allows crossing strict NATs/firewalls
-      { urls: 'turn:openrelay.metered.ca:80',              username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443',             username: 'openrelayproject', credential: 'openrelayproject' },
-      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-    ]
-  }
-};
+// MQTT — routes through broker, no WebRTC, works through all NATs
+const MQTT_URL = 'wss://broker.hivemq.com:8884/mqtt';
+const MQTT_PFX = 'pre_app_v1/';
+let mqttClient = null;
+let _stateTimeout = null;
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -712,6 +699,87 @@ function initBC(code) {
 
 function destroyBC() {
   if (bc) { try { bc.close(); } catch(e) {} bc = null; }
+}
+
+// ===== MQTT NETWORKING =====
+function mqttConnect(code) {
+  mqttDisconnect();
+  const clientId = 'pre_' + MY_ID.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
+  mqttClient = mqtt.connect(MQTT_URL, {
+    clientId, clean: true,
+    connectTimeout: 10000, reconnectPeriod: 0, keepalive: 30,
+  });
+
+  mqttClient.on('connect', () => {
+    if (isHost) {
+      mqttClient.subscribe(MQTT_PFX + code + '/action', { qos: 0 });
+      mqttPublishState();
+      document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+      document.getElementById('lobby-qr-btn').style.display = '';
+      document.getElementById('btn-start-party').style.display = 'block';
+      document.getElementById('lobby-waiting-msg').style.display = 'block';
+      renderLobby();
+    } else {
+      mqttClient.subscribe(MQTT_PFX + code + '/state', { qos: 1 });
+      clearTimeout(_stateTimeout);
+      _stateTimeout = setTimeout(() => {
+        if (currentPage === 'lobby' && !party) {
+          setLobbyError('Festa não encontrada. Verifique o código.', () => doJoinParty(code));
+        }
+      }, 10000);
+    }
+  });
+
+  mqttClient.on('message', (topic, payload) => {
+    try {
+      const data = JSON.parse(payload.toString());
+      if (!data || data._from === MY_ID) return;
+      if (topic.endsWith('/state') && !isHost) {
+        clearTimeout(_stateTimeout);
+        const firstState = !party;
+        handleHostMessage(data);
+        if (firstState && party) sendToHost({ type: 'JOIN', profile: myProfile, prefs: getMyPrefs() });
+      } else if (topic.endsWith('/action') && isHost) {
+        handleGuestMessage(null, data);
+      }
+    } catch(e) {}
+  });
+
+  mqttClient.on('error', () => {
+    if (currentPage === 'lobby') {
+      setLobbyError('Erro de conexão. Verifique sua internet.', () => mqttConnect(code));
+    }
+  });
+}
+
+function mqttPublishState() {
+  if (!mqttClient?.connected || !party) return;
+  mqttClient.publish(
+    MQTT_PFX + party.id + '/state',
+    JSON.stringify({ type: 'STATE', party, _from: MY_ID }),
+    { retain: true, qos: 1 }
+  );
+}
+
+function mqttSendAction(data) {
+  if (!mqttClient?.connected || !party) return;
+  mqttClient.publish(MQTT_PFX + party.id + '/action', JSON.stringify(data), { qos: 0 });
+}
+
+function mqttDisconnect() {
+  clearTimeout(_stateTimeout);
+  if (mqttClient) {
+    if (isHost && party) {
+      try { mqttClient.publish(MQTT_PFX + party.id + '/state', '', { retain: true, qos: 0 }); } catch(e) {}
+    }
+    try { mqttClient.end(true); } catch(e) {}
+    mqttClient = null;
+  }
+}
+
+function getMyPrefs() {
+  const me = getMyPlayer();
+  return me?.prefs || { stomach: 'medium', hydration: 'ok', targetLevel: 'flow' };
 }
 
 // ===== PROFILE =====
@@ -830,7 +898,7 @@ function doCreateParty() {
 
 function createParty(partyName) {
   const code = generatePartyCode();
-  isHost = true; guestConns = []; hostConn = null;
+  isHost = true;
 
   party = {
     id: code, name: partyName, status: 'lobby',
@@ -838,52 +906,12 @@ function createParty(partyName) {
     players: [{ peerId:'host', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:null, drinks:[], maxBac:0 }]
   };
 
-  initBC(code); // same-device tab sync (works without internet)
+  initBC(code);
   navTo('lobby');
   document.getElementById('lobby-status').textContent = '// conectando...';
   document.getElementById('lobby-qr-btn').style.display = 'none';
   document.getElementById('btn-start-party').style.display = 'none';
-
-  if (peer) { try { peer.destroy(); } catch(e) {} }
-  peer = new Peer(code, PEER_CFG);
-
-  clearTimeout(_connectTimeout);
-  _connectTimeout = setTimeout(() => {
-    if (currentPage === 'lobby' && document.getElementById('lobby-status').textContent.includes('conectando')) {
-      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => createParty(partyName));
-    }
-  }, 12000);
-
-  peer.on('open', () => {
-    clearTimeout(_connectTimeout);
-    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
-    document.getElementById('lobby-qr-btn').style.display = '';
-    document.getElementById('btn-start-party').style.display = 'block';
-    document.getElementById('lobby-waiting-msg').style.display = 'block';
-    renderLobby();
-  });
-
-  peer.on('connection', (conn) => {
-    guestConns.push(conn);
-    conn.on('open', () => { conn.send({ type:'STATE', party }); });
-    conn.on('data', (data) => { handleGuestMessage(conn, data); });
-    conn.on('close', () => {
-      guestConns = guestConns.filter(c => c !== conn);
-      party.players = party.players.filter(p => p.peerId !== conn.peer);
-      broadcastState();
-      if (currentPage === 'lobby') renderLobby();
-    });
-    conn.on('error', () => { guestConns = guestConns.filter(c => c !== conn); });
-  });
-
-  peer.on('error', (err) => {
-    clearTimeout(_connectTimeout);
-    if (err.type === 'unavailable-id') {
-      peer.destroy(); peer = null; createParty(partyName);
-    } else {
-      setLobbyError(peerErrMsg(err.type), () => createParty(partyName));
-    }
-  });
+  mqttConnect(code);
 }
 
 function handleGuestMessage(conn, data) {
@@ -913,9 +941,8 @@ function handleGuestMessage(conn, data) {
 }
 
 function broadcastState() {
-  const msg = { type:'STATE', party, _from: MY_ID };
-  guestConns.forEach(c => { if (c.open) c.send(msg); });
-  if (bc) bc.postMessage(msg);
+  if (bc) bc.postMessage({ type:'STATE', party, _from: MY_ID });
+  mqttPublishState();
 }
 
 // ===== JOIN PARTY =====
@@ -932,79 +959,23 @@ function joinByCode() {
 }
 
 function doJoinParty(code) {
-  isHost = false; party = null; hostConn = null;
-  initBC(code); // will work immediately for same-device tabs
+  isHost = false; party = null;
+  initBC(code);
 
   navTo('lobby');
   document.getElementById('lobby-party-name').textContent = 'Conectando...';
   document.getElementById('lobby-code').textContent = code;
-  document.getElementById('lobby-status').textContent = '// conectando ao host';
+  document.getElementById('lobby-status').textContent = '// conectando à festa...';
   document.getElementById('lobby-players').innerHTML = '';
   document.getElementById('lobby-qr-btn').style.display = 'none';
   document.getElementById('btn-start-party').style.display = 'none';
   document.getElementById('btn-guest-waiting').style.display = 'block';
   document.getElementById('lobby-waiting-msg').style.display = 'none';
 
-  if (peer) { try { peer.destroy(); } catch(e) {} }
-  peer = new Peer(PEER_CFG);
-
-  clearTimeout(_connectTimeout);
-  _connectTimeout = setTimeout(() => {
-    if (currentPage === 'lobby') {
-      setLobbyError('Timeout ao conectar. Verifique sua internet e tente novamente.', () => doJoinParty(code));
-    }
-  }, 12000);
-
-  peer.on('open', () => {
-    clearTimeout(_connectTimeout);
-    document.getElementById('lobby-status').textContent = '// conectando à festa...';
-    hostConn = peer.connect(code, { reliable:true });
-
-    // timeout para conexão com o host especificamente
-    const hostTimeout = setTimeout(() => {
-      if (!hostConn?.open && currentPage === 'lobby') {
-        setLobbyError('Não foi possível conectar ao host. O código está correto?', () => doJoinParty(code));
-      }
-    }, 10000);
-
-    hostConn.on('open', () => {
-      clearTimeout(hostTimeout);
-      document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
-      hostConn.send({ type:'JOIN', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'} });
-    });
-    hostConn.on('data', (data) => { handleHostMessage(data); });
-    hostConn.on('close', () => {
-      toast('Conexão com o host perdida');
-      if (currentPage === 'lobby') document.getElementById('lobby-status').textContent = '// host desconectado';
-    });
-    hostConn.on('error', (err) => {
-      clearTimeout(hostTimeout);
-      setLobbyError('Erro ao conectar ao host: ' + (err.type || err), () => doJoinParty(code));
-    });
-  });
-
-  peer.on('error', (err) => {
-    clearTimeout(_connectTimeout);
-    if (err.type === 'peer-unavailable') {
-      setLobbyError('Festa não encontrada. Verifique o código e tente de novo.', () => { navTo('home'); openJoinParty(); });
-    } else {
-      setLobbyError(peerErrMsg(err.type), () => doJoinParty(code));
-    }
-  });
+  mqttConnect(code);
 }
 
 // ===== ERROR HELPERS =====
-function peerErrMsg(type) {
-  const msgs = {
-    'network':       'Sem internet ou servidor PeerJS inacessível.',
-    'server-error':  'Servidor PeerJS fora do ar. Tente em instantes.',
-    'socket-error':  'Erro de rede (socket). Verifique sua conexão.',
-    'socket-closed': 'Conexão fechada pelo servidor. Tente de novo.',
-    'browser-incompatible': 'Seu navegador não suporta WebRTC. Use Chrome ou Firefox.',
-  };
-  return msgs[type] || ('Erro de conexão: ' + type + '. Verifique sua internet.');
-}
-
 function setLobbyError(msg, retryFn) {
   document.getElementById('lobby-status').textContent = '// erro de conexão';
   document.getElementById('btn-start-party').style.display = 'none';
@@ -1035,8 +1006,8 @@ function handleHostMessage(data) {
 
 function sendToHost(data) {
   const msg = { ...data, _from: MY_ID, _profileId: myProfile?.id };
-  if (hostConn?.open) hostConn.send(msg);
   if (bc) bc.postMessage(msg);
+  mqttSendAction(msg);
 }
 
 // ===== START PARTY (host only) =====
@@ -1045,7 +1016,7 @@ function startParty() {
   party.status = 'active';
   party.startTime = Date.now();
   party.players.forEach(p => { p.joinedAt = Date.now(); });
-  guestConns.forEach(c => { if (c.open) c.send({ type:'START', party }); });
+  broadcastState();
   navTo('monitor');
 }
 
@@ -1097,10 +1068,9 @@ function renderLobby() {
 
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
-  clearTimeout(_connectTimeout);
   destroyBC();
-  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
-  hostConn = null; guestConns = []; isHost = false; party = null;
+  mqttDisconnect();
+  isHost = false; party = null;
   navTo('home');
 }
 
@@ -1255,8 +1225,8 @@ document.addEventListener('click', e => {
 
 // ===== INIT =====
 function initApp() {
-  if (typeof Peer === 'undefined') {
-    document.querySelector('.splash-sub').textContent = 'erro: peerjs não carregou';
+  if (typeof mqtt === 'undefined') {
+    document.querySelector('.splash-sub').textContent = 'erro: mqtt não carregou';
     document.querySelector('.splash-dots').innerHTML = '<div style="color:#ef4444;font-size:12px;font-family:monospace;text-align:center">Verifique sua internet e recarregue a página.</div>';
     return;
   }
