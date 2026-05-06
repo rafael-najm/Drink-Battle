@@ -290,8 +290,39 @@ body::before {
 .page-back-btn { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
 .page-back-title { font-size: 22px; font-weight: 900; }
 
-/* ===== MONITOR STUB ===== */
-.monitor-stub { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; gap: 12px; }
+/* ===== MONITOR ===== */
+.bac-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px 20px 20px; margin-bottom: 16px; text-align: center; }
+.bac-value { font-size: 64px; font-weight: 900; font-family: 'Courier New', monospace; line-height: 1; transition: color 0.5s; }
+.bac-unit { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
+.bac-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 16px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-top: 12px; border: 1px solid; transition: all 0.4s; }
+.bac-bar-wrap { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin-top: 14px; }
+.bac-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease, background 0.4s; }
+.bac-target-label { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; text-align: right; margin-top: 4px; }
+
+.drinks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.drink-btn { padding: 12px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; cursor: pointer; transition: all 0.15s; text-align: center; -webkit-tap-highlight-color: transparent; }
+.drink-btn:active { transform: scale(0.93); opacity: 0.75; }
+.drink-btn-emoji { font-size: 26px; margin-bottom: 3px; }
+.drink-btn-label { font-size: 11px; color: var(--text); font-family: 'Courier New', monospace; }
+.drink-btn-ml { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 1px; }
+
+.drink-log { display: flex; flex-direction: column; gap: 6px; }
+.drink-log-item { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; animation: slideIn 0.2s ease; }
+.drink-log-emoji { font-size: 22px; flex-shrink: 0; }
+.drink-log-info { flex: 1; min-width: 0; }
+.drink-log-name { font-size: 13px; font-weight: 600; }
+.drink-log-time { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
+.drink-log-remove { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 6px; flex-shrink: 0; }
+.drink-log-remove:hover { color: var(--red); }
+
+/* ===== RANKING ===== */
+.ranking-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; }
+.ranking-pos { font-family: 'Courier New', monospace; font-size: 20px; font-weight: 900; width: 30px; text-align: center; flex-shrink: 0; }
+.ranking-avatar { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid; flex-shrink: 0; }
+.ranking-info { flex: 1; min-width: 0; }
+.ranking-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ranking-sub { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
+.ranking-bac { font-family: 'Courier New', monospace; font-size: 20px; font-weight: 900; flex-shrink: 0; transition: color 0.4s; }
 </style>
 </head>
 <body>
@@ -419,28 +450,39 @@ body::before {
   <button class="btn-danger" onclick="leaveLobby()">Sair da pré</button>
 </div>
 
-<!-- ===== MONITOR (stub — Parte 2) ===== -->
+<!-- ===== MONITOR ===== -->
 <div id="page-monitor" class="page page-with-nav">
-  <div id="monitor-content">
-    <div class="monitor-stub">
-      <div style="font-size:56px">🍺</div>
-      <div style="font-size:22px;font-weight:800">Pré rolando!</div>
-      <div id="monitor-party-label" style="font-size:13px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px"></div>
-      <div style="margin-top:24px;font-size:12px;color:var(--muted);font-family:'Courier New',monospace">monitor de bebidas vem na parte 2...</div>
-    </div>
+  <div style="padding-top:8px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:18px;font-weight:900" id="monitor-party-label"></div>
+    <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace" id="monitor-timer"></div>
   </div>
+
+  <div class="bac-card">
+    <div style="font-size:9px;color:var(--muted);font-family:'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">BAC estimado</div>
+    <div class="bac-value" id="bac-value">0.000</div>
+    <div class="bac-unit">% g/dL</div>
+    <div class="bac-badge" id="bac-badge">😐 SÓBRIO</div>
+    <div class="bac-bar-wrap"><div class="bac-bar" id="bac-bar" style="width:0%;background:#64748b"></div></div>
+    <div class="bac-target-label" id="bac-target-label"></div>
+  </div>
+
+  <div class="card-title">// Adicionar bebida</div>
+  <div class="drinks-grid" id="drinks-grid"></div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="card-title" style="margin-bottom:0">// Histórico</div>
+    <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace" id="drink-count"></div>
+  </div>
+  <div class="drink-log" id="drink-log"></div>
 </div>
 
-<!-- ===== RANKING (stub — Parte 2) ===== -->
+<!-- ===== RANKING ===== -->
 <div id="page-ranking" class="page page-with-nav">
-  <div class="page-back-row">
-    <div class="page-back-title">Ranking</div>
+  <div style="padding-top:8px;margin-bottom:16px">
+    <div style="font-size:18px;font-weight:900">Ranking 🏆</div>
+    <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px" id="ranking-subtitle">ao vivo</div>
   </div>
-  <div class="empty-state">
-    <div class="empty-state-icon">🏆</div>
-    <div class="empty-state-title">Ranking ao vivo</div>
-    <div class="empty-state-text">Disponível na parte 2</div>
-  </div>
+  <div id="ranking-list"></div>
 </div>
 
 <!-- ===== HISTORY ===== -->
@@ -622,6 +664,14 @@ const LEVELS_CONFIG = {
 };
 const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
 const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
+const DRINKS = [
+  { id:'cerveja', label:'Cerveja',    emoji:'🍺', ml:350, pct:5  },
+  { id:'longneck',label:'Long Neck',  emoji:'🍻', ml:355, pct:5  },
+  { id:'vinho',   label:'Vinho',      emoji:'🍷', ml:150, pct:12 },
+  { id:'shot',    label:'Shot',       emoji:'🥃', ml:50,  pct:40 },
+  { id:'caipira', label:'Caipirinha', emoji:'🍹', ml:200, pct:12 },
+  { id:'vodka',   label:'Vodka',      emoji:'🫗', ml:100, pct:40 },
+];
 
 // ===== APP STATE =====
 let myProfile = null;
@@ -806,10 +856,8 @@ function navTo(page) {
   if (page === 'home') renderHome();
   if (page === 'history') renderHistory();
   if (page === 'lobby') renderLobby();
-  if (page === 'monitor' && party) {
-    const lbl = document.getElementById('monitor-party-label');
-    if (lbl) lbl.textContent = party.name;
-  }
+  if (page === 'monitor') renderMonitor();
+  if (page === 'ranking') renderRanking();
 }
 
 // ===== PROFILE SETUP =====
@@ -991,11 +1039,10 @@ function setLobbyError(msg, retryFn) {
 function handleHostMessage(data) {
   if (data.type === 'STATE') {
     party = data.party;
-    if (party.status === 'active' && currentPage !== 'monitor') { navTo('monitor'); return; }
+    if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
     if (currentPage === 'lobby') renderLobby();
-  } else if (data.type === 'START') {
-    party = data.party;
-    navTo('monitor');
+    if (currentPage === 'monitor') renderMonitor();
+    if (currentPage === 'ranking') renderRanking();
   } else if (data.type === 'END') {
     party = data.party;
     savePartyToHistory(party);
@@ -1222,6 +1269,137 @@ document.addEventListener('click', e => {
   document.querySelectorAll(`[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
 });
+
+// ===== BAC =====
+function calcBAC(player, now) {
+  now = now || Date.now();
+  const drinks = player.drinks || [];
+  if (!drinks.length) return 0;
+  const profile = player.profile || {};
+  const prefs = player.prefs || {};
+  const r = profile.sex === 'F' ? 0.55 : 0.68;
+  const weight = profile.weight || 70;
+  const firstTs = Math.min(...drinks.map(d => d.ts));
+  const hours = Math.max(0, (now - firstTs) / 3600000);
+  let grams = 0;
+  for (const d of drinks) grams += (d.ml * d.pct / 100) * 0.789;
+  const absorbed = grams * (stomachMult[prefs.stomach||'medium']||1) * (hydrationMult[prefs.hydration||'ok']||1);
+  return Math.max(0, Math.round((absorbed / (weight * r * 10) - 0.015 * hours) * 1000) / 1000);
+}
+
+function bacLevel(bac) {
+  if (bac >= 0.18) return { label:'💀 DESTRUIÇÃO', color:'#ef4444' };
+  if (bac >= 0.12) return { label:'🥴 BÊBADO',     color:'#f97316' };
+  if (bac >= 0.07) return { label:'🔥 FLOW',        color:'#eab308' };
+  if (bac >= 0.03) return { label:'😊 ALTO',        color:'#22c55e' };
+  return { label:'😐 SÓBRIO', color:'#64748b' };
+}
+
+// ===== MONITOR RENDER =====
+function renderMonitor() {
+  if (!party) return;
+  const me = getMyPlayer();
+  if (!me) return;
+  const now = Date.now();
+  const bac = calcBAC(me, now);
+  const lv = bacLevel(bac);
+  const target = (LEVELS_CONFIG[me.prefs?.targetLevel||'flow']?.bac) || 0.10;
+  const pct = Math.min(100, Math.round(bac / (target * 1.5) * 100));
+
+  document.getElementById('bac-value').textContent = bac.toFixed(3);
+  document.getElementById('bac-value').style.color = lv.color;
+  const badge = document.getElementById('bac-badge');
+  badge.textContent = lv.label;
+  badge.style.color = lv.color;
+  badge.style.borderColor = lv.color + '44';
+  badge.style.background = lv.color + '18';
+  document.getElementById('bac-bar').style.width = pct + '%';
+  document.getElementById('bac-bar').style.background = lv.color;
+  document.getElementById('bac-target-label').textContent = 'meta: ' + target.toFixed(3) + '% · ' + levelLabel(me.prefs?.targetLevel||'flow');
+  document.getElementById('monitor-party-label').textContent = party.name;
+  if (party.startTime) {
+    const e = now - party.startTime;
+    const h = Math.floor(e/3600000), m = Math.floor((e%3600000)/60000);
+    document.getElementById('monitor-timer').textContent = (h?h+'h ':'') + m + 'min';
+  }
+
+  if (!document.getElementById('drinks-grid').children.length) {
+    document.getElementById('drinks-grid').innerHTML = DRINKS.map(d =>
+      `<div class="drink-btn" onclick="addDrink('${d.id}')">
+        <div class="drink-btn-emoji">${d.emoji}</div>
+        <div class="drink-btn-label">${d.label}</div>
+        <div class="drink-btn-ml">${d.ml}ml ${d.pct}%</div>
+      </div>`).join('');
+  }
+
+  const log = [...(me.drinks||[])].reverse();
+  document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
+  document.getElementById('drink-log').innerHTML = log.length ? log.map(d => {
+    const dt = DRINKS.find(x=>x.id===d.type)||{emoji:'🍶',label:d.type||'bebida',ml:d.ml,pct:d.pct};
+    const t = new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="drink-log-item">
+      <div class="drink-log-emoji">${dt.emoji}</div>
+      <div class="drink-log-info">
+        <div class="drink-log-name">${esc(dt.label)}</div>
+        <div class="drink-log-time">${t} · ${dt.ml}ml ${dt.pct}%</div>
+      </div>
+      <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
+    </div>`;
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Adicione bebidas acima 👆</div>';
+}
+
+// ===== RANKING RENDER =====
+function renderRanking() {
+  if (!party) return;
+  const now = Date.now();
+  const sorted = [...party.players]
+    .map(p => ({...p, _bac: calcBAC(p, now)}))
+    .sort((a,b) => b._bac - a._bac);
+  document.getElementById('ranking-subtitle').textContent = sorted.length + ' jogadores · ao vivo';
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('ranking-list').innerHTML = sorted.map((p, i) => {
+    const lv = bacLevel(p._bac);
+    const isMe = isHost ? p.peerId==='host' : p.profile?.id===myProfile?.id;
+    return `<div class="ranking-row" style="${isMe?'border-color:rgba(168,85,247,0.4);background:rgba(124,58,237,0.06)':''}">
+      <div class="ranking-pos" style="color:${i<3?lv.color:'var(--muted)'}">${medals[i]||(i+1)}</div>
+      <div class="ranking-avatar" style="background:${esc(p.profile.color)}22;border-color:${esc(p.profile.color)}">${esc(p.profile.avatar)}</div>
+      <div class="ranking-info">
+        <div class="ranking-name">${esc(p.profile.name)}${isMe?'<span class="me-badge">você</span>':''}</div>
+        <div class="ranking-sub">${lv.label} · ${p.drinks?.length||0} bebida${p.drinks?.length!==1?'s':''}</div>
+      </div>
+      <div class="ranking-bac" style="color:${lv.color}">${p._bac.toFixed(3)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ===== ADD / REMOVE DRINK =====
+function addDrink(typeId) {
+  if (!party) return;
+  const dt = DRINKS.find(d => d.id === typeId);
+  if (!dt) return;
+  const drink = { id: uid(), type: typeId, ml: dt.ml, pct: dt.pct, ts: Date.now() };
+  const me = getMyPlayer();
+  if (me) me.drinks.push(drink);
+  if (isHost) { broadcastState(); } else { sendToHost({ type:'ADD_DRINK', drink }); }
+  renderMonitor();
+  toast(dt.emoji + ' ' + dt.label + ' adicionado!', 1400);
+}
+
+function removeDrink(drinkId) {
+  if (!party) return;
+  const me = getMyPlayer();
+  if (me) me.drinks = me.drinks.filter(d => d.id !== drinkId);
+  if (isHost) { broadcastState(); } else { sendToHost({ type:'REMOVE_DRINK', drinkId }); }
+  renderMonitor();
+}
+
+// Periodic BAC refresh (every 60s while on monitor/ranking)
+setInterval(() => {
+  if (party) {
+    if (currentPage === 'monitor') renderMonitor();
+    if (currentPage === 'ranking') renderRanking();
+  }
+}, 60000);
 
 // ===== INIT =====
 function initApp() {
