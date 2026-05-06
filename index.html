@@ -828,6 +828,7 @@ const MQTT_URL = 'wss://broker.hivemq.com:8884/mqtt';
 const MQTT_PFX = 'pre_app_v1/';
 let mqttClient = null;
 let _stateTimeout = null;
+let _lastRestoredAt = 0;
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -1153,16 +1154,28 @@ function handleGuestMessage(conn, data) {
     if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
   } else if (data.type === 'ADD_DRINK') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p && data.drink?.id && !p.drinks.find(d => d.id === data.drink.id)) { p.drinks.push(data.drink); broadcastState(); }
+    if (p && data.drink?.id && !p.drinks.find(d => d.id === data.drink.id)) {
+      p.drinks.push(data.drink); broadcastState();
+      if (currentPage === 'monitor') renderMonitor();
+      else if (currentPage === 'ranking') renderRanking();
+    }
   } else if (data.type === 'REMOVE_DRINK') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p) { p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState(); }
+    if (p) {
+      p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState();
+      if (currentPage === 'monitor') renderMonitor();
+      else if (currentPage === 'ranking') renderRanking();
+    }
   } else if (data.type === 'SYNC_DRINKS') {
     const p = party.players.find(pl => pl.profile?.id === data._profileId);
     if (p && Array.isArray(data.drinks)) {
       const existingIds = new Set(p.drinks.map(d => d.id));
       const toAdd = data.drinks.filter(d => d.id && !existingIds.has(d.id));
-      if (toAdd.length) { p.drinks = [...p.drinks, ...toAdd].sort((a, b) => a.ts - b.ts); broadcastState(); }
+      if (toAdd.length) {
+        p.drinks = [...p.drinks, ...toAdd].sort((a, b) => a.ts - b.ts); broadcastState();
+        if (currentPage === 'monitor') renderMonitor();
+        else if (currentPage === 'ranking') renderRanking();
+      }
     }
   } else if (data.type === 'SOS') {
     const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
@@ -1227,21 +1240,29 @@ function handleHostMessage(data) {
     party = data.party;
     try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: false })); } catch(e) {}
 
-    // Reconcile own drinks: merge local log with what host reports for us.
-    // Protects against host going offline and coming back with stale state.
+    // Reconcile own drinks with local log every time state arrives.
     const me = getMyPlayer();
     if (me && myProfile) {
       const local = loadLocalDrinks();
-      if (local.length) {
-        const hostIds = new Set((me.drinks || []).map(d => d.id));
-        const missing = local.filter(d => d.id && !hostIds.has(d.id));
-        if (missing.length) {
-          me.drinks = [...(me.drinks || []), ...missing].sort((a, b) => a.ts - b.ts);
-          sendToHost({ type: 'SYNC_DRINKS', drinks: me.drinks });
+      const restoredAt = data.party?._restoredAt || 0;
+      const isHostRestore = restoredAt && restoredAt !== _lastRestoredAt;
+      if (isHostRestore) {
+        _lastRestoredAt = restoredAt;
+        if (local.length) {
+          me.drinks = local.slice().sort((a, b) => a.ts - b.ts);
+          sendToHost({ type: 'SYNC_DRINKS', drinks: local });
         }
+      } else {
+        if (local.length) {
+          const hostIds = new Set((me.drinks || []).map(d => d.id));
+          const missing = local.filter(d => d.id && !hostIds.has(d.id));
+          if (missing.length) {
+            me.drinks = [...(me.drinks || []), ...missing].sort((a, b) => a.ts - b.ts);
+            sendToHost({ type: 'SYNC_DRINKS', drinks: me.drinks });
+          }
+        }
+        if (me.drinks?.length) saveLocalDrinks(me.drinks);
       }
-      // Keep local log up-to-date with the merged result
-      if (me.drinks?.length) saveLocalDrinks(me.drinks);
     }
 
     if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
@@ -1359,6 +1380,8 @@ function leaveLobby() {
 function rejoinParty(savedParty, savedIsHost) {
   isHost = savedIsHost;
   party = savedParty;
+  // Signal to all guests that the host reloaded from disk — they must resync
+  if (isHost) party._restoredAt = Date.now();
   const code = savedParty.id;
   initBC(code);
 
@@ -1754,16 +1777,23 @@ function showSOSAlert(profile) {
   sendSOSNotification(profile);
 }
 
-// Refresh BAC every 30s (metabolism changes ~0.015%/hr)
+// Refresh BAC every 30s and flush host state to localStorage as a safety net
 setInterval(() => {
   if (party) {
     if (currentPage === 'monitor') renderMonitor();
     if (currentPage === 'ranking') renderRanking();
+    if (isHost) {
+      try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
+    }
   }
 }, 30000);
 
 // Close MQTT cleanly on tab close — do NOT clear retained state
 window.addEventListener('pagehide', () => {
+  // Flush the very latest state to localStorage before the page dies
+  if (party && isHost) {
+    try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
+  }
   if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
 });
 
