@@ -327,9 +327,9 @@ body::before {
 .dtype-opt.selected { border-color: var(--accent2); background: rgba(124,58,237,0.2); }
 .dtype-opt-name { font-size: 13px; font-weight: 600; }
 .dtype-opt-pct { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; }
-.fill-slider { width: 100%; accent-color: var(--accent2); height: 6px; cursor: pointer; }
-.fill-preview { text-align: center; font-family: 'Courier New', monospace; font-size: 22px; font-weight: 900; color: var(--accent2); margin: 6px 0; }
-.fill-sub { text-align: center; font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; margin-bottom: 16px; }
+.fill-quick-row { display: flex; gap: 6px; margin-bottom: 12px; }
+.fill-quick { flex: 1; padding: 10px 4px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.15s; text-align: center; }
+.fill-quick.selected { background: rgba(124,58,237,0.2); border-color: var(--accent2); color: var(--accent2); }
 
 /* ===== SOS ===== */
 .btn-sos { width: 100%; padding: 16px; background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.4); border-radius: 14px; color: var(--red); font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; transition: all 0.15s; letter-spacing: 1px; }
@@ -491,10 +491,7 @@ body::before {
     <div class="bac-target-label" id="bac-target-label"></div>
   </div>
 
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div class="card-title" style="margin-bottom:0">// Adicionar bebida</div>
-  </div>
-  <div class="drinks-grid" id="drinks-grid"></div>
+  <div id="drink-panel"></div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
     <div class="card-title" style="margin-bottom:0">// Histórico</div>
@@ -739,30 +736,14 @@ const LEVELS_CONFIG = {
 };
 const stomachMult   = { empty:1.25, medium:1.0, full:0.75 };
 const hydrationMult = { dry:1.1, ok:1.0, hydrated:0.92 };
-const CUPS = [
-  { id:'shot',     label:'Shot',      emoji:'🥃', ml:50  },
-  { id:'tulipa',   label:'Tulipa',    emoji:'🍺', ml:350 },
-  { id:'longneck', label:'Long Neck', emoji:'🍻', ml:355 },
-  { id:'taca',     label:'Taça',      emoji:'🍷', ml:150 },
-  { id:'caneca',   label:'Caneca',    emoji:'🫗', ml:500 },
-  { id:'garrafa',  label:'Garrafa',   emoji:'🍾', ml:600 },
-  { id:'lata',     label:'Lata',      emoji:'🥫', ml:350 },
-  { id:'copo',     label:'Copo long', emoji:'🧃', ml:300 },
+const QUICK_DRINKS = [
+  { id:'cerveja', label:'Cerveja',    emoji:'🍺', ml:350, pct:5  },
+  { id:'longneck',label:'Long Neck',  emoji:'🍻', ml:355, pct:5  },
+  { id:'shot',    label:'Shot',       emoji:'🥃', ml:50,  pct:40 },
+  { id:'vinho',   label:'Vinho',      emoji:'🍷', ml:150, pct:12 },
+  { id:'caipira', label:'Caipirinha', emoji:'🍹', ml:200, pct:15 },
+  { id:'vodka',   label:'Vodka',      emoji:'🫗', ml:100, pct:40 },
 ];
-const DRINK_TYPES = [
-  { id:'cerveja',   label:'Cerveja',      pct:5  },
-  { id:'puromain',  label:'Puro Malte',   pct:7  },
-  { id:'vinho_t',   label:'Vinho Tinto',  pct:13 },
-  { id:'vinho_b',   label:'Vinho Branco', pct:11 },
-  { id:'champagne', label:'Champagne',    pct:12 },
-  { id:'caipira',   label:'Caipirinha',   pct:15 },
-  { id:'vodka',     label:'Vodka',        pct:40 },
-  { id:'whisky',    label:'Whisky',       pct:40 },
-  { id:'rum',       label:'Rum',          pct:40 },
-  { id:'gin',       label:'Gin',          pct:40 },
-];
-// Legacy compat: map old drink IDs to labels
-const DRINKS = CUPS.map(c => ({...c, pct:5})); // fallback for old log display
 
 // ===== APP STATE =====
 let myProfile = null;
@@ -770,6 +751,7 @@ let isHost = false;
 let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
+let _fillPct = 100;
 let bc = null;             // BroadcastChannel (same-device tabs)
 const MY_ID = uid();       // stable ID for this tab/session
 
@@ -1426,14 +1408,23 @@ function renderMonitor() {
     document.getElementById('monitor-timer').textContent = (h?h+'h ':'') + m + 'min';
   }
 
-  if (!document.getElementById('drinks-grid').children.length) {
-    document.getElementById('drinks-grid').innerHTML = CUPS.map(c =>
-      `<div class="drink-btn" onclick="openDrinkModal('${c.id}')">
-        <div class="drink-btn-emoji">${c.emoji}</div>
-        <div class="drink-btn-label">${c.label}</div>
-        <div class="drink-btn-ml">${c.ml}ml</div>
-      </div>`).join('');
-  }
+  // Drink panel: fill selector + drink grid (always re-render so fill reflects current state)
+  const fills = [25,50,75,100];
+  document.getElementById('drink-panel').innerHTML =
+    '<div class="card-title">// Adicionar bebida</div>' +
+    '<div class="fill-quick-row">' +
+      fills.map(f=>`<button class="fill-quick${_fillPct===f?' selected':''}" onclick="setFill(${f})">${f===100?'🍺 Cheio':f+'%'}</button>`).join('') +
+    '</div>' +
+    '<div class="drinks-grid">' +
+      QUICK_DRINKS.map(d=>{
+        const ml=Math.round(d.ml*_fillPct/100);
+        return `<div class="drink-btn" onclick="quickAddDrink('${d.id}')">
+          <div class="drink-btn-emoji">${d.emoji}</div>
+          <div class="drink-btn-label">${d.label}</div>
+          <div class="drink-btn-ml">${ml}ml</div>
+        </div>`;
+      }).join('') +
+    '</div>';
 
   // SOS indicator
   const meSos = me.sos;
@@ -1444,19 +1435,17 @@ function renderMonitor() {
   const log = [...(me.drinks||[])].reverse();
   document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
   document.getElementById('drink-log').innerHTML = log.length ? log.map(d => {
-    const cup = CUPS.find(x=>x.id===d.cup)||{emoji:'🍶'};
-    const dt = DRINK_TYPES.find(x=>x.id===d.drinkType)||{label:d.drinkType||'bebida',pct:d.pct||5};
+    const qd = QUICK_DRINKS.find(x=>x.id===d.type)||{emoji:'🍶',label:'bebida',pct:d.pct||5};
     const t = new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    const ml = d.ml || 0;
     return `<div class="drink-log-item">
-      <div class="drink-log-emoji">${cup.emoji}</div>
+      <div class="drink-log-emoji">${qd.emoji}</div>
       <div class="drink-log-info">
-        <div class="drink-log-name">${esc(dt.label)}</div>
-        <div class="drink-log-time">${t} · ${ml}ml · ${dt.pct}%</div>
+        <div class="drink-log-name">${esc(qd.label)}</div>
+        <div class="drink-log-time">${t} · ${d.ml||0}ml · ${qd.pct}%</div>
       </div>
       <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
     </div>`;
-  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Toca num copo pra adicionar 👆</div>';
+  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Toca uma bebida pra adicionar 👆</div>';
 }
 
 // ===== RANKING RENDER =====
@@ -1483,68 +1472,23 @@ function renderRanking() {
   }).join('');
 }
 
-// ===== DRINK MODAL =====
-let _selCup = 'tulipa', _selDrinkType = 'cerveja';
-
-function openDrinkModal(cupId) {
-  _selCup = cupId || 'tulipa';
-  _selDrinkType = 'cerveja';
-  document.getElementById('fill-slider').value = 100;
-
-  document.getElementById('cup-grid').innerHTML = CUPS.map(c =>
-    `<div class="cup-opt${c.id===_selCup?' selected':''}" onclick="selectCup('${c.id}',this)">
-      <div class="cup-opt-emoji">${c.emoji}</div>
-      <div class="cup-opt-label">${c.label}</div>
-      <div class="cup-opt-ml">${c.ml}ml</div>
-    </div>`).join('');
-
-  document.getElementById('dtype-grid').innerHTML = DRINK_TYPES.map(d =>
-    `<div class="dtype-opt${d.id===_selDrinkType?' selected':''}" onclick="selectDrinkType('${d.id}',this)">
-      <span class="dtype-opt-name">${d.label}</span>
-      <span class="dtype-opt-pct">${d.pct}%</span>
-    </div>`).join('');
-
-  updateFillPreview(100);
-  openModal('modal-add-drink');
+// ===== DRINK PANEL =====
+function setFill(pct) {
+  _fillPct = pct;
+  if (currentPage === 'monitor') renderMonitor();
 }
 
-function selectCup(id, el) {
-  _selCup = id;
-  document.querySelectorAll('.cup-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  updateFillPreview(document.getElementById('fill-slider').value);
-}
-
-function selectDrinkType(id, el) {
-  _selDrinkType = id;
-  document.querySelectorAll('.dtype-opt').forEach(e => e.classList.remove('selected'));
-  el.classList.add('selected');
-  updateFillPreview(document.getElementById('fill-slider').value);
-}
-
-function updateFillPreview(val) {
-  const fill = parseInt(val);
-  const cup = CUPS.find(c => c.id === _selCup) || CUPS[1];
-  const dt = DRINK_TYPES.find(d => d.id === _selDrinkType) || DRINK_TYPES[0];
-  const ml = Math.round(cup.ml * fill / 100);
-  const grams = Math.round(ml * dt.pct / 100 * 0.789 * 10) / 10;
-  document.getElementById('fill-preview').textContent = fill + '%';
-  document.getElementById('fill-sub').textContent = `${ml}ml de ${dt.label} ${dt.pct}% → ${grams}g álcool`;
-}
-
-function confirmAddDrink() {
+function quickAddDrink(id) {
   if (!party) return;
-  const fill = parseInt(document.getElementById('fill-slider').value);
-  const cup = CUPS.find(c => c.id === _selCup) || CUPS[1];
-  const dt = DRINK_TYPES.find(d => d.id === _selDrinkType) || DRINK_TYPES[0];
-  const ml = Math.round(cup.ml * fill / 100);
-  const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml, pct: dt.pct, fill, ts: Date.now() };
+  const qd = QUICK_DRINKS.find(d => d.id === id);
+  if (!qd) return;
+  const ml = Math.round(qd.ml * _fillPct / 100);
+  const drink = { id: uid(), type: id, ml, pct: qd.pct, fill: _fillPct, ts: Date.now() };
   const me = getMyPlayer();
   if (me) me.drinks.push(drink);
   if (isHost) { broadcastState(); } else { sendToHost({ type:'ADD_DRINK', drink }); }
-  closeModal('modal-add-drink');
   renderMonitor();
-  toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1400);
+  toast(qd.emoji + ' adicionado!', 900);
 }
 
 function removeDrink(drinkId) {
