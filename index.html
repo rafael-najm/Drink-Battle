@@ -909,15 +909,23 @@ function ensureMqttConnected() {
 function mqttConnect(code) {
   mqttDisconnect();
   setConnReady(false);
-  const clientId = 'pre_' + MY_ID.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
+  // Host gets a stable clientId so the broker can maintain a persistent session
+  // and queue ADD_DRINK messages while the host is briefly offline.
+  const clientId = isHost
+    ? 'host_' + code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    : 'pre_'  + MY_ID.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
   mqttClient = mqtt.connect(MQTT_URL, {
-    clientId, clean: true,
+    clientId,
+    clean: !isHost,   // host: persistent session; guests: clean
     connectTimeout: 10000, reconnectPeriod: 3000, keepalive: 20,
   });
 
   mqttClient.on('connect', () => {
     if (isHost) {
-      mqttClient.subscribe(MQTT_PFX + code + '/action', { qos: 0 });
+      mqttClient.subscribe(MQTT_PFX + code + '/action', { qos: 1 });
+      // Stamp _restoredAt on every (re)connect so guests unconditionally
+      // resend their full drink log, recovering any drops during host outage.
+      if (party) party._restoredAt = Date.now();
       mqttPublishState();
       setConnReady(true);
       if (currentPage === 'lobby') {
