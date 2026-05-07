@@ -1414,7 +1414,7 @@ function startSolo() {
       profile: { ...myProfile },
       prefs, sos: false, joinedAt: Date.now(), drinks: [], maxBac: 0
     }],
-    hookups: [], hookupMode: false
+    hookups: [], hookupMode: true
   };
   setConnReady(true);
   if (!_drinkSectionReady) initDrinkSection();
@@ -1496,6 +1496,7 @@ async function saveHookup() {
   if (!party.hookups) party.hookups = [];
   party.hookups.push(hookup);
   if (currentPage === 'hookups') renderHookups();
+  if (isSolo) return;
   const { error } = await supabaseClient.from('hookups').insert(hookup);
   if (error) {
     party.hookups = party.hookups.filter(h => h.id !== hookup.id);
