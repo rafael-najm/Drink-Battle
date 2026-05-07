@@ -21,7 +21,9 @@ create table parties (
   name text not null,
   status text not null default 'lobby',
   creator_id text,
+  hookup_mode boolean default false,
   start_time bigint,
+  end_time bigint,
   created_at bigint
 );
 
@@ -51,19 +53,45 @@ create table drinks (
   ts bigint not null
 );
 
--- Row Level Security (open access via anon key)
-alter table parties enable row level security;
-alter table players enable row level security;
-alter table drinks  enable row level security;
+create table hookups (
+  id text primary key,
+  party_id text not null references parties(id) on delete cascade,
+  player_id text not null,
+  name text not null,
+  instagram text,
+  photo text,
+  created_at bigint
+);
 
-create policy "open" on parties for all using (true) with check (true);
-create policy "open" on players for all using (true) with check (true);
-create policy "open" on drinks  for all using (true) with check (true);
+-- Row Level Security (open access via anon key)
+alter table parties  enable row level security;
+alter table players  enable row level security;
+alter table drinks   enable row level security;
+alter table hookups  enable row level security;
+
+create policy "open" on parties  for all using (true) with check (true);
+create policy "open" on players  for all using (true) with check (true);
+create policy "open" on drinks   for all using (true) with check (true);
+create policy "open" on hookups  for all using (true) with check (true);
 
 -- Enable Realtime
 alter publication supabase_realtime add table parties;
 alter publication supabase_realtime add table players;
 alter publication supabase_realtime add table drinks;
+alter publication supabase_realtime add table hookups;
+
+-- Auto-cleanup: delete parties older than 48h every day at 4am UTC
+create extension if not exists pg_cron;
+select cron.schedule(
+  'cleanup-old-parties',
+  '0 4 * * *',
+  $$
+    delete from parties
+    where created_at < (
+      extract(epoch from (now() - interval '48 hours')) * 1000
+    )::bigint;
+  $$
+);
 ```
 
 ## 3. Get your API keys

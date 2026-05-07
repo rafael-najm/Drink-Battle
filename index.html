@@ -143,6 +143,14 @@ body::before {
 .nav-btn.active { color: var(--accent2); }
 .nav-btn.active .nav-icon { transform: scale(1.12); }
 
+/* Toggle switch */
+.toggle-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; cursor:pointer; top:0; left:0; right:0; bottom:0; background:#334155; border-radius:24px; transition:.3s; }
+.toggle-slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.3s; }
+input:checked + .toggle-slider { background:var(--accent2); }
+input:checked + .toggle-slider:before { transform:translateX(20px); }
+
 /* ===== CARDS & SHARED ===== */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
 .card-title { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
@@ -497,6 +505,19 @@ body::before {
     Compartilhe o código ou QR pra chamar a galera...
   </div>
 
+  <div id="hookup-mode-toggle" style="display:none;margin:12px 0;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:14px;font-weight:600">🎯 Modo Conquistas</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">registre quem você pegou na festa</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="hookup-mode-check" onchange="toggleHookupMode(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+
   <br>
   <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none">🚀 Começar!</button>
   <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled>⏳ Aguardando o anfitrião começar...</button>
@@ -570,6 +591,15 @@ body::before {
   <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
     <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px">⛔ Encerrar festa</button>
   </div>
+</div>
+
+<!-- ===== HOOKUPS ===== -->
+<div id="page-hookups" class="page page-with-nav">
+  <div style="padding-top:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:18px;font-weight:900">🎯 Conquistas</div>
+    <button class="btn-primary" onclick="openAddHookup()" style="width:auto;padding:9px 16px;font-size:13px">+ Adicionar</button>
+  </div>
+  <div id="hookups-list"></div>
 </div>
 
 <!-- ===== REPORT ===== -->
@@ -775,6 +805,33 @@ body::before {
   </div>
 </div>
 
+<!-- ===== MODAL: ADD HOOKUP ===== -->
+<div class="modal-overlay" id="modal-add-hookup">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-add-hookup')">✕</button>
+    <div class="modal-title">🎯 Adicionar conquista</div>
+    <div class="modal-sub">// conta pra galera!</div>
+    <div class="form-group">
+      <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
+      <input class="form-input" id="hookup-name" type="text" placeholder="Nome da pessoa" maxlength="50" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Instagram <span>(opcional)</span></label>
+      <input class="form-input" id="hookup-instagram" type="text" placeholder="@username" maxlength="50" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Foto <span>(opcional)</span></label>
+      <div id="hookup-photo-preview" style="display:none;margin-bottom:10px;text-align:center">
+        <img id="hookup-photo-img" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid var(--border)">
+      </div>
+      <input type="file" id="hookup-photo-input" accept="image/*" style="display:none" onchange="onHookupPhotoChange(this)">
+      <button class="btn-secondary" onclick="document.getElementById('hookup-photo-input').click()" style="font-size:13px;padding:10px">📷 Tirar / escolher foto</button>
+    </div>
+    <button class="btn-primary" onclick="saveHookup()" style="margin-top:4px">Salvar conquista 🎯</button>
+  </div>
+</div>
+
 <!-- ===== MODAL: CONFIRM END PARTY ===== -->
 <div class="modal-overlay" id="modal-end-party">
   <div class="modal-sheet">
@@ -802,6 +859,9 @@ body::before {
 
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav" id="bottom-nav">
+  <button class="nav-btn" id="nav-hookups" onclick="navTo('hookups')" style="display:none">
+    <span class="nav-icon">🎯</span><span>Conquistas</span>
+  </button>
   <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
     <span class="nav-icon">🍺</span><span>Bebidas</span>
   </button>
@@ -859,6 +919,7 @@ const SUPABASE_URL = 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 let supabaseClient = null;
 let partyChannel = null;
+let _hookupPhoto = null;
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -912,10 +973,11 @@ function setConnReady(ready) {
 }
 
 async function fetchPartyState(partyId) {
-  const [partyRes, playersRes, drinksRes] = await Promise.all([
+  const [partyRes, playersRes, drinksRes, hookupsRes] = await Promise.all([
     supabaseClient.from('parties').select('*').eq('id', partyId).single(),
     supabaseClient.from('players').select('*').eq('party_id', partyId),
-    supabaseClient.from('drinks').select('*').eq('party_id', partyId)
+    supabaseClient.from('drinks').select('*').eq('party_id', partyId),
+    supabaseClient.from('hookups').select('*').eq('party_id', partyId)
   ]);
   if (partyRes.error) throw partyRes.error;
   const p = partyRes.data;
@@ -923,6 +985,7 @@ async function fetchPartyState(partyId) {
   const drinks = drinksRes.data || [];
   party = {
     id: p.id, name: p.name, status: p.status,
+    hookupMode: p.hookup_mode || false,
     startTime: p.start_time, createdAt: p.created_at, creatorId: p.creator_id,
     players: players.map(pl => ({
       peerId: pl.id,
@@ -935,7 +998,8 @@ async function fetchPartyState(partyId) {
         .map(d => ({ id: d.id, cup: d.cup, drinkType: d.drink_type, ml: d.ml, pct: d.pct, fill: d.fill, ts: d.ts }))
         .sort((a, b) => a.ts - b.ts),
       maxBac: 0
-    }))
+    })),
+    hookups: (hookupsRes.data || [])
   };
   isHost = p.creator_id === myProfile?.id;
   try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: isHost })); } catch(e) {}
@@ -959,6 +1023,7 @@ function subscribeToParty(partyId) {
     .on('postgres_changes', { event:'*',      schema:'public', table:'players', filter:'party_id=eq.'+partyId }, handlePlayerChange)
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkInsert)
     .on('postgres_changes', { event:'DELETE', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkDelete)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'hookups', filter:'party_id=eq.'+partyId }, handleHookupInsert)
     .subscribe(status => setConnReady(status === 'SUBSCRIBED'));
 }
 
@@ -968,7 +1033,9 @@ function handlePartyChange(payload) {
   party.status = p.status;
   party.startTime = p.start_time;
   party.endTime = p.end_time;
+  party.hookupMode = p.hookup_mode || false;
   isHost = p.creator_id === myProfile?.id;
+  updateHookupModeUI();
   if (party.status === 'ended') {
     savePartyToHistory(party);
     showReport();
@@ -1051,7 +1118,7 @@ function navTo(page) {
   if (el) el.classList.add('active');
   currentPage = page;
 
-  const navVisible = (page === 'monitor' || page === 'ranking') && !!party;
+  const navVisible = (page === 'monitor' || page === 'ranking' || page === 'hookups') && !!party;
   document.getElementById('bottom-nav').classList.toggle('visible', navVisible);
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const nb = document.getElementById('nav-' + page);
@@ -1062,6 +1129,7 @@ function navTo(page) {
   if (page === 'lobby') renderLobby();
   if (page === 'monitor') renderMonitor();
   if (page === 'ranking') renderRanking();
+  if (page === 'hookups') renderHookups();
   if (page === 'report') { /* rendered by showReport */ }
 }
 
@@ -1275,6 +1343,10 @@ function renderLobby() {
     document.getElementById('btn-leave-lobby').style.display = 'none';
     document.getElementById('lobby-waiting-msg').style.display = party.players.length < 2 ? 'block' : 'none';
     document.getElementById('lobby-qr-btn').style.display = '';
+    const toggle = document.getElementById('hookup-mode-toggle');
+    if (toggle) toggle.style.display = 'block';
+    const check = document.getElementById('hookup-mode-check');
+    if (check) check.checked = party.hookupMode || false;
   } else {
     document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
     document.getElementById('btn-start-party').style.display = 'none';
@@ -1283,6 +1355,8 @@ function renderLobby() {
     document.getElementById('btn-leave-lobby').style.display = 'block';
     document.getElementById('lobby-waiting-msg').style.display = 'none';
     document.getElementById('lobby-qr-btn').style.display = 'none';
+    const toggle = document.getElementById('hookup-mode-toggle');
+    if (toggle) toggle.style.display = 'none';
   }
 
   document.getElementById('lobby-players').innerHTML = party.players.map(p => {
@@ -1316,6 +1390,104 @@ function leaveLobby() {
   isHost = false; party = null; _drinkSectionReady = false;
   setConnReady(true);
   navTo('home');
+}
+
+// ===== HOOKUP MODE =====
+async function toggleHookupMode(enabled) {
+  if (!party || !isHost) return;
+  await supabaseClient.from('parties').update({ hookup_mode: enabled }).eq('id', party.id);
+  party.hookupMode = enabled;
+  updateHookupModeUI();
+}
+
+function updateHookupModeUI() {
+  const nav = document.getElementById('nav-hookups');
+  if (nav) nav.style.display = (party?.hookupMode && party?.status === 'active') ? '' : 'none';
+}
+
+function openAddHookup() {
+  document.getElementById('hookup-name').value = '';
+  document.getElementById('hookup-instagram').value = '';
+  document.getElementById('hookup-photo-preview').style.display = 'none';
+  document.getElementById('hookup-photo-input').value = '';
+  _hookupPhoto = null;
+  openModal('modal-add-hookup');
+}
+
+function onHookupPhotoChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = 200;
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size / img.width, size / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      _hookupPhoto = canvas.toDataURL('image/jpeg', 0.7);
+      document.getElementById('hookup-photo-img').src = _hookupPhoto;
+      document.getElementById('hookup-photo-preview').style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveHookup() {
+  const name = document.getElementById('hookup-name').value.trim();
+  if (!name) { toast('Coloca o nome! 👆'); return; }
+  const instagram = document.getElementById('hookup-instagram').value.trim().replace(/^@+/, '');
+  const hookup = {
+    id: uid(), party_id: party.id, player_id: myProfile.id,
+    name, instagram: instagram || null, photo: _hookupPhoto || null,
+    created_at: Date.now()
+  };
+  closeModal('modal-add-hookup');
+  if (!party.hookups) party.hookups = [];
+  party.hookups.push(hookup);
+  if (currentPage === 'hookups') renderHookups();
+  const { error } = await supabaseClient.from('hookups').insert(hookup);
+  if (error) {
+    party.hookups = party.hookups.filter(h => h.id !== hookup.id);
+    if (currentPage === 'hookups') renderHookups();
+    toast('Erro ao salvar. Tente novamente.');
+  }
+}
+
+function handleHookupInsert(payload) {
+  if (!party) return;
+  const h = payload.new;
+  if (!party.hookups) party.hookups = [];
+  if (!party.hookups.find(x => x.id === h.id)) {
+    party.hookups.push(h);
+    if (currentPage === 'hookups') renderHookups();
+  }
+}
+
+function renderHookups() {
+  const el = document.getElementById('hookups-list');
+  if (!el || !party) return;
+  const mine = (party.hookups || [])
+    .filter(h => h.player_id === myProfile?.id)
+    .sort((a, b) => b.created_at - a.created_at);
+  if (!mine.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-title">Nenhuma conquista ainda</div><div class="empty-state-text">Toca no + pra registrar!</div></div>`;
+    return;
+  }
+  el.innerHTML = mine.map(h => `
+    <div style="display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;margin-bottom:8px">
+      ${h.photo
+        ? `<img src="${esc(h.photo)}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+        : `<div style="width:50px;height:50px;border-radius:50%;background:rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🎯</div>`}
+      <div style="min-width:0">
+        <div style="font-weight:700;font-size:15px">${esc(h.name)}</div>
+        ${h.instagram ? `<div style="font-size:12px;color:var(--muted);margin-top:2px">@${esc(h.instagram)}</div>` : ''}
+      </div>
+    </div>`).join('');
 }
 
 // ===== END PARTY =====
@@ -1387,6 +1559,43 @@ function showReport() {
     </div>`
   ).join('');
   setTimeout(() => renderReportChart(startTime, endTime), 80);
+
+  // Hookups section
+  const hookupsSection = document.getElementById('report-hookups-section');
+  if (hookupsSection) hookupsSection.remove();
+  if (party.hookupMode && party.hookups?.length) {
+    const byPlayer = {};
+    party.hookups.forEach(h => {
+      if (!byPlayer[h.player_id]) byPlayer[h.player_id] = [];
+      byPlayer[h.player_id].push(h);
+    });
+    const playersWithHookups = party.players.filter(p => byPlayer[p.profile?.id]?.length);
+    if (playersWithHookups.length) {
+      let html = `<div id="report-hookups-section" style="margin-top:20px">
+        <div class="card-title" style="margin-bottom:10px">// Conquistas da noite</div>`;
+      playersWithHookups.forEach(p => {
+        const hs = byPlayer[p.profile.id];
+        html += `<div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <div style="font-size:20px">${esc(p.profile.avatar)}</div>
+            <div style="font-size:13px;font-weight:700">${esc(p.profile.name)}</div>
+            <div style="font-size:11px;color:var(--muted)">${hs.length} conquista${hs.length !== 1 ? 's' : ''}</div>
+          </div>`;
+        hs.forEach(h => {
+          html += `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;margin-bottom:6px">
+            ${h.photo ? `<img src="${esc(h.photo)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0">` : '<div style="width:36px;height:36px;border-radius:50%;background:rgba(124,58,237,0.2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎯</div>'}
+            <div style="min-width:0">
+              <div style="font-size:13px;font-weight:600">${esc(h.name)}</div>
+              ${h.instagram ? `<div style="font-size:11px;color:var(--muted)">@${esc(h.instagram)}</div>` : ''}
+            </div>
+          </div>`;
+        });
+        html += '</div>';
+      });
+      html += '</div>';
+      document.getElementById('report-players').insertAdjacentHTML('afterend', html);
+    }
+  }
 }
 
 function renderReportChart(startTime, endTime) {
