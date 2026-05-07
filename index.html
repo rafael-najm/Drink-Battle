@@ -776,8 +776,7 @@ body::before {
   </button>
 </nav>
 
-<!-- MQTT.js (WebSocket transport — works through all NATs/firewalls) -->
-<script src="https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
 // ===== CONSTANTS =====
@@ -820,15 +819,12 @@ let currentPage = 'splash';
 let _pendingJoinCode = null;
 let _selCup = 'tulipa', _selDrinkType = 'cerveja', _fillPct = 100;
 let _drinkSectionReady = false;
-let bc = null;             // BroadcastChannel (same-device tabs)
-const MY_ID = uid();       // stable ID for this tab/session
 
-// MQTT — routes through broker, no WebRTC, works through all NATs
-const MQTT_URL = 'wss://broker.hivemq.com:8884/mqtt';
-const MQTT_PFX = 'pre_app_v1/';
-let mqttClient = null;
-let _stateTimeout = null;
-let _lastRestoredAt = 0;
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+let supabaseClient = null;
+let partyChannel = null;
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -875,126 +871,123 @@ function rgbToHex(rgb) {
   return '#' + m.slice(0,3).map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
 }
 
-// ===== BROADCAST CHANNEL (same-device, same-origin tabs) =====
-function initBC(code) {
-  destroyBC();
-  try {
-    bc = new BroadcastChannel('pre_' + code);
-    bc.onmessage = e => {
-      const data = e.data;
-      if (!data || data._from === MY_ID) return; // ignore own messages
-      if (isHost) handleGuestMessage(null, data);
-      else handleHostMessage(data);
-    };
-  } catch(e) { bc = null; }
-}
-
-function destroyBC() {
-  if (bc) { try { bc.close(); } catch(e) {} bc = null; }
-}
-
-// ===== MQTT NETWORKING =====
+// ===== SUPABASE NETWORKING =====
 function setConnReady(ready) {
   const overlay = document.getElementById('conn-overlay');
   if (overlay) overlay.style.display = (party && !ready) ? 'flex' : 'none';
 }
 
-function ensureMqttConnected() {
+async function fetchPartyState(partyId) {
+  const [partyRes, playersRes, drinksRes] = await Promise.all([
+    supabaseClient.from('parties').select('*').eq('id', partyId).single(),
+    supabaseClient.from('players').select('*').eq('party_id', partyId),
+    supabaseClient.from('drinks').select('*').eq('party_id', partyId)
+  ]);
+  if (partyRes.error) throw partyRes.error;
+  const p = partyRes.data;
+  const players = playersRes.data || [];
+  const drinks = drinksRes.data || [];
+  party = {
+    id: p.id, name: p.name, status: p.status,
+    startTime: p.start_time, createdAt: p.created_at, creatorId: p.creator_id,
+    players: players.map(pl => ({
+      peerId: pl.id,
+      profile: { id: pl.id, name: pl.name, avatar: pl.avatar, color: pl.color, weight: pl.weight, sex: pl.sex },
+      prefs: pl.prefs || { stomach:'medium', hydration:'ok', targetLevel:'flow' },
+      sos: pl.sos || false,
+      joinedAt: pl.joined_at,
+      drinks: drinks
+        .filter(d => d.player_id === pl.id)
+        .map(d => ({ id: d.id, cup: d.cup, drinkType: d.drink_type, ml: d.ml, pct: d.pct, fill: d.fill, ts: d.ts }))
+        .sort((a, b) => a.ts - b.ts),
+      maxBac: 0
+    }))
+  };
+  isHost = p.creator_id === myProfile?.id;
+  try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: isHost })); } catch(e) {}
+}
+
+async function upsertMyPlayer(partyId) {
+  const prefs = getMyPrefs();
+  await supabaseClient.from('players').upsert({
+    id: myProfile.id, party_id: partyId,
+    name: myProfile.name, avatar: myProfile.avatar,
+    color: myProfile.color, weight: myProfile.weight, sex: myProfile.sex,
+    prefs, joined_at: Date.now(), updated_at: Date.now()
+  });
+}
+
+function subscribeToParty(partyId) {
+  if (partyChannel) supabaseClient.removeChannel(partyChannel);
+  partyChannel = supabaseClient
+    .channel('party-' + partyId)
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'parties', filter:'id=eq.'+partyId }, handlePartyChange)
+    .on('postgres_changes', { event:'*',      schema:'public', table:'players', filter:'party_id=eq.'+partyId }, handlePlayerChange)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkInsert)
+    .on('postgres_changes', { event:'DELETE', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkDelete)
+    .subscribe(status => setConnReady(status === 'SUBSCRIBED'));
+}
+
+function handlePartyChange(payload) {
+  const p = payload.new;
   if (!party) return;
-  if (mqttClient?.connected || mqttClient?.reconnecting) return;
-  if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
-  mqttConnect(party.id);
+  party.status = p.status;
+  party.startTime = p.start_time;
+  isHost = p.creator_id === myProfile?.id;
+  if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
+  if (currentPage === 'lobby') renderLobby();
 }
 
-function mqttConnect(code) {
-  mqttDisconnect();
-  setConnReady(false);
-  // Host gets a stable clientId so the broker can maintain a persistent session
-  // and queue ADD_DRINK messages while the host is briefly offline.
-  const clientId = isHost
-    ? 'host_' + code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
-    : 'pre_'  + MY_ID.replace(/[^a-zA-Z0-9]/g, '').slice(0, 18);
-  mqttClient = mqtt.connect(MQTT_URL, {
-    clientId,
-    clean: !isHost,   // host: persistent session; guests: clean
-    connectTimeout: 10000, reconnectPeriod: 3000, keepalive: 20,
-  });
-
-  mqttClient.on('connect', () => {
-    if (isHost) {
-      mqttClient.subscribe(MQTT_PFX + code + '/action', { qos: 1 });
-      // Stamp _restoredAt on every (re)connect so guests unconditionally
-      // resend their full drink log, recovering any drops during host outage.
-      if (party) party._restoredAt = Date.now();
-      mqttPublishState();
-      setConnReady(true);
-      if (currentPage === 'lobby') {
-        document.getElementById('lobby-status').textContent = '// aguardando jogadores';
-        document.getElementById('lobby-qr-btn').style.display = '';
-        document.getElementById('btn-start-party').style.display = 'block';
-        document.getElementById('lobby-waiting-msg').style.display = 'block';
-        renderLobby();
+function handlePlayerChange(payload) {
+  if (!party) return;
+  const pl = payload.eventType === 'DELETE' ? payload.old : payload.new;
+  if (payload.eventType === 'DELETE') {
+    party.players = party.players.filter(p => p.profile?.id !== pl.id);
+  } else {
+    const ex = party.players.find(p => p.profile?.id === pl.id);
+    if (ex) {
+      ex.profile = { id: pl.id, name: pl.name, avatar: pl.avatar, color: pl.color, weight: pl.weight, sex: pl.sex };
+      ex.prefs = pl.prefs || ex.prefs;
+      ex.joinedAt = pl.joined_at || ex.joinedAt;
+      if (pl.sos && !ex.sos && pl.id !== myProfile?.id && !_shownSos[pl.id]) {
+        _shownSos[pl.id] = true;
+        showSOSAlert(ex.profile);
       }
+      ex.sos = pl.sos;
     } else {
-      mqttClient.subscribe(MQTT_PFX + code + '/state', { qos: 1 });
-      clearTimeout(_stateTimeout);
-      _stateTimeout = setTimeout(() => {
-        if (currentPage === 'lobby' && !party) {
-          setLobbyError('Festa não encontrada. Verifique o código.', () => doJoinParty(code));
-        }
-      }, 10000);
+      party.players.push({
+        peerId: pl.id,
+        profile: { id: pl.id, name: pl.name, avatar: pl.avatar, color: pl.color, weight: pl.weight, sex: pl.sex },
+        prefs: pl.prefs || { stomach:'medium', hydration:'ok', targetLevel:'flow' },
+        sos: pl.sos || false, joinedAt: pl.joined_at, drinks: [], maxBac: 0
+      });
     }
-  });
-
-  mqttClient.on('reconnect', () => { setConnReady(false); });
-  mqttClient.on('offline',   () => { setConnReady(false); });
-
-  mqttClient.on('message', (topic, payload) => {
-    try {
-      const data = JSON.parse(payload.toString());
-      if (!data || data._from === MY_ID) return;
-      if (topic.endsWith('/state') && !isHost) {
-        clearTimeout(_stateTimeout);
-        const firstState = !party;
-        handleHostMessage(data);
-        setConnReady(true);
-        if (firstState && party) sendToHost({ type: 'JOIN', profile: myProfile, prefs: getMyPrefs() });
-      } else if (topic.endsWith('/action') && isHost) {
-        handleGuestMessage(null, data);
-      }
-    } catch(e) {}
-  });
-
-  mqttClient.on('error', () => {
-    setConnReady(false);
-    if (currentPage === 'lobby' && !party) {
-      setLobbyError('Erro de conexão. Verifique sua internet.', () => mqttConnect(code));
-    }
-  });
+  }
+  if (currentPage === 'lobby') renderLobby();
+  if (currentPage === 'monitor') renderMonitor();
+  if (currentPage === 'ranking') renderRanking();
 }
 
-function mqttPublishState() {
-  if (!mqttClient?.connected || !party) return;
-  mqttClient.publish(
-    MQTT_PFX + party.id + '/state',
-    JSON.stringify({ type: 'STATE', party, _from: MY_ID }),
-    { retain: true, qos: 1 }
-  );
+function handleDrinkInsert(payload) {
+  if (!party) return;
+  const d = payload.new;
+  const player = party.players.find(p => p.profile?.id === d.player_id);
+  if (player && !player.drinks.find(dr => dr.id === d.id)) {
+    player.drinks.push({ id: d.id, cup: d.cup, drinkType: d.drink_type, ml: d.ml, pct: d.pct, fill: d.fill, ts: d.ts });
+    player.drinks.sort((a, b) => a.ts - b.ts);
+    if (currentPage === 'monitor') renderMonitor();
+    if (currentPage === 'ranking') renderRanking();
+  }
 }
 
-function mqttSendAction(data) {
-  if (!mqttClient?.connected || !party) return;
-  mqttClient.publish(MQTT_PFX + party.id + '/action', JSON.stringify(data), { qos: 1 });
-}
-
-function mqttDisconnect(clearRetained) {
-  clearTimeout(_stateTimeout);
-  if (mqttClient) {
-    if (clearRetained && isHost && party) {
-      try { mqttClient.publish(MQTT_PFX + party.id + '/state', '', { retain: true, qos: 0 }); } catch(e) {}
-    }
-    try { mqttClient.end(true); } catch(e) {}
-    mqttClient = null;
+function handleDrinkDelete(payload) {
+  if (!party) return;
+  const d = payload.old;
+  const player = party.players.find(p => p.profile?.id === d.player_id);
+  if (player) {
+    player.drinks = player.drinks.filter(dr => dr.id !== d.id);
+    if (currentPage === 'monitor') renderMonitor();
+    if (currentPage === 'ranking') renderRanking();
   }
 }
 
@@ -1009,16 +1002,6 @@ function loadProfile() {
 }
 function saveProfile() {
   localStorage.setItem('pre_profile', JSON.stringify(myProfile));
-}
-
-// Per-guest drink log — source of truth for own drinks, survives host going stale
-function saveLocalDrinks(drinks) {
-  if (!party || !myProfile) return;
-  try { localStorage.setItem('pre_mydrinks_' + party.id + '_' + myProfile.id, JSON.stringify(drinks || [])); } catch(e) {}
-}
-function loadLocalDrinks() {
-  if (!party || !myProfile) return [];
-  try { const s = localStorage.getItem('pre_mydrinks_' + party.id + '_' + myProfile.id); return s ? JSON.parse(s) : []; } catch(e) { return []; }
 }
 
 // ===== NAVIGATION =====
@@ -1125,76 +1108,28 @@ function doCreateParty() {
   createParty(name);
 }
 
-function createParty(partyName) {
+async function createParty(partyName) {
   const code = generatePartyCode();
   isHost = true;
-
-  party = {
-    id: code, name: partyName, status: 'lobby',
-    startTime: null, createdAt: Date.now(),
-    players: [{ peerId:'host', profile:myProfile, prefs:{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:null, drinks:[], maxBac:0 }]
-  };
-
-  initBC(code);
   navTo('lobby');
-  document.getElementById('lobby-status').textContent = '// conectando...';
+  document.getElementById('lobby-status').textContent = '// criando sala...';
   document.getElementById('lobby-qr-btn').style.display = 'none';
   document.getElementById('btn-start-party').style.display = 'none';
-  mqttConnect(code);
-}
-
-function handleGuestMessage(conn, data) {
-  if (!party) return;
-  // conn is null for BroadcastChannel messages; use _from to build a stable peerId
-  const peerId = conn ? conn.peer : ('bc_' + (data._from || 'anon'));
-
-  if (data.type === 'JOIN') {
-    // Deduplicate: same person might arrive via both PeerJS and BC
-    let ex = party.players.find(p => p.profile?.id === data.profile?.id && p.peerId !== 'host');
-    if (!ex) ex = party.players.find(p => p.peerId === peerId);
-    if (!ex) {
-      party.players.push({ peerId, profile:data.profile, prefs:data.prefs||{stomach:'medium',hydration:'ok',targetLevel:'flow'}, joinedAt:party.status==='active'?Date.now():null, drinks:[], maxBac:0 });
-    } else { ex.profile = data.profile; if (data.prefs) ex.prefs = data.prefs; }
-    broadcastState();
-    if (currentPage === 'lobby') renderLobby();
-  } else if (data.type === 'UPDATE_PREFS') {
-    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p && data.prefs) { p.prefs = data.prefs; broadcastState(); if (currentPage === 'lobby') renderLobby(); }
-  } else if (data.type === 'ADD_DRINK') {
-    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p && data.drink?.id && !p.drinks.find(d => d.id === data.drink.id)) {
-      p.drinks.push(data.drink); broadcastState();
-      if (currentPage === 'monitor') renderMonitor();
-      else if (currentPage === 'ranking') renderRanking();
-    }
-  } else if (data.type === 'REMOVE_DRINK') {
-    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p) {
-      p.drinks = p.drinks.filter(d => d.id !== data.drinkId); broadcastState();
-      if (currentPage === 'monitor') renderMonitor();
-      else if (currentPage === 'ranking') renderRanking();
-    }
-  } else if (data.type === 'SYNC_DRINKS') {
-    const p = party.players.find(pl => pl.profile?.id === data._profileId);
-    if (p && Array.isArray(data.drinks)) {
-      const existingIds = new Set(p.drinks.map(d => d.id));
-      const toAdd = data.drinks.filter(d => d.id && !existingIds.has(d.id));
-      if (toAdd.length) {
-        p.drinks = [...p.drinks, ...toAdd].sort((a, b) => a.ts - b.ts); broadcastState();
-        if (currentPage === 'monitor') renderMonitor();
-        else if (currentPage === 'ranking') renderRanking();
-      }
-    }
-  } else if (data.type === 'SOS') {
-    const p = party.players.find(pl => (data._profileId && pl.profile?.id === data._profileId) || pl.peerId === peerId);
-    if (p) { p.sos = true; broadcastState(); }
+  try {
+    const { error } = await supabaseClient.from('parties').insert({
+      id: code, name: partyName, status: 'lobby',
+      creator_id: myProfile.id, created_at: Date.now()
+    });
+    if (error) throw error;
+    party = { id: code, name: partyName, status: 'lobby', startTime: null, createdAt: Date.now(), players: [] };
+    await upsertMyPlayer(code);
+    subscribeToParty(code);
+    await fetchPartyState(code);
+    renderLobby();
+  } catch(e) {
+    toast('Erro ao criar sala. Tente novamente.');
+    navTo('home');
   }
-}
-
-function broadcastState() {
-  if (bc) bc.postMessage({ type:'STATE', party, _from: MY_ID });
-  mqttPublishState();
-  try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
 }
 
 // ===== JOIN PARTY =====
@@ -1210,22 +1145,30 @@ function joinByCode() {
   doJoinParty(code);
 }
 
-function doJoinParty(code) {
+async function doJoinParty(code) {
   isHost = false; party = null;
-  requestNotifPermission();
-  initBC(code);
-
   navTo('lobby');
+  setConnReady(false);
   document.getElementById('lobby-party-name').textContent = 'Conectando...';
   document.getElementById('lobby-code').textContent = code;
-  document.getElementById('lobby-status').textContent = '// conectando à festa...';
+  document.getElementById('lobby-status').textContent = '// conectando à sala...';
   document.getElementById('lobby-players').innerHTML = '';
   document.getElementById('lobby-qr-btn').style.display = 'none';
   document.getElementById('btn-start-party').style.display = 'none';
   document.getElementById('btn-guest-waiting').style.display = 'block';
   document.getElementById('lobby-waiting-msg').style.display = 'none';
-
-  mqttConnect(code);
+  try {
+    requestNotifPermission();
+    const { data: partyData, error } = await supabaseClient.from('parties').select('*').eq('id', code.toUpperCase()).single();
+    if (error || !partyData) { setLobbyError('Sala não encontrada. Verifique o código.', () => doJoinParty(code)); return; }
+    await upsertMyPlayer(code.toUpperCase());
+    subscribeToParty(code.toUpperCase());
+    await fetchPartyState(code.toUpperCase());
+    setConnReady(true);
+    if (party.status === 'active') { navTo('monitor'); } else { renderLobby(); }
+  } catch(e) {
+    setLobbyError('Erro de conexão. Verifique sua internet.', () => doJoinParty(code));
+  }
 }
 
 // ===== ERROR HELPERS =====
@@ -1242,61 +1185,6 @@ function setLobbyError(msg, retryFn) {
 }
 
 let _shownSos = {};
-function handleHostMessage(data) {
-  if (data.type === 'STATE') {
-    const prev = party;
-    party = data.party;
-    try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: false })); } catch(e) {}
-
-    // Reconcile own drinks with local log every time state arrives.
-    const me = getMyPlayer();
-    if (me && myProfile) {
-      const local = loadLocalDrinks();
-      const restoredAt = data.party?._restoredAt || 0;
-      const isHostRestore = restoredAt && restoredAt !== _lastRestoredAt;
-      if (isHostRestore) {
-        _lastRestoredAt = restoredAt;
-        if (local.length) {
-          me.drinks = local.slice().sort((a, b) => a.ts - b.ts);
-          sendToHost({ type: 'SYNC_DRINKS', drinks: local });
-        }
-      } else {
-        if (local.length) {
-          const hostIds = new Set((me.drinks || []).map(d => d.id));
-          const missing = local.filter(d => d.id && !hostIds.has(d.id));
-          if (missing.length) {
-            me.drinks = [...(me.drinks || []), ...missing].sort((a, b) => a.ts - b.ts);
-            sendToHost({ type: 'SYNC_DRINKS', drinks: me.drinks });
-          }
-        }
-        if (me.drinks?.length) saveLocalDrinks(me.drinks);
-      }
-    }
-
-    if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
-    if (currentPage === 'lobby') renderLobby();
-    if (currentPage === 'monitor') renderMonitor();
-    if (currentPage === 'ranking') renderRanking();
-    // show SOS alert for newly-triggered SOS from others
-    party.players.forEach(p => {
-      if (p.sos && p.profile?.id !== myProfile?.id && !_shownSos[p.profile?.id]) {
-        _shownSos[p.profile.id] = true;
-        showSOSAlert(p.profile);
-      }
-    });
-  } else if (data.type === 'END') {
-    party = data.party;
-    savePartyToHistory(party);
-    navTo('home');
-    toast('Sala encerrada! Confira o histórico 📋');
-  }
-}
-
-function sendToHost(data) {
-  const msg = { ...data, _from: MY_ID, _profileId: myProfile?.id };
-  if (bc) bc.postMessage(msg);
-  mqttSendAction(msg);
-}
 
 // ===== NOTIFICATIONS =====
 function requestNotifPermission() {
@@ -1317,14 +1205,17 @@ function sendSOSNotification(profile) {
 }
 
 // ===== START PARTY (host only) =====
-function startParty() {
+async function startParty() {
   if (!party || !isHost) return;
   requestNotifPermission();
-  party.status = 'active';
-  party.startTime = Date.now();
-  party.players.forEach(p => { p.joinedAt = Date.now(); });
-  broadcastState();
-  navTo('monitor');
+  const now = Date.now();
+  const { error } = await supabaseClient.from('parties').update({ status: 'active', start_time: now }).eq('id', party.id);
+  if (!error) {
+    await supabaseClient.from('players').update({ joined_at: now }).eq('party_id', party.id);
+    party.status = 'active'; party.startTime = now;
+    party.players.forEach(p => { if (!p.joinedAt) p.joinedAt = now; });
+    navTo('monitor');
+  }
 }
 
 // ===== LOBBY RENDER =====
@@ -1350,8 +1241,8 @@ function renderLobby() {
   }
 
   document.getElementById('lobby-players').innerHTML = party.players.map(p => {
-    const isMe = isHost ? p.peerId === 'host' : p.profile?.id === myProfile?.id;
-    const isHostPlayer = p.peerId === 'host';
+    const isMe = p.profile?.id === myProfile?.id;
+    const isHostPlayer = party.creatorId ? p.profile?.id === party.creatorId : (isHost && isMe);
     const prefs = p.prefs || {};
     return `
       <div class="lobby-player-row${isMe?' me':''}">
@@ -1375,9 +1266,7 @@ function renderLobby() {
 
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
-  destroyBC();
-  if (party && myProfile) localStorage.removeItem('pre_mydrinks_' + party.id + '_' + myProfile.id);
-  mqttDisconnect(true);
+  if (partyChannel) { supabaseClient.removeChannel(partyChannel); partyChannel = null; }
   localStorage.removeItem('pre_active_session');
   isHost = false; party = null; _drinkSectionReady = false;
   setConnReady(true);
@@ -1385,29 +1274,23 @@ function leaveLobby() {
 }
 
 // ===== REJOIN SESSION =====
-function rejoinParty(savedParty, savedIsHost) {
+async function rejoinParty(savedParty, savedIsHost) {
   isHost = savedIsHost;
   party = savedParty;
-  // Signal to all guests that the host reloaded from disk — they must resync
-  if (isHost) party._restoredAt = Date.now();
-  const code = savedParty.id;
-  initBC(code);
-
-  if (savedParty.status === 'active') {
-    navTo('monitor');
-  } else {
-    navTo('lobby');
-    document.getElementById('lobby-party-name').textContent = savedParty.name || '...';
-    document.getElementById('lobby-code').textContent = code;
-    document.getElementById('lobby-status').textContent = '// reconectando...';
-    document.getElementById('lobby-qr-btn').style.display = 'none';
-    document.getElementById('btn-start-party').style.display = 'none';
-    document.getElementById('btn-guest-waiting').style.display = savedIsHost ? 'none' : 'block';
-    document.getElementById('lobby-waiting-msg').style.display = 'none';
+  if (savedParty.status === 'active') navTo('monitor');
+  else navTo('lobby');
+  setConnReady(false);
+  try {
+    subscribeToParty(savedParty.id);
+    await upsertMyPlayer(savedParty.id);
+    await fetchPartyState(savedParty.id);
+    setConnReady(true);
+    if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') navTo('monitor');
+    else if (party.status !== 'active') renderLobby();
+    toast('🔄 Sala restaurada');
+  } catch(e) {
+    setConnReady(false);
   }
-
-  mqttConnect(code);
-  toast('🔄 Sala restaurada');
 }
 
 // ===== PREFS MODAL =====
@@ -1439,8 +1322,11 @@ function savePrefs() {
   const me = getMyPlayer();
   if (me) me.prefs = prefs;
 
-  if (isHost) { broadcastState(); renderLobby(); }
-  else { sendToHost({ type:'UPDATE_PREFS', prefs }); if (currentPage === 'lobby') renderLobby(); }
+  if (currentPage === 'lobby') renderLobby();
+
+  if (party && myProfile) {
+    supabaseClient.from('players').update({ prefs, updated_at: Date.now() }).eq('id', myProfile.id);
+  }
 
   closeModal('modal-prefs');
   toast('Preferências salvas ✓');
@@ -1448,7 +1334,6 @@ function savePrefs() {
 
 function getMyPlayer() {
   if (!party) return null;
-  if (isHost) return party.players.find(p => p.peerId === 'host');
   return party.players.find(p => p.profile?.id === myProfile?.id);
 }
 
@@ -1678,7 +1563,7 @@ function renderRanking() {
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('ranking-list').innerHTML = sorted.map((p, i) => {
     const lv = bacLevel(p._bac);
-    const isMe = isHost ? p.peerId==='host' : p.profile?.id===myProfile?.id;
+    const isMe = p.profile?.id === myProfile?.id;
     return `<div class="ranking-row" style="${isMe?'border-color:rgba(168,85,247,0.4);background:rgba(124,58,237,0.06)':''}">
       <div class="ranking-pos" style="color:${i<3?lv.color:'var(--muted)'}">${medals[i]||(i+1)}</div>
       <div class="ranking-avatar" style="background:${esc(p.profile.color)}22;border-color:${esc(p.profile.color)}">${esc(p.profile.avatar)}</div>
@@ -1739,34 +1624,42 @@ function confirmAddDrink() {
   const ml = Math.round(cup.ml * _fillPct / 100);
   const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml, pct: dt.pct, fill: _fillPct, ts: Date.now() };
   const me = getMyPlayer();
-  if (me) {
-    me.drinks.push(drink);
-    if (!isHost) saveLocalDrinks(me.drinks);
-  }
-  if (isHost) { broadcastState(); } else { sendToHost({ type:'ADD_DRINK', drink }); }
+  if (me) { me.drinks.push(drink); me.drinks.sort((a,b) => a.ts - b.ts); }
   renderMonitor();
   toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1200);
+  supabaseClient.from('drinks').insert({
+    id: drink.id, party_id: party.id, player_id: myProfile.id,
+    cup: drink.cup, drink_type: drink.drinkType, ml: drink.ml,
+    pct: drink.pct, fill: drink.fill, ts: drink.ts
+  }).then(({ error }) => {
+    if (error) {
+      if (me) me.drinks = me.drinks.filter(d => d.id !== drink.id);
+      renderMonitor();
+      toast('Erro ao salvar bebida.');
+    }
+  });
 }
 
 function removeDrink(drinkId) {
   if (!party) return;
   const me = getMyPlayer();
-  if (me) {
-    me.drinks = me.drinks.filter(d => d.id !== drinkId);
-    if (!isHost) saveLocalDrinks(me.drinks);
-  }
-  if (isHost) { broadcastState(); } else { sendToHost({ type:'REMOVE_DRINK', drinkId }); }
+  if (me) me.drinks = me.drinks.filter(d => d.id !== drinkId);
   renderMonitor();
+  supabaseClient.from('drinks').delete().eq('id', drinkId).then(({ error }) => {
+    if (error) toast('Erro ao remover bebida.');
+  });
 }
 
 // ===== SOS =====
 function openSOSConfirm() { openModal('modal-sos'); }
 
-function confirmSOS() {
+async function confirmSOS() {
   closeModal('modal-sos');
+  if (!party || !myProfile) return;
+  await supabaseClient.from('players').update({ sos: true }).eq('id', myProfile.id);
   const me = getMyPlayer();
   if (me) me.sos = true;
-  if (isHost) { broadcastState(); } else { sendToHost({ type:'SOS' }); }
+  sendSOSNotification(myProfile);
   renderMonitor();
   toast('🚨 Alerta enviado! A galera vem te ajudar.', 3000);
 }
@@ -1785,47 +1678,25 @@ function showSOSAlert(profile) {
   sendSOSNotification(profile);
 }
 
-// Refresh BAC every 30s and flush host state to localStorage as a safety net
+// Refresh BAC every 30s
 setInterval(() => {
   if (party) {
     if (currentPage === 'monitor') renderMonitor();
     if (currentPage === 'ranking') renderRanking();
-    if (isHost) {
-      try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
-    }
   }
 }, 30000);
 
-// Close MQTT cleanly on tab close — do NOT clear retained state
+// Save session state on tab close
 window.addEventListener('pagehide', () => {
-  // Flush the very latest state to localStorage before the page dies
-  if (party && isHost) {
-    try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: true })); } catch(e) {}
+  if (party) {
+    try { localStorage.setItem('pre_active_session', JSON.stringify({ savedParty: party, savedIsHost: isHost })); } catch(e) {}
   }
-  if (mqttClient) { try { mqttClient.end(true); } catch(e) {} mqttClient = null; }
 });
-
-// bfcache restore (Android suspends then unfreezes the tab with JS state intact)
-window.addEventListener('pageshow', e => {
-  if (e.persisted) ensureMqttConnected();
-});
-
-// App comes back to foreground (switch from another app on mobile)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) ensureMqttConnected();
-});
-
-// Network restored after going offline
-window.addEventListener('online', () => ensureMqttConnected());
 
 
 // ===== INIT =====
 function initApp() {
-  if (typeof mqtt === 'undefined') {
-    document.querySelector('.splash-sub').textContent = 'erro: mqtt não carregou';
-    document.querySelector('.splash-dots').innerHTML = '<div style="color:#ef4444;font-size:12px;font-family:monospace;text-align:center">Verifique sua internet e recarregue a página.</div>';
-    return;
-  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   loadProfile();
   const urlParams = new URLSearchParams(window.location.search);
@@ -1839,13 +1710,12 @@ function initApp() {
       else { doJoinParty(partyCode.toUpperCase()); }
       return;
     }
-    // Auto-rejoin saved session if profile exists
     if (myProfile) {
       const savedStr = localStorage.getItem('pre_active_session');
       if (savedStr) {
         try {
           const { savedParty, savedIsHost } = JSON.parse(savedStr);
-          if (savedParty && savedParty.id) { rejoinParty(savedParty, !!savedIsHost); return; }
+          if (savedParty?.id) { rejoinParty(savedParty, !!savedIsHost); return; }
         } catch(e) { localStorage.removeItem('pre_active_session'); }
       }
     }
