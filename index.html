@@ -379,20 +379,20 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <!-- ===== CONNECTION OVERLAY ===== -->
 <div id="conn-overlay">
   <div style="font-size:36px;margin-bottom:14px">📡</div>
-  <div style="font-size:19px;font-weight:900;color:var(--text)">Reconectando...</div>
-  <div style="font-size:12px;color:var(--muted);font-family:'Courier New',monospace;margin-top:6px;letter-spacing:1px">aguarda um segundo</div>
+  <div style="font-size:19px;font-weight:900;color:var(--text)" data-i18n="connOverlayTitle">Reconectando...</div>
+  <div style="font-size:12px;color:var(--muted);font-family:'Courier New',monospace;margin-top:6px;letter-spacing:1px" data-i18n="connOverlaySub">aguarda um segundo</div>
   <div class="conn-dots">
     <div class="conn-dot"></div>
     <div class="conn-dot"></div>
     <div class="conn-dot"></div>
   </div>
-  <button onclick="leaveLobby()" style="margin-top:32px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;font-family:inherit;padding:8px 18px;cursor:pointer">Sair da sala</button>
+  <button onclick="leaveLobby()" style="margin-top:32px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;font-family:inherit;padding:8px 18px;cursor:pointer" data-i18n="connOverlayLeave">Sair da sala</button>
 </div>
 
 <!-- ===== SPLASH ===== -->
 <div id="page-splash">
   <div class="splash-logo">100PT</div>
-  <div class="splash-sub">curta da maneira certa</div>
+  <div class="splash-sub" data-i18n="splashSub">curta da maneira certa</div>
   <div class="splash-dots">
     <div class="splash-dot"></div>
     <div class="splash-dot"></div>
@@ -404,7 +404,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <div id="page-profile-setup" class="page">
   <div style="text-align:center;margin-bottom:28px;padding-top:8px">
     <div class="setup-logo">100PT</div>
-    <div class="setup-sub">crie seu perfil</div>
+    <div class="setup-sub" data-i18n="profileSetupSub">crie seu perfil</div>
   </div>
 
   <div class="setup-card">
@@ -443,49 +443,52 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <br>
-  <button class="btn-primary" onclick="saveProfileSetup()">Entrar na festa 🍺</button>
+  <button class="btn-primary" onclick="saveProfileSetup()" data-i18n="profileSaveBtn">Entrar na festa 🍺</button>
 </div>
 
 <!-- ===== HOME ===== -->
 <div id="page-home" class="page">
   <div class="home-header">
     <div class="home-logo">100PT</div>
-    <div class="mini-profile-chip" onclick="openEditProfile()">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="lang-toggle-btn" onclick="setLang(currentLang==='pt'?'en':'pt')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:10px;font-family:'Courier New',monospace;padding:4px 8px;cursor:pointer;letter-spacing:1px">EN</button>
+      <div class="mini-profile-chip" onclick="openEditProfile()">
       <div class="mini-avatar" id="home-mini-avatar"></div>
       <div class="mini-name" id="home-mini-name"></div>
+    </div>
     </div>
   </div>
 
   <div class="home-actions">
     <div class="action-card solo" onclick="startSolo()">
       <div class="action-card-emoji">🎧</div>
-      <div class="action-card-title">Modo Solo</div>
-      <div class="action-card-sub">// só você, sem sala</div>
+      <div class="action-card-title" data-i18n="soloCardTitle">Modo Solo</div>
+      <div class="action-card-sub" data-i18n="soloCardSub">// só você, sem sala</div>
     </div>
   </div>
 
-  <div class="home-section-label">// sala / festa</div>
+  <div class="home-section-label" data-i18n="partySectionLabel">// sala / festa</div>
 
   <div class="home-actions" style="margin-bottom:32px">
     <div class="action-card" onclick="openCreateParty()">
       <div class="action-card-emoji">🍺</div>
-      <div class="action-card-title">Criar sala</div>
-      <div class="action-card-sub">// você é o anfitrião</div>
+      <div class="action-card-title" data-i18n="createCardTitle">Criar sala</div>
+      <div class="action-card-sub" data-i18n="createCardSub">// você é o anfitrião</div>
     </div>
     <div class="action-card join" onclick="openJoinParty()">
       <div class="action-card-emoji">📲</div>
-      <div class="action-card-title">Entrar numa sala</div>
-      <div class="action-card-sub">// escaneie o QR ou coloque o código</div>
+      <div class="action-card-title" data-i18n="joinCardTitle">Entrar numa sala</div>
+      <div class="action-card-sub" data-i18n="joinCardSub">// escaneie o QR ou coloque o código</div>
     </div>
   </div>
 
   <div class="section-header">
-    <span class="section-title">// Histórico</span>
-    <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" onclick="navTo('history')">Ver tudo</button>
+    <span class="section-title" data-i18n="historySectionTitle">// Histórico</span>
+    <button class="btn-secondary" style="width:auto;padding:6px 14px;font-size:12px" onclick="navTo('history')" data-i18n="historyViewAll">Ver tudo</button>
   </div>
   <div id="home-history"></div>
   <div style="text-align:center;padding:20px 0 4px;font-size:10px;color:var(--muted);font-family:'Courier New',monospace;line-height:1.7">
-    🍺 Beba com responsabilidade e moderação.<br>Este app é um estimador — não substitui bom senso.<br><br>© 2026 Rafael Najm
+    <span data-i18n-html="footer">🍺 Beba com responsabilidade e moderação.<br>Este app é um estimador — não substitui bom senso.<br><br>© 2026 Rafael Najm</span>
   </div>
 </div>
 
@@ -501,27 +504,27 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
   <div class="lobby-code-block">
     <div>
-      <div class="lobby-code-label">Código da festa</div>
+      <div class="lobby-code-label" data-i18n="lobbyCodeLabel">Código da festa</div>
       <div class="lobby-code-value" id="lobby-code">------</div>
     </div>
     <button class="lobby-qr-btn" onclick="openQRModal()" id="lobby-qr-btn" style="display:none">📱 QR Code</button>
   </div>
 
   <div class="lobby-players-header">
-    <span class="lobby-players-title">// jogadores</span>
-    <span class="lobby-count-badge"><span id="lobby-count">0</span> conectados</span>
+    <span class="lobby-players-title" data-i18n="lobbyPlayersTitle">// jogadores</span>
+    <span class="lobby-count-badge"><span id="lobby-count">0</span> <span data-i18n="lobbyConnected">conectados</span></span>
   </div>
 
   <div class="lobby-player-list" id="lobby-players"></div>
 
   <div class="lobby-waiting" id="lobby-waiting-msg" style="display:none">
-    Compartilhe o código ou QR pra chamar a galera...
+    ${t('lobbyShareHint')}
   </div>
 
   <div id="hookup-mode-toggle" style="display:none;margin:12px 0;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div>
-        <div style="font-size:14px;font-weight:600">❤️ Modo Conquistas</div>
+        <div style="font-size:14px;font-weight:600" data-i18n="hookupsModeLabel">❤️ Modo Conquistas</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">registre quem você pegou na festa</div>
       </div>
       <label class="toggle-switch">
@@ -532,11 +535,11 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <br>
-  <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none">🚀 Começar!</button>
-  <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled>⏳ Aguardando o anfitrião começar...</button>
-  <button class="btn-danger" id="btn-end-party" onclick="confirmEndParty()" style="display:none;margin-top:8px">⛔ Encerrar festa</button>
+  <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none" data-i18n="lobbyStartBtn">🚀 Começar!</button>
+  <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled data-i18n="lobbyWaitBtn">⏳ Aguardando o anfitrião começar...</button>
+  <button class="btn-danger" id="btn-end-party" onclick="confirmEndParty()" style="display:none;margin-top:8px" data-i18n="lobbyEndBtn">⛔ Encerrar festa</button>
   <br><br>
-  <button class="btn-secondary" id="btn-leave-lobby" onclick="leaveLobby()" style="display:none">← Sair da sala</button>
+  <button class="btn-secondary" id="btn-leave-lobby" onclick="leaveLobby()" style="display:none" data-i18n="lobbyLeaveBtn">← Sair da sala</button>
 </div>
 
 <!-- ===== MONITOR ===== -->
@@ -547,16 +550,16 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <div class="bac-card">
-    <div style="font-size:9px;color:var(--muted);font-family:'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">BAC estimado</div>
+    <div style="font-size:9px;color:var(--muted);font-family:'Courier New',monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px" data-i18n="bacLabel">BAC estimado</div>
     <div class="bac-value" id="bac-value">0.000</div>
     <div class="bac-unit">% g/dL</div>
     <div class="bac-badge" id="bac-badge">😐 SÓBRIO</div>
     <div class="zone-bar-wrap">
       <div class="zone-bar">
-        <div class="zone-seg" style="flex:12;background:#475569">SÓBRIO</div>
-        <div class="zone-seg" style="flex:16;background:#22c55e">ALTO</div>
-        <div class="zone-seg" style="flex:20;background:#eab308">FLOW</div>
-        <div class="zone-seg" style="flex:24;background:#f97316">BÊB</div>
+        <div class="zone-seg" style="flex:12;background:#475569" data-i18n="zoneSober">SÓBRIO</div>
+        <div class="zone-seg" style="flex:16;background:#22c55e" data-i18n="zoneBuzzed">ALTO</div>
+        <div class="zone-seg" style="flex:20;background:#eab308" data-i18n="zoneFlow">FLOW</div>
+        <div class="zone-seg" style="flex:24;background:#f97316" data-i18n="zoneDrunk">BÊB</div>
         <div class="zone-seg" style="flex:28;background:#ef4444">💀</div>
       </div>
       <div class="zone-needle" id="zone-needle" style="left:0%"></div>
@@ -564,27 +567,27 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     </div>
     <div class="zone-row">
       <span class="zone-label" id="zone-you-label">você: 0.000%</span>
-      <span class="zone-label" id="zone-target-label">meta: —</span>
+      <span class="zone-label" id="zone-target-label" data-i18n="goalLabel">meta: —</span>
     </div>
     <div class="bac-hint" id="bac-hint"></div>
   </div>
 
-  <div class="card-title">// Adicionar bebida</div>
+  <div class="card-title" data-i18n="addDrinkTitle">// Adicionar bebida</div>
   <div class="cup-scroll" id="cup-scroll"></div>
 
   <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-    <span style="font-size:13px;font-weight:500;color:var(--text)">Quanto tem no copo?</span>
+    <span style="font-size:13px;font-weight:500;color:var(--text)" data-i18n="fillQuestion">Quanto tem no copo?</span>
     <span id="fill-display" style="font-family:'Courier New',monospace;font-size:20px;font-weight:900;color:var(--accent2)">100%</span>
   </div>
   <input type="range" class="fill-slider" id="fill-slider" min="10" max="100" step="5" value="100" oninput="onFillChange(this.value)">
   <div id="add-preview" style="text-align:center;font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin:10px 0 12px"></div>
-  <button class="btn-primary" onclick="confirmAddDrink()">➕ Adicionar</button>
+  <button class="btn-primary" onclick="confirmAddDrink()" data-i18n="addBtn">➕ Adicionar</button>
   <br><br>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-    <div class="card-title" style="margin-bottom:0">// Histórico</div>
+    <div class="card-title" style="margin-bottom:0" data-i18n="drinkHistTitle">// Histórico</div>
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace" id="drink-count"></div>
   </div>
   <div class="drink-log" id="drink-log"></div>
@@ -592,7 +595,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <br>
   <button class="btn-sos" id="btn-sos" onclick="openSOSConfirm()">🚨 DEI PT — preciso de ajuda</button>
   <div id="solo-exit-wrap" style="display:none;margin-top:16px">
-    <button class="btn-secondary" onclick="leaveSolo()">← Sair do modo solo</button>
+    <button class="btn-secondary" onclick="leaveSolo()" data-i18n="soloExitBtn">← Sair do modo solo</button>
   </div>
   <br><br>
 </div>
@@ -600,20 +603,20 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <!-- ===== RANKING ===== -->
 <div id="page-ranking" class="page page-with-nav">
   <div style="padding-top:8px;margin-bottom:16px">
-    <div style="font-size:18px;font-weight:900">Ranking 🏆</div>
+    <div style="font-size:18px;font-weight:900" data-i18n="rankingTitle">Ranking 🏆</div>
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px" id="ranking-subtitle">ao vivo</div>
   </div>
   <div id="ranking-list"></div>
   <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
-    <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px">⛔ Encerrar festa</button>
+    <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px" data-i18n="rankingEndBtn">⛔ Encerrar festa</button>
   </div>
 </div>
 
 <!-- ===== HOOKUPS ===== -->
 <div id="page-hookups" class="page page-with-nav">
   <div style="padding-top:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
-    <div style="font-size:18px;font-weight:900">❤️ Conquistas</div>
-    <button class="btn-primary" onclick="openAddHookup()" style="width:auto;padding:9px 16px;font-size:13px">+ Adicionar</button>
+    <div style="font-size:18px;font-weight:900">❤️ <span data-i18n="hookupsTab">Conquistas</span></div>
+    <button class="btn-primary" onclick="openAddHookup()" style="width:auto;padding:9px 16px;font-size:13px" data-i18n="hookupsAddBtn">+ Adicionar</button>
   </div>
   <div id="hookups-list"></div>
 </div>
@@ -622,16 +625,16 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <div id="page-report" class="page">
   <div class="page-back-row">
     <button class="page-back-btn" onclick="exitReport()">←</button>
-    <div class="page-back-title">Relatório da festa</div>
+    <div class="page-back-title" data-i18n="reportPageTitle">Relatório da festa</div>
   </div>
   <div style="margin-bottom:18px">
     <div style="font-size:22px;font-weight:900;margin-bottom:4px" id="report-party-name"></div>
     <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace" id="report-meta"></div>
   </div>
-  <div class="card-title" style="margin-bottom:10px">// BAC ao longo da festa</div>
+  <div class="card-title" style="margin-bottom:10px" data-i18n="reportChartTitle">// BAC ao longo da festa</div>
   <canvas id="report-chart" style="width:100%;border-radius:12px;display:block"></canvas>
   <div id="report-chart-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:18px"></div>
-  <div class="card-title" style="margin-bottom:10px">// Resultado final</div>
+  <div class="card-title" style="margin-bottom:10px" data-i18n="reportFinalTitle">// Resultado final</div>
   <div id="report-players"></div>
   <div style="height:40px"></div>
 </div>
@@ -640,7 +643,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <div id="page-history" class="page">
   <div class="page-back-row">
     <button class="page-back-btn" onclick="navTo('home')">←</button>
-    <div class="page-back-title">Histórico</div>
+    <div class="page-back-title" data-i18n="historySectionTitle">Histórico</div>
   </div>
   <div id="history-list"></div>
 </div>
@@ -650,15 +653,15 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-qr')">✕</button>
-    <div class="modal-title">Entrar na sala</div>
-    <div class="modal-sub">// escaneie o QR ou copie o código</div>
+    <div class="modal-title" data-i18n="qrModalTitle">Entrar na sala</div>
+    <div class="modal-sub" data-i18n="qrModalSub">// escaneie o QR ou copie o código</div>
     <div class="qr-container">
       <img class="qr-img" id="qr-img" src="" alt="QR Code">
       <div class="qr-code-big" id="qr-code-display">------</div>
-      <div class="qr-hint">Aponte a câmera do celular pro QR<br>ou coloque o código manualmente</div>
+      <div class="qr-hint" data-i18n-html="qrHint">Aponte a câmera do celular pro QR<br>ou coloque o código manualmente</div>
     </div>
     <br>
-    <button class="btn-primary" onclick="copyPartyLink()">📋 Copiar link</button>
+    <button class="btn-primary" onclick="copyPartyLink()" data-i18n="qrCopyBtn">📋 Copiar link</button>
   </div>
 </div>
 
@@ -667,16 +670,16 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-join')">✕</button>
-    <div class="modal-title">Entrar numa sala</div>
-    <div class="modal-sub">// coloque o código da festa</div>
+    <div class="modal-title" data-i18n="joinModalTitle">Entrar numa sala</div>
+    <div class="modal-sub" data-i18n="joinModalSub">// coloque o código da festa</div>
     <div class="form-group">
-      <label class="form-label">Código</label>
+      <label class="form-label" data-i18n="joinCodeLabel">Código</label>
       <input class="form-input" id="join-code-input" type="text" placeholder="ex: ABC123"
         maxlength="10" autocomplete="off"
         style="text-transform:uppercase;font-family:'Courier New',monospace;font-size:24px;letter-spacing:6px;text-align:center"
         oninput="this.value=this.value.toUpperCase()">
     </div>
-    <button class="btn-primary" onclick="joinByCode()">Entrar 🎉</button>
+    <button class="btn-primary" onclick="joinByCode()" data-i18n="joinBtn">Entrar 🎉</button>
   </div>
 </div>
 
@@ -685,14 +688,14 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
-    <div class="modal-title">Criar sala</div>
-    <div class="modal-sub">// você é o anfitrião</div>
+    <div class="modal-title" data-i18n="createModalTitle">Criar sala</div>
+    <div class="modal-sub" data-i18n="createModalSub">// você é o anfitrião</div>
     <div class="form-group">
       <label class="form-label">Nome da festa <span>(opcional)</span></label>
       <input class="form-input" id="create-party-name" type="text"
         placeholder="ex: Sala do Leo, Aniversário..." maxlength="40" autocomplete="off">
     </div>
-    <button class="btn-primary" onclick="doCreateParty()">Criar e gerar QR 📱</button>
+    <button class="btn-primary" onclick="doCreateParty()" data-i18n="createBtn">Criar e gerar QR 📱</button>
   </div>
 </div>
 
@@ -701,8 +704,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-prefs')">✕</button>
-    <div class="modal-title">Minhas preferências</div>
-    <div class="modal-sub">// afeta o cálculo do BAC</div>
+    <div class="modal-title" data-i18n="prefsTitle">Minhas preferências</div>
+    <div class="modal-sub" data-i18n="prefsSub">// afeta o cálculo do BAC</div>
 
     <div class="form-group">
       <label class="form-label">Estômago <span>(comeu hoje?)</span></label>
@@ -745,7 +748,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     </div>
 
     <br>
-    <button class="btn-primary" onclick="savePrefs()">Salvar ✓</button>
+    <button class="btn-primary" onclick="savePrefs()" data-i18n="prefsSave">Salvar ✓</button>
   </div>
 </div>
 
@@ -754,7 +757,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-edit-profile')">✕</button>
-    <div class="modal-title">Editar perfil</div>
+    <div class="modal-title" data-i18n="editProfileTitle">Editar perfil</div>
     <div class="modal-sub">// suas informações</div>
 
     <div class="form-group">
@@ -783,7 +786,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
         <button class="btn-option" data-group="edit-sex" data-value="F">Feminino</button>
       </div>
     </div>
-    <button class="btn-primary" onclick="saveEditProfile()">Salvar</button>
+    <button class="btn-primary" onclick="saveEditProfile()" data-i18n="editSave">Salvar</button>
   </div>
 </div>
 
@@ -826,7 +829,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <button class="modal-close" onclick="closeModal('modal-add-hookup')">✕</button>
-    <div class="modal-title">❤️ Adicionar conquista</div>
+    <div class="modal-title" data-i18n="hookupModalTitle">❤️ Adicionar conquista</div>
     <div class="modal-sub">// conta pra galera!</div>
     <div class="form-group">
       <label class="form-label">Nome <span style="color:#ef4444">*</span></label>
@@ -842,9 +845,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
         <img id="hookup-photo-img" style="width:80px;height:80px;object-fit:cover;border-radius:50%;border:2px solid var(--border)">
       </div>
       <input type="file" id="hookup-photo-input" accept="image/*" style="display:none" onchange="onHookupPhotoChange(this)">
-      <button class="btn-secondary" onclick="document.getElementById('hookup-photo-input').click()" style="font-size:13px;padding:10px">📷 Tirar / escolher foto</button>
+      <button class="btn-secondary" onclick="document.getElementById('hookup-photo-input').click()" style="font-size:13px;padding:10px" data-i18n="hookupPhotoBtn">📷 Tirar / escolher foto</button>
     </div>
-    <button class="btn-primary" onclick="saveHookup()" style="margin-top:4px">Salvar conquista ❤️</button>
+    <button class="btn-primary" onclick="saveHookup()" style="margin-top:4px" data-i18n="hookupSaveBtn">Salvar conquista ❤️</button>
   </div>
 </div>
 
@@ -852,11 +855,11 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <div class="modal-overlay" id="modal-end-party">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
-    <div class="modal-title">⛔ Encerrar a festa?</div>
-    <div class="modal-sub">// todos verão o relatório final</div>
+    <div class="modal-title" data-i18n="endPartyTitle">⛔ Encerrar a festa?</div>
+    <div class="modal-sub" data-i18n="endPartySub">// todos verão o relatório final</div>
     <br>
-    <button class="btn-danger" onclick="endParty()">Sim, encerrar agora</button>
-    <button class="btn-secondary" onclick="closeModal('modal-end-party')" style="margin-top:10px">Cancelar</button>
+    <button class="btn-danger" onclick="endParty()" data-i18n="endPartyYes">Sim, encerrar agora</button>
+    <button class="btn-secondary" onclick="closeModal('modal-end-party')" style="margin-top:10px" data-i18n="endPartyNo">Cancelar</button>
   </div>
 </div>
 
@@ -876,7 +879,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav" id="bottom-nav">
   <button class="nav-btn" id="nav-hookups" onclick="navTo('hookups')" style="display:none">
-    <span class="nav-icon">❤️</span><span>Conquistas</span>
+    <span class="nav-icon">❤️</span><span data-i18n="hookupsTab">Conquistas</span>
   </button>
   <button class="nav-btn" id="nav-monitor" onclick="navTo('monitor')">
     <span class="nav-icon">🍺</span><span>Bebidas</span>
@@ -920,6 +923,191 @@ const DRINK_TYPES = [
   { id:'rum',       label:'Rum',          pct:40 },
   { id:'gin',       label:'Gin',          pct:40 },
 ];
+
+// ===== i18n =====
+let currentLang = 'pt';
+
+const STRINGS = {
+  pt: {
+    splashSub: 'curta da maneira certa',
+    soloCardTitle: 'Modo Solo', soloCardSub: '// só você, sem sala',
+    partySectionLabel: '// sala / festa',
+    createCardTitle: 'Criar sala', createCardSub: '// você é o anfitrião',
+    joinCardTitle: 'Entrar numa sala', joinCardSub: '// escaneie o QR ou coloque o código',
+    historySectionTitle: '// Histórico', historyViewAll: 'Ver tudo',
+    footer: '🍺 Beba com responsabilidade e moderação.<br>Este app é um estimador — não substitui bom senso.<br><br>© 2026 Rafael Najm',
+    profileSetupSub: 'crie seu perfil', profileSaveBtn: 'Entrar na festa 🍺',
+    nicknameLabel: 'Apelido', nicknamePh: 'ex: Leo, Ju...', weightLabel: 'Peso (kg)',
+    lobbyConnecting: '// conectando...', lobbyCreating: '// criando sala...',
+    lobbyWaitingPlayers: '// aguardando jogadores', lobbyWaitingHost: '// aguardando o anfitrião',
+    lobbyCodeLabel: 'Código da festa', lobbyPlayersTitle: '// jogadores',
+    lobbyConnected: 'conectados',
+    lobbyShareHint: 'Compartilhe o código ou QR pra chamar a galera...',
+    lobbyStartBtn: '🚀 Começar!', lobbyWaitBtn: '⏳ Aguardando o anfitrião começar...',
+    lobbyEndBtn: '⛔ Encerrar festa', lobbyLeaveBtn: '← Sair da sala', lobbyQrBtn: '📱 QR Code',
+    bacLabel: 'BAC estimado',
+    zoneSober: 'SÓBRIO', zoneBuzzed: 'ALTO', zoneFlow: 'FLOW', zoneDrunk: 'BÊB',
+    youLabel: 'você:', goalLabel: 'meta: —',
+    addDrinkTitle: '// Adicionar bebida', fillQuestion: 'Quanto tem no copo?', addBtn: '➕ Adicionar',
+    drinkHistTitle: '// Histórico',
+    sosBtn: '🚨 DEI PT — preciso de ajuda', sosBtnActive: '🚨 DEI PT — ajuda a caminho...',
+    soloExitBtn: '← Sair do modo solo',
+    rankingTitle: 'Ranking 🏆', rankingLive: 'ao vivo',
+    rankingEndBtn: '⛔ Encerrar festa',
+    reportPageTitle: 'Relatório da festa',
+    reportChartTitle: '// BAC ao longo da festa', reportFinalTitle: '// Resultado final',
+    reportHookupsTitle: '// Conquistas da noite',
+    reportPeak: 'pico',
+    hookupsTab: 'Conquistas', hookupsModeLabel: '❤️ Modo Conquistas',
+    hookupsAddBtn: '+ Adicionar',
+    hookupsEmpty: 'Nenhuma conquista ainda', hookupsEmptyHint: 'Toca no + pra registrar!',
+    hookupModalTitle: '❤️ Adicionar conquista',
+    hookupNameLabel: 'Nome *', hookupInstaLabel: 'Instagram (opcional)',
+    hookupPhotoBtn: '📷 Tirar / escolher foto', hookupSaveBtn: 'Salvar conquista ❤️',
+    qrModalTitle: 'Entrar na sala', qrModalSub: '// escaneie o QR ou copie o código',
+    qrHint: 'Aponte a câmera do celular pro QR<br>ou coloque o código manualmente',
+    qrCopyBtn: '📋 Copiar link',
+    joinModalTitle: 'Entrar numa sala', joinModalSub: '// coloque o código da festa',
+    joinCodeLabel: 'Código', joinCodePh: 'ex: ABC123', joinBtn: 'Entrar 🎉',
+    createModalTitle: 'Criar sala', createModalSub: '// você é o anfitrião',
+    createNameLabel: 'Nome da festa', createNamePh: 'ex: Sala do Leo, Aniversário...',
+    createBtn: 'Criar e gerar QR 📱',
+    prefsTitle: 'Minhas preferências', prefsSub: '// afeta o cálculo do BAC',
+    prefsStomach: 'Estômago', prefsHydration: 'Hidratação', prefsLevel: 'Quanto quer chegar',
+    prefsSave: 'Salvar ✓',
+    editProfileTitle: 'Editar perfil', editSave: 'Salvar',
+    endPartyTitle: '⛔ Encerrar a festa?', endPartySub: '// todos verão o relatório final',
+    endPartyYes: 'Sim, encerrar agora', endPartyNo: 'Cancelar',
+    sosModalTitle: '🚨 Você deu PT?', sosModalSub: '// isso vai alertar a galera',
+    sosYes: 'Sim, preciso de ajuda 🚨', sosNo: 'Cancelar',
+    bacSober: '😐 SÓBRIO', bacBuzzed: '😊 ALTO', bacFlow: '🔥 FLOW', bacDrunk: '🥴 BÊBADO', bacDestruction: '💀 DESTRUIÇÃO',
+    stomachEmpty: '🫙 vazio', stomachMedium: '🍕 médio', stomachFull: '🍖 cheio',
+    hydrationDry: '🌵 seco', hydrationOk: '💧 ok', hydrationHydrated: '🚰 hidratado',
+    levelBuzzed: '😊 alto', levelFlow: '🔥 flow', levelDrunk: '🥴 bêbado', levelDestruction: '💀 destruição',
+    toastDrinkAdded: ' adicionado!', toastDrinkErr: 'Erro ao salvar bebida.', toastDrinkRmErr: 'Erro ao remover bebida.',
+    toastSOSSent: '🚨 Alerta enviado! A galera vem te ajudar.',
+    toastLinkCopied: '🔗 Link copiado!', toastRestored: '🔄 Sala restaurada',
+    toastCreateErr: 'Erro ao criar sala. Tente novamente.',
+    toastConnErr: 'Erro de conexão. Verifique sua internet.',
+    toastNotFound: 'Sala não encontrada. Verifique o código.',
+    toastHookupName: 'Coloca o nome! 👆', toastHookupErr: 'Erro ao salvar. Tente novamente.',
+    toastCodeRequired: 'Coloca o código da festa 👆',
+    histEmpty: 'Nenhuma sala ainda', histEmptySub: 'Suas salas vão aparecer aqui',
+    histPlayers: 'jogadores', histPlayer: 'jogador',
+    connOverlayTitle: 'Reconectando...', connOverlaySub: 'aguarda um segundo',
+    connOverlayLeave: 'Sair da sala',
+    retryBtn: '↺ Tentar novamente',
+    drinkWord: 'drink', drinksWord: 'drinks',
+  },
+  en: {
+    splashSub: 'enjoy the right way',
+    soloCardTitle: 'Solo Mode', soloCardSub: '// just you, no room',
+    partySectionLabel: '// room / party',
+    createCardTitle: 'Create room', createCardSub: "// you're the host",
+    joinCardTitle: 'Join a room', joinCardSub: '// scan QR or enter the code',
+    historySectionTitle: '// History', historyViewAll: 'View all',
+    footer: '🍺 Drink responsibly and in moderation.<br>This app is an estimator — not a substitute for common sense.<br><br>© 2026 Rafael Najm',
+    profileSetupSub: 'create your profile', profileSaveBtn: 'Join the party 🍺',
+    nicknameLabel: 'Nickname', nicknamePh: 'e.g. Leo, Ju...', weightLabel: 'Weight (kg)',
+    lobbyConnecting: '// connecting...', lobbyCreating: '// creating room...',
+    lobbyWaitingPlayers: '// waiting for players', lobbyWaitingHost: '// waiting for the host',
+    lobbyCodeLabel: 'Party code', lobbyPlayersTitle: '// players',
+    lobbyConnected: 'connected',
+    lobbyShareHint: 'Share the code or QR to invite people...',
+    lobbyStartBtn: '🚀 Start!', lobbyWaitBtn: '⏳ Waiting for the host to start...',
+    lobbyEndBtn: '⛔ End party', lobbyLeaveBtn: '← Leave room', lobbyQrBtn: '📱 QR Code',
+    bacLabel: 'Estimated BAC',
+    zoneSober: 'SOBER', zoneBuzzed: 'BUZZED', zoneFlow: 'FLOW', zoneDrunk: 'DRUNK',
+    youLabel: 'you:', goalLabel: 'goal: —',
+    addDrinkTitle: '// Add drink', fillQuestion: 'How full is the cup?', addBtn: '➕ Add',
+    drinkHistTitle: '// History',
+    sosBtn: "🚨 I'M WASTED — I need help", sosBtnActive: "🚨 I'M WASTED — help is coming...",
+    soloExitBtn: '← Exit solo mode',
+    rankingTitle: 'Ranking 🏆', rankingLive: 'live',
+    rankingEndBtn: '⛔ End party',
+    reportPageTitle: 'Party Report',
+    reportChartTitle: '// BAC over time', reportFinalTitle: '// Final results',
+    reportHookupsTitle: "// Tonight's conquests",
+    reportPeak: 'peak',
+    hookupsTab: 'Conquests', hookupsModeLabel: '❤️ Conquest Mode',
+    hookupsAddBtn: '+ Add',
+    hookupsEmpty: 'No conquests yet', hookupsEmptyHint: 'Tap + to add one!',
+    hookupModalTitle: '❤️ Add conquest',
+    hookupNameLabel: 'Name *', hookupInstaLabel: 'Instagram (optional)',
+    hookupPhotoBtn: '📷 Take / choose photo', hookupSaveBtn: 'Save conquest ❤️',
+    qrModalTitle: 'Join room', qrModalSub: '// scan the QR or copy the code',
+    qrHint: 'Point your camera at the QR<br>or enter the code manually',
+    qrCopyBtn: '📋 Copy link',
+    joinModalTitle: 'Join a room', joinModalSub: '// enter the party code',
+    joinCodeLabel: 'Code', joinCodePh: 'e.g. ABC123', joinBtn: 'Join 🎉',
+    createModalTitle: 'Create room', createModalSub: "// you're the host",
+    createNameLabel: 'Party name', createNamePh: "e.g. Leo's room, Birthday...",
+    createBtn: 'Create & generate QR 📱',
+    prefsTitle: 'My preferences', prefsSub: '// affects BAC calculation',
+    prefsStomach: 'Stomach', prefsHydration: 'Hydration', prefsLevel: 'How far do you want to go',
+    prefsSave: 'Save ✓',
+    editProfileTitle: 'Edit profile', editSave: 'Save',
+    endPartyTitle: '⛔ End the party?', endPartySub: '// everyone will see the final report',
+    endPartyYes: 'Yes, end now', endPartyNo: 'Cancel',
+    sosModalTitle: '🚨 Are you wasted?', sosModalSub: '// this will alert everyone',
+    sosYes: 'Yes, I need help 🚨', sosNo: 'Cancel',
+    bacSober: '😐 SOBER', bacBuzzed: '😊 BUZZED', bacFlow: '🔥 FLOW', bacDrunk: '🥴 DRUNK', bacDestruction: '💀 DESTRUCTION',
+    stomachEmpty: '🫙 empty', stomachMedium: '🍕 medium', stomachFull: '🍖 full',
+    hydrationDry: '🌵 dry', hydrationOk: '💧 ok', hydrationHydrated: '🚰 hydrated',
+    levelBuzzed: '😊 buzzed', levelFlow: '🔥 flow', levelDrunk: '🥴 drunk', levelDestruction: '💀 destruction',
+    toastDrinkAdded: ' added!', toastDrinkErr: 'Error saving drink.', toastDrinkRmErr: 'Error removing drink.',
+    toastSOSSent: '🚨 Alert sent! People are coming to help.',
+    toastLinkCopied: '🔗 Link copied!', toastRestored: '🔄 Room restored',
+    toastCreateErr: 'Error creating room. Please try again.',
+    toastConnErr: 'Connection error. Check your internet.',
+    toastNotFound: 'Room not found. Check the code.',
+    toastHookupName: 'Enter a name! 👆', toastHookupErr: 'Error saving. Please try again.',
+    toastCodeRequired: 'Enter the party code 👆',
+    histEmpty: 'No rooms yet', histEmptySub: 'Your rooms will appear here',
+    histPlayers: 'players', histPlayer: 'player',
+    connOverlayTitle: 'Reconnecting...', connOverlaySub: 'hold on a second',
+    connOverlayLeave: 'Leave room',
+    retryBtn: '↺ Try again',
+    drinkWord: 'drink', drinksWord: 'drinks',
+  }
+};
+
+function t(key) { return (STRINGS[currentLang] || STRINGS.pt)[key] || STRINGS.pt[key] || key; }
+
+function detectLang() {
+  const saved = localStorage.getItem('pre_lang');
+  if (saved === 'pt' || saved === 'en') return saved;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const brTz = ['America/Sao_Paulo','America/Fortaleza','America/Recife','America/Belem',
+    'America/Manaus','America/Porto_Velho','America/Boa_Vista','America/Cuiaba',
+    'America/Campo_Grande','America/Maceio','America/Bahia','America/Araguaina','America/Noronha'];
+  const nav = (navigator.language || '').toLowerCase();
+  if (brTz.includes(tz) || nav.startsWith('pt')) return 'pt';
+  return 'en';
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('pre_lang', lang);
+  const btn = document.getElementById('lang-toggle-btn');
+  if (btn) btn.textContent = lang === 'pt' ? 'EN' : 'PT';
+  applyLang();
+}
+
+function applyLang() {
+  // data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  // Re-render current page
+  if (currentPage === 'home') renderHome();
+  if (party) {
+    if (currentPage === 'lobby') renderLobby();
+    if (currentPage === 'monitor') renderMonitor();
+    if (currentPage === 'ranking') renderRanking();
+    if (currentPage === 'hookups') renderHookups();
+  }
+}
 
 // ===== APP STATE =====
 let myProfile = null;
@@ -973,9 +1161,9 @@ function fmtDuration(ms) {
   return h > 0 ? h + 'h' + m + 'min' : m + 'min';
 }
 
-function stomachLabel(v) { return ({empty:'🫙 vazio',medium:'🍕 médio',full:'🍖 cheio'})[v]||v; }
-function hydrationLabel(v) { return ({dry:'🌵 seco',ok:'💧 ok',hydrated:'🚰 hidratado'})[v]||v; }
-function levelLabel(v) { return ({alto:'😊 alto',flow:'🔥 flow',bebado:'🥴 bêbado',destruicao:'💀 destruição'})[v]||v; }
+function stomachLabel(v) { return ({empty:t('stomachEmpty'),medium:t('stomachMedium'),full:t('stomachFull')})[v]||v; }
+function hydrationLabel(v) { return ({dry:t('hydrationDry'),ok:t('hydrationOk'),hydrated:t('hydrationHydrated')})[v]||v; }
+function levelLabel(v) { return ({alto:t('levelBuzzed'),flow:t('levelFlow'),bebado:t('levelDrunk'),destruicao:t('levelDestruction')})[v]||v; }
 
 function rgbToHex(rgb) {
   const m = String(rgb).match(/\d+/g);
@@ -1239,7 +1427,7 @@ async function createParty(partyName) {
   const code = generatePartyCode();
   isHost = true;
   navTo('lobby');
-  document.getElementById('lobby-status').textContent = '// criando sala...';
+  document.getElementById('lobby-status').textContent = t('lobbyCreating');
   document.getElementById('lobby-qr-btn').style.display = 'none';
   document.getElementById('btn-start-party').style.display = 'none';
   try {
@@ -1254,7 +1442,7 @@ async function createParty(partyName) {
     await fetchPartyState(code);
     renderLobby();
   } catch(e) {
-    toast('Erro ao criar sala. Tente novamente.');
+    toast(t('toastCreateErr'));
     navTo('home');
   }
 }
@@ -1267,7 +1455,7 @@ function openJoinParty() {
 
 function joinByCode() {
   const code = document.getElementById('join-code-input').value.trim().toUpperCase();
-  if (!code || code.length < 4) { toast('Coloca o código da festa 👆'); return; }
+  if (!code || code.length < 4) { toast(t('toastCodeRequired')); return; }
   closeModal('modal-join');
   doJoinParty(code);
 }
@@ -1287,14 +1475,14 @@ async function doJoinParty(code) {
   try {
     requestNotifPermission();
     const { data: partyData, error } = await supabaseClient.from('parties').select('*').eq('id', code.toUpperCase()).single();
-    if (error || !partyData) { setLobbyError('Sala não encontrada. Verifique o código.', () => doJoinParty(code)); return; }
+    if (error || !partyData) { setLobbyError(t('toastNotFound'), () => doJoinParty(code)); return; }
     await upsertMyPlayer(code.toUpperCase());
     subscribeToParty(code.toUpperCase());
     await fetchPartyState(code.toUpperCase());
     setConnReady(true);
     if (party.status === 'active') { navTo('monitor'); } else { renderLobby(); }
   } catch(e) {
-    setLobbyError('Erro de conexão. Verifique sua internet.', () => doJoinParty(code));
+    setLobbyError(t('toastConnErr'), () => doJoinParty(code));
   }
 }
 
@@ -1307,7 +1495,7 @@ function setLobbyError(msg, retryFn) {
   document.getElementById('lobby-players').innerHTML = `
     <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px 18px;margin-bottom:8px">
       <div style="font-size:13px;color:var(--red);margin-bottom:10px">⚠️ ${esc(msg)}</div>
-      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">↺ Tentar novamente</button>
+      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">${t('retryBtn')}</button>
     </div>`;
 }
 
@@ -1354,7 +1542,7 @@ function renderLobby() {
   document.getElementById('lobby-count').textContent = party.players.length;
 
   if (isHost) {
-    document.getElementById('lobby-status').textContent = '// aguardando jogadores';
+    document.getElementById('lobby-status').textContent = t('lobbyWaitingPlayers');
     document.getElementById('btn-start-party').style.display = 'block';
     document.getElementById('btn-guest-waiting').style.display = 'none';
     document.getElementById('btn-end-party').style.display = 'block';
@@ -1366,7 +1554,7 @@ function renderLobby() {
     const check = document.getElementById('hookup-mode-check');
     if (check) check.checked = party.hookupMode || false;
   } else {
-    document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
+    document.getElementById('lobby-status').textContent = t('lobbyWaitingHost');
     document.getElementById('btn-start-party').style.display = 'none';
     document.getElementById('btn-guest-waiting').style.display = 'block';
     document.getElementById('btn-end-party').style.display = 'none';
@@ -1485,7 +1673,7 @@ function onHookupPhotoChange(input) {
 
 async function saveHookup() {
   const name = document.getElementById('hookup-name').value.trim();
-  if (!name) { toast('Coloca o nome! 👆'); return; }
+  if (!name) { toast(t('toastHookupName')); return; }
   const instagram = document.getElementById('hookup-instagram').value.trim().replace(/^@+/, '');
   const hookup = {
     id: uid(), party_id: party.id, player_id: myProfile.id,
@@ -1501,7 +1689,7 @@ async function saveHookup() {
   if (error) {
     party.hookups = party.hookups.filter(h => h.id !== hookup.id);
     if (currentPage === 'hookups') renderHookups();
-    toast('Erro ao salvar. Tente novamente.');
+    toast(t('toastHookupErr'));
   }
 }
 
@@ -1522,7 +1710,7 @@ function renderHookups() {
     .filter(h => h.player_id === myProfile?.id)
     .sort((a, b) => b.created_at - a.created_at);
   if (!mine.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❤️</div><div class="empty-state-title">Nenhuma conquista ainda</div><div class="empty-state-text">Toca no + pra registrar!</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">❤️</div><div class="empty-state-title">${t('hookupsEmpty')}</div><div class="empty-state-text">${t('hookupsEmptyHint')}</div></div>`;
     return;
   }
   el.innerHTML = mine.map(h => `
@@ -1594,7 +1782,7 @@ function showReport() {
       <div style="font-size:26px;width:40px;height:40px;border-radius:50%;background:${esc(p.profile.color)}22;border:2px solid ${esc(p.profile.color)};display:flex;align-items:center;justify-content:center">${esc(p.profile.avatar)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;font-size:14px">${esc(p.profile.name)}${isMe ? ' <span style="color:var(--muted);font-size:10px;font-weight:400">(você)</span>' : ''}</div>
-        <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin-top:2px">${drinks} drink${drinks !== 1 ? 's' : ''} · pico ${peak.toFixed(3)}%</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin-top:2px">${drinks} drink${drinks !== 1 ? t('drinksWord') : t('drinkWord')} · ${t('reportPeak')} ${peak.toFixed(3)}%</div>
       </div>
       <div style="font-size:11px;font-weight:700;color:${lvl.color};font-family:'Courier New',monospace;text-align:right;white-space:nowrap">${lvl.label}</div>
     </div>`;
@@ -1619,7 +1807,7 @@ function showReport() {
     const playersWithHookups = party.players.filter(p => byPlayer[p.profile?.id]?.length);
     if (playersWithHookups.length) {
       let html = `<div id="report-hookups-section" style="margin-top:20px">
-        <div class="card-title" style="margin-bottom:10px">// Conquistas da noite</div>`;
+        <div class="card-title" style="margin-bottom:10px">${t('reportHookupsTitle')}</div>`;
       playersWithHookups.forEach(p => {
         const hs = byPlayer[p.profile.id];
         html += `<div style="margin-bottom:14px">
@@ -1723,7 +1911,7 @@ async function rejoinParty(savedParty, savedIsHost) {
     setConnReady(true);
     if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') navTo('monitor');
     else if (party.status !== 'active') renderLobby();
-    toast('🔄 Sala restaurada');
+    toast(t('toastRestored'));
   } catch(e) {
     setConnReady(false);
   }
@@ -1788,7 +1976,7 @@ function openQRModal() {
 function copyPartyLink() {
   const url = window.location.href.split('?')[0] + '?party=' + party.id;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => toast('Link copiado! 📋')).catch(() => toast(url));
+    navigator.clipboard.writeText(url).then(() => toast(t('toastLinkCopied'))).catch(() => toast(url));
   } else { toast('Link: ' + url); }
   closeModal('modal-qr');
 }
@@ -1852,13 +2040,13 @@ function renderHistory() {
   const history = getHistory();
   const el = document.getElementById('history-list');
   if (!history.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-title">Nenhuma sala ainda</div><div class="empty-state-text">Suas salas vão aparecer aqui</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📚</div><div class="empty-state-title">${t('histEmpty')}</div><div class="empty-state-text">${t('histEmptySub')}</div></div>`;
     return;
   }
   el.innerHTML = history.map(p => `
     <div class="history-item">
       <div class="history-item-name">${esc(p.name)}</div>
-      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} jogador${p.playerCount!==1?'es':''} · ${p.duration}</div>
+      <div class="history-item-meta">${fmtDate(p.startTime)} · ${p.playerCount} ${p.playerCount!==1?t('histPlayers'):t('histPlayer')} · ${p.duration}</div>
       ${p.players?.length ? `<div class="history-item-players">${p.players.map(pl=>`<div class="history-player-chip" style="border-left-color:${esc(pl.color)}">${esc(pl.avatar)} ${esc(pl.name)}</div>`).join('')}</div>` : ''}
     </div>
   `).join('');
@@ -1899,11 +2087,11 @@ function calcBAC(player, now) {
 }
 
 function bacLevel(bac) {
-  if (bac >= 0.18) return { label:'💀 DESTRUIÇÃO', color:'#ef4444' };
-  if (bac >= 0.12) return { label:'🥴 BÊBADO',     color:'#f97316' };
-  if (bac >= 0.07) return { label:'🔥 FLOW',        color:'#eab308' };
-  if (bac >= 0.03) return { label:'😊 ALTO',        color:'#22c55e' };
-  return { label:'😐 SÓBRIO', color:'#64748b' };
+  if (bac >= 0.18) return { label: t('bacDestruction'), color:'#ef4444' };
+  if (bac >= 0.12) return { label: t('bacDrunk'),        color:'#f97316' };
+  if (bac >= 0.07) return { label: t('bacFlow'),         color:'#eab308' };
+  if (bac >= 0.03) return { label: t('bacBuzzed'),       color:'#22c55e' };
+  return { label: t('bacSober'), color:'#64748b' };
 }
 
 // ===== MONITOR RENDER =====
@@ -1930,7 +2118,7 @@ function renderMonitor() {
   const targetPct = Math.min(97, target / BAC_MAX * 100).toFixed(1);
   document.getElementById('zone-needle').style.left = needlePct + '%';
   document.getElementById('zone-target-pin').style.left = targetPct + '%';
-  document.getElementById('zone-you-label').textContent = 'você: ' + bac.toFixed(3) + '%';
+  document.getElementById('zone-you-label').textContent = t('youLabel') + ' ' + bac.toFixed(3) + '%';
   document.getElementById('zone-target-label').textContent = 'meta: ' + target.toFixed(3) + '% (' + levelLabel(me.prefs?.targetLevel||'flow') + ')';
 
   // Hint: how much more to drink
@@ -1970,7 +2158,7 @@ function renderMonitor() {
   const meSos = me.sos;
   document.getElementById('btn-sos').style.borderColor = meSos ? 'var(--red)' : 'rgba(239,68,68,0.4)';
   document.getElementById('btn-sos').style.background = meSos ? 'rgba(239,68,68,0.2)' : '';
-  document.getElementById('btn-sos').textContent = meSos ? '🚨 DEI PT — ajuda a caminho...' : '🚨 DEI PT — preciso de ajuda';
+  document.getElementById('btn-sos').textContent = meSos ? t('sosBtnActive') : t('sosBtn');
   document.getElementById('btn-sos').style.display = isSolo ? 'none' : '';
   document.getElementById('solo-exit-wrap').style.display = isSolo ? 'block' : 'none';
 
@@ -1998,7 +2186,8 @@ function renderRanking() {
   const sorted = [...party.players]
     .map(p => ({...p, _bac: calcBAC(p, now)}))
     .sort((a,b) => b._bac - a._bac);
-  document.getElementById('ranking-subtitle').textContent = sorted.length + ' jogadores · ao vivo';
+  const _pWord = sorted.length === 1 ? t('histPlayer') : t('histPlayers');
+  document.getElementById('ranking-subtitle').textContent = sorted.length + ' ' + _pWord + ' · ' + t('rankingLive');
   const medals = ['🥇','🥈','🥉'];
   document.getElementById('ranking-list').innerHTML = sorted.map((p, i) => {
     const lv = bacLevel(p._bac);
@@ -2067,7 +2256,7 @@ function confirmAddDrink() {
   const me = getMyPlayer();
   if (me) { me.drinks.push(drink); me.drinks.sort((a,b) => a.ts - b.ts); }
   renderMonitor();
-  toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1200);
+  toast(cup.emoji + ' ' + dt.label + t('toastDrinkAdded'), 1200);
   if (isSolo) return;
   supabaseClient.from('drinks').insert({
     id: drink.id, party_id: party.id, player_id: myProfile.id,
@@ -2077,7 +2266,7 @@ function confirmAddDrink() {
     if (error) {
       if (me) me.drinks = me.drinks.filter(d => d.id !== drink.id);
       renderMonitor();
-      toast('Erro ao salvar bebida.');
+      toast(t('toastDrinkErr'));
     }
   });
 }
@@ -2089,7 +2278,7 @@ function removeDrink(drinkId) {
   renderMonitor();
   if (isSolo) return;
   supabaseClient.from('drinks').delete().eq('id', drinkId).then(({ error }) => {
-    if (error) toast('Erro ao remover bebida.');
+    if (error) toast(t('toastDrinkRmErr'));
   });
 }
 
@@ -2104,7 +2293,7 @@ async function confirmSOS() {
   if (me) me.sos = true;
   sendSOSNotification(myProfile);
   renderMonitor();
-  toast('🚨 Alerta enviado! A galera vem te ajudar.', 3000);
+  toast(t('toastSOSSent'), 3000);
 }
 
 function showSOSAlert(profile) {
@@ -2140,6 +2329,11 @@ window.addEventListener('pagehide', () => {
 // ===== INIT =====
 function initApp() {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  currentLang = detectLang();
+  const _lb = document.getElementById('lang-toggle-btn');
+  if (_lb) _lb.textContent = currentLang === 'pt' ? 'EN' : 'PT';
+  applyLang();
 
   loadProfile();
   const urlParams = new URLSearchParams(window.location.search);
