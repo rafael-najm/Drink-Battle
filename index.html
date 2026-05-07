@@ -80,6 +80,9 @@ body::before {
 .action-card-title { font-size: 22px; font-weight: 900; margin-bottom: 4px; }
 .action-card-sub { font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace; }
 .action-card.join { background: var(--surface2); }
+.action-card.solo { background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(168,85,247,0.06) 100%); border-color: rgba(168,85,247,0.3); }
+.action-card.solo:hover { border-color: var(--accent2); }
+.home-section-label { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; letter-spacing: 2px; text-transform: uppercase; margin: 4px 0 10px; }
 
 /* ===== LOBBY ===== */
 .lobby-top { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-top: 4px; }
@@ -389,7 +392,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <!-- ===== SPLASH ===== -->
 <div id="page-splash">
   <div class="splash-logo">100PT</div>
-  <div class="splash-sub">pra beber sem dar pt</div>
+  <div class="splash-sub">curta da maneira certa</div>
   <div class="splash-dots">
     <div class="splash-dot"></div>
     <div class="splash-dot"></div>
@@ -454,6 +457,16 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <div class="home-actions">
+    <div class="action-card solo" onclick="startSolo()">
+      <div class="action-card-emoji">🎧</div>
+      <div class="action-card-title">Modo Solo</div>
+      <div class="action-card-sub">// só você, sem sala</div>
+    </div>
+  </div>
+
+  <div class="home-section-label">// sala / festa</div>
+
+  <div class="home-actions" style="margin-bottom:32px">
     <div class="action-card" onclick="openCreateParty()">
       <div class="action-card-emoji">🍺</div>
       <div class="action-card-title">Criar sala</div>
@@ -578,6 +591,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
   <br>
   <button class="btn-sos" id="btn-sos" onclick="openSOSConfirm()">🚨 DEI PT — preciso de ajuda</button>
+  <div id="solo-exit-wrap" style="display:none;margin-top:16px">
+    <button class="btn-secondary" onclick="leaveSolo()">← Sair do modo solo</button>
+  </div>
   <br><br>
 </div>
 
@@ -908,6 +924,7 @@ const DRINK_TYPES = [
 // ===== APP STATE =====
 let myProfile = null;
 let isHost = false;
+let isSolo = false;
 let party = null;
 let currentPage = 'splash';
 let _pendingJoinCode = null;
@@ -1120,6 +1137,7 @@ function navTo(page) {
 
   const navVisible = (page === 'monitor' || page === 'ranking' || page === 'hookups') && !!party;
   document.getElementById('bottom-nav').classList.toggle('visible', navVisible);
+  document.getElementById('nav-ranking').style.display = isSolo ? 'none' : '';
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const nb = document.getElementById('nav-' + page);
   if (nb) nb.classList.add('active');
@@ -1383,11 +1401,39 @@ function renderLobby() {
   }).join('');
 }
 
+// ===== SOLO MODE =====
+function startSolo() {
+  isSolo = true;
+  isHost = false;
+  const prefs = getMyPrefs() || { stomach:'medium', hydration:'ok', targetLevel:'flow' };
+  party = {
+    id: 'solo_' + uid(), name: 'Solo', status: 'active',
+    startTime: Date.now(), createdAt: Date.now(), creatorId: myProfile.id,
+    players: [{
+      peerId: myProfile.id,
+      profile: { ...myProfile },
+      prefs, sos: false, joinedAt: Date.now(), drinks: [], maxBac: 0
+    }],
+    hookups: [], hookupMode: false
+  };
+  setConnReady(true);
+  if (!_drinkSectionReady) initDrinkSection();
+  navTo('monitor');
+}
+
+function leaveSolo() {
+  savePartyToHistory(party);
+  isSolo = false;
+  party = null; _drinkSectionReady = false;
+  setConnReady(true);
+  navTo('home');
+}
+
 // ===== LEAVE LOBBY =====
 function leaveLobby() {
   if (partyChannel) { supabaseClient.removeChannel(partyChannel); partyChannel = null; }
   localStorage.removeItem('pre_active_session');
-  isHost = false; party = null; _drinkSectionReady = false;
+  isHost = false; isSolo = false; party = null; _drinkSectionReady = false;
   setConnReady(true);
   navTo('home');
 }
@@ -1924,6 +1970,8 @@ function renderMonitor() {
   document.getElementById('btn-sos').style.borderColor = meSos ? 'var(--red)' : 'rgba(239,68,68,0.4)';
   document.getElementById('btn-sos').style.background = meSos ? 'rgba(239,68,68,0.2)' : '';
   document.getElementById('btn-sos').textContent = meSos ? '🚨 DEI PT — ajuda a caminho...' : '🚨 DEI PT — preciso de ajuda';
+  document.getElementById('btn-sos').style.display = isSolo ? 'none' : '';
+  document.getElementById('solo-exit-wrap').style.display = isSolo ? 'block' : 'none';
 
   const log = [...(me.drinks||[])].reverse();
   document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
@@ -2019,6 +2067,7 @@ function confirmAddDrink() {
   if (me) { me.drinks.push(drink); me.drinks.sort((a,b) => a.ts - b.ts); }
   renderMonitor();
   toast(cup.emoji + ' ' + dt.label + ' adicionado!', 1200);
+  if (isSolo) return;
   supabaseClient.from('drinks').insert({
     id: drink.id, party_id: party.id, player_id: myProfile.id,
     cup: drink.cup, drink_type: drink.drinkType, ml: drink.ml,
@@ -2037,6 +2086,7 @@ function removeDrink(drinkId) {
   const me = getMyPlayer();
   if (me) me.drinks = me.drinks.filter(d => d.id !== drinkId);
   renderMonitor();
+  if (isSolo) return;
   supabaseClient.from('drinks').delete().eq('id', drinkId).then(({ error }) => {
     if (error) toast('Erro ao remover bebida.');
   });
