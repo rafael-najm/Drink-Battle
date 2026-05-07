@@ -500,8 +500,9 @@ body::before {
   <br>
   <button class="btn-primary" id="btn-start-party" onclick="startParty()" style="display:none">🚀 Começar!</button>
   <button class="btn-secondary" id="btn-guest-waiting" style="display:none;cursor:default" disabled>⏳ Aguardando o anfitrião começar...</button>
+  <button class="btn-danger" id="btn-end-party" onclick="confirmEndParty()" style="display:none;margin-top:8px">⛔ Encerrar festa</button>
   <br><br>
-  <button class="btn-danger" onclick="leaveLobby()">Sair da sala</button>
+  <button class="btn-secondary" id="btn-leave-lobby" onclick="leaveLobby()" style="display:none">← Sair da sala</button>
 </div>
 
 <!-- ===== MONITOR ===== -->
@@ -566,6 +567,27 @@ body::before {
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px" id="ranking-subtitle">ao vivo</div>
   </div>
   <div id="ranking-list"></div>
+  <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
+    <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px">⛔ Encerrar festa</button>
+  </div>
+</div>
+
+<!-- ===== REPORT ===== -->
+<div id="page-report" class="page">
+  <div class="page-back-row">
+    <button class="page-back-btn" onclick="exitReport()">←</button>
+    <div class="page-back-title">Relatório da festa</div>
+  </div>
+  <div style="margin-bottom:18px">
+    <div style="font-size:22px;font-weight:900;margin-bottom:4px" id="report-party-name"></div>
+    <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace" id="report-meta"></div>
+  </div>
+  <div class="card-title" style="margin-bottom:10px">// BAC ao longo da festa</div>
+  <canvas id="report-chart" style="width:100%;border-radius:12px;display:block"></canvas>
+  <div id="report-chart-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:18px"></div>
+  <div class="card-title" style="margin-bottom:10px">// Resultado final</div>
+  <div id="report-players"></div>
+  <div style="height:40px"></div>
 </div>
 
 <!-- ===== HISTORY ===== -->
@@ -753,6 +775,18 @@ body::before {
   </div>
 </div>
 
+<!-- ===== MODAL: CONFIRM END PARTY ===== -->
+<div class="modal-overlay" id="modal-end-party">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⛔ Encerrar a festa?</div>
+    <div class="modal-sub">// todos verão o relatório final</div>
+    <br>
+    <button class="btn-danger" onclick="endParty()">Sim, encerrar agora</button>
+    <button class="btn-secondary" onclick="closeModal('modal-end-party')" style="margin-top:10px">Cancelar</button>
+  </div>
+</div>
+
 <!-- ===== MODAL: SOS CONFIRM ===== -->
 <div class="modal-overlay" id="modal-sos">
   <div class="modal-sheet">
@@ -780,7 +814,7 @@ body::before {
 
 <script>
 // ===== CONSTANTS =====
-const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🤖','👽','🎭','🔥','💫','⚡','🌙','🎪','🌈','🍀'];
+const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🐒','🦍'];
 const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
 const LEVELS_CONFIG = {
   alto:       { bac:0.055, name:'😊 ALTO',       color:'#22c55e' },
@@ -933,7 +967,13 @@ function handlePartyChange(payload) {
   if (!party) return;
   party.status = p.status;
   party.startTime = p.start_time;
+  party.endTime = p.end_time;
   isHost = p.creator_id === myProfile?.id;
+  if (party.status === 'ended') {
+    savePartyToHistory(party);
+    showReport();
+    return;
+  }
   if (party.status === 'active' && currentPage !== 'monitor' && currentPage !== 'ranking') { navTo('monitor'); return; }
   if (currentPage === 'lobby') renderLobby();
 }
@@ -1022,6 +1062,7 @@ function navTo(page) {
   if (page === 'lobby') renderLobby();
   if (page === 'monitor') renderMonitor();
   if (page === 'ranking') renderRanking();
+  if (page === 'report') { /* rendered by showReport */ }
 }
 
 // ===== PROFILE SETUP =====
@@ -1230,12 +1271,16 @@ function renderLobby() {
     document.getElementById('lobby-status').textContent = '// aguardando jogadores';
     document.getElementById('btn-start-party').style.display = 'block';
     document.getElementById('btn-guest-waiting').style.display = 'none';
+    document.getElementById('btn-end-party').style.display = 'block';
+    document.getElementById('btn-leave-lobby').style.display = 'none';
     document.getElementById('lobby-waiting-msg').style.display = party.players.length < 2 ? 'block' : 'none';
     document.getElementById('lobby-qr-btn').style.display = '';
   } else {
     document.getElementById('lobby-status').textContent = '// aguardando o anfitrião';
     document.getElementById('btn-start-party').style.display = 'none';
     document.getElementById('btn-guest-waiting').style.display = 'block';
+    document.getElementById('btn-end-party').style.display = 'none';
+    document.getElementById('btn-leave-lobby').style.display = 'block';
     document.getElementById('lobby-waiting-msg').style.display = 'none';
     document.getElementById('lobby-qr-btn').style.display = 'none';
   }
@@ -1271,6 +1316,141 @@ function leaveLobby() {
   isHost = false; party = null; _drinkSectionReady = false;
   setConnReady(true);
   navTo('home');
+}
+
+// ===== END PARTY =====
+function confirmEndParty() {
+  openModal('modal-end-party');
+}
+
+async function endParty() {
+  closeModal('modal-end-party');
+  if (!party || !isHost) return;
+  const endTime = Date.now();
+  await supabaseClient.from('parties').update({ status: 'ended', end_time: endTime }).eq('id', party.id);
+  party.status = 'ended';
+  party.endTime = endTime;
+  localStorage.removeItem('pre_active_session');
+  savePartyToHistory(party);
+  showReport();
+}
+
+function exitReport() {
+  if (partyChannel) { supabaseClient.removeChannel(partyChannel); partyChannel = null; }
+  localStorage.removeItem('pre_active_session');
+  party = null; isHost = false; _drinkSectionReady = false;
+  setConnReady(true);
+  navTo('home');
+}
+
+// ===== REPORT =====
+function calcMaxBac(player, startTime, endTime) {
+  let max = 0;
+  const steps = 30;
+  for (let i = 0; i <= steps; i++) {
+    const bac = calcBAC(player, startTime + (i / steps) * (endTime - startTime));
+    if (bac > max) max = bac;
+  }
+  return max;
+}
+
+function showReport() {
+  navTo('report');
+  if (!party) return;
+  const endTime = party.endTime || Date.now();
+  const startTime = party.startTime || (endTime - 3600000);
+  document.getElementById('report-party-name').textContent = party.name;
+  document.getElementById('report-meta').textContent =
+    fmtDate(startTime) + ' · ' + fmtDuration(endTime - startTime) + ' · ' +
+    party.players.length + ' jogador' + (party.players.length !== 1 ? 'es' : '');
+  const sorted = [...party.players].sort((a, b) => calcMaxBac(b, startTime, endTime) - calcMaxBac(a, startTime, endTime));
+  document.getElementById('report-players').innerHTML = sorted.map((p, i) => {
+    const peak = calcMaxBac(p, startTime, endTime);
+    const lvl = bacLevel(peak);
+    const drinks = p.drinks?.length || 0;
+    const isMe = p.profile?.id === myProfile?.id;
+    const medal = ['🥇','🥈','🥉'][i] || (i + 1) + '.';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:12px;background:${isMe ? 'rgba(124,58,237,0.08)' : 'rgba(255,255,255,0.03)'};border:1px solid ${isMe ? 'rgba(124,58,237,0.25)' : 'var(--border)'};border-radius:14px;margin-bottom:8px">
+      <div style="font-size:18px;min-width:24px;text-align:center">${medal}</div>
+      <div style="font-size:26px;width:40px;height:40px;border-radius:50%;background:${esc(p.profile.color)}22;border:2px solid ${esc(p.profile.color)};display:flex;align-items:center;justify-content:center">${esc(p.profile.avatar)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:14px">${esc(p.profile.name)}${isMe ? ' <span style="color:var(--muted);font-size:10px;font-weight:400">(você)</span>' : ''}</div>
+        <div style="font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin-top:2px">${drinks} drink${drinks !== 1 ? 's' : ''} · pico ${peak.toFixed(3)}%</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${lvl.color};font-family:'Courier New',monospace;text-align:right;white-space:nowrap">${lvl.label}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('report-chart-legend').innerHTML = sorted.map(p =>
+    `<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text);background:rgba(255,255,255,0.04);padding:4px 8px;border-radius:20px">
+      <div style="width:14px;height:3px;border-radius:2px;background:${esc(p.profile.color)}"></div>
+      ${esc(p.profile.avatar)} ${esc(p.profile.name)}
+    </div>`
+  ).join('');
+  setTimeout(() => renderReportChart(startTime, endTime), 80);
+}
+
+function renderReportChart(startTime, endTime) {
+  const canvas = document.getElementById('report-chart');
+  if (!canvas || !party) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 320;
+  const H = 200;
+  canvas.style.height = H + 'px';
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const pad = { top: 14, right: 12, bottom: 26, left: 36 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+  const duration = endTime - startTime;
+  const steps = Math.max(20, Math.min(80, Math.floor(duration / 180000)));
+  let maxY = 0.04;
+  party.players.forEach(p => {
+    for (let i = 0; i <= steps; i++) {
+      const bac = calcBAC(p, startTime + (i / steps) * duration);
+      if (bac > maxY) maxY = bac;
+    }
+  });
+  maxY = Math.ceil(maxY / 0.05) * 0.05;
+  ctx.fillStyle = '#111113';
+  ctx.fillRect(0, 0, W, H);
+  // grid lines at BAC zone thresholds
+  [0.03, 0.07, 0.12, 0.18].filter(v => v <= maxY + 0.01).forEach(level => {
+    const y = pad.top + cH - (level / maxY) * cH;
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(level.toFixed(2), pad.left - 4, y + 3);
+  });
+  // X axis time labels
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'center';
+  for (let i = 0; i <= 4; i++) {
+    const x = pad.left + (i / 4) * cW;
+    const elapsed = Math.round((i / 4) * duration / 60000);
+    ctx.fillText(elapsed + 'm', x, H - 6);
+  }
+  // player lines
+  party.players.forEach(p => {
+    ctx.strokeStyle = p.profile?.color || '#7c3aed';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const bac = calcBAC(p, startTime + (i / steps) * duration);
+      const x = pad.left + (i / steps) * cW;
+      const y = pad.top + cH - (bac / maxY) * cH;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  });
 }
 
 // ===== REJOIN SESSION =====
@@ -1402,6 +1582,7 @@ function savePartyToHistory(p) {
   const history = getHistory();
   const end = p.endTime || Date.now();
   const start = p.startTime || end;
+  if (history.find(h => h.id === p.id)) return;
   history.unshift({
     id: p.id, name: p.name, startTime: start,
     playerCount: p.players?.length || 1,
@@ -1574,6 +1755,8 @@ function renderRanking() {
       <div class="ranking-bac" style="color:${lv.color}">${p._bac.toFixed(3)}</div>
     </div>`;
   }).join('');
+  const wrap = document.getElementById('ranking-end-wrap');
+  if (wrap) wrap.style.display = isHost ? 'block' : 'none';
 }
 
 // ===== ADD DRINK SECTION =====
