@@ -607,6 +607,16 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px" id="ranking-subtitle">ao vivo</div>
   </div>
   <div id="ranking-list"></div>
+  <div id="ranking-invite-card" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px">
+    <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:12px" data-i18n="rankingInviteTitle">// chame mais galera</div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <img id="ranking-qr-img" src="" alt="QR" style="width:90px;height:90px;border-radius:10px;border:1px solid var(--border);flex-shrink:0;background:var(--surface2)">
+      <div style="flex:1;min-width:0">
+        <div id="ranking-code-display" style="font-family:'Courier New',monospace;font-size:24px;font-weight:900;color:var(--accent2);letter-spacing:5px;margin-bottom:10px">------</div>
+        <button class="btn-secondary" onclick="copyPartyLink()" style="font-size:12px;padding:9px 14px;width:100%" data-i18n="rankingInviteCopy">📋 Copiar link</button>
+      </div>
+    </div>
+  </div>
   <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
     <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px" data-i18n="rankingEndBtn">⛔ Encerrar festa</button>
   </div>
@@ -954,6 +964,7 @@ const STRINGS = {
     soloExitBtn: '← Sair do modo solo',
     rankingTitle: 'Ranking 🏆', rankingLive: 'ao vivo',
     rankingEndBtn: '⛔ Encerrar festa',
+    rankingInviteTitle: '// chame mais galera', rankingInviteCopy: '📋 Copiar link',
     reportPageTitle: 'Relatório da festa',
     reportChartTitle: '// BAC ao longo da festa', reportFinalTitle: '// Resultado final',
     reportHookupsTitle: '// Conquistas da noite',
@@ -1027,6 +1038,7 @@ const STRINGS = {
     soloExitBtn: '← Exit solo mode',
     rankingTitle: 'Ranking 🏆', rankingLive: 'live',
     rankingEndBtn: '⛔ End party',
+    rankingInviteTitle: '// invite more people', rankingInviteCopy: '📋 Copy link',
     reportPageTitle: 'Party Report',
     reportChartTitle: '// BAC over time', reportFinalTitle: '// Final results',
     reportHookupsTitle: "// Tonight's conquests",
@@ -2209,6 +2221,20 @@ function renderRanking() {
   }).join('');
   const wrap = document.getElementById('ranking-end-wrap');
   if (wrap) wrap.style.display = isHost ? 'block' : 'none';
+
+  const inviteCard = document.getElementById('ranking-invite-card');
+  if (inviteCard && !isSolo) {
+    inviteCard.style.display = 'block';
+    const baseUrl = window.location.href.split('?')[0];
+    const joinUrl = baseUrl + '?party=' + party.id;
+    const qrImg = document.getElementById('ranking-qr-img');
+    if (qrImg && !qrImg.dataset.loaded) {
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
+        encodeURIComponent(joinUrl) + '&bgcolor=12121a&color=a855f7&qzone=2';
+      qrImg.dataset.loaded = '1';
+    }
+    document.getElementById('ranking-code-display').textContent = party.id;
+  }
 }
 
 // ===== ADD DRINK SECTION =====
