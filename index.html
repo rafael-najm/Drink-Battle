@@ -992,6 +992,8 @@ const STRINGS = {
     toastNotFound: 'Sala não encontrada. Verifique o código.',
     toastHookupName: 'Coloca o nome! 👆', toastHookupErr: 'Erro ao salvar. Tente novamente.',
     toastCodeRequired: 'Coloca o código da festa 👆',
+    toastLateJoin: 'Você entrou no meio da festa! 🎉',
+    toastPartyEnded: 'Essa festa já acabou 😢',
     histEmpty: 'Nenhuma sala ainda', histEmptySub: 'Suas salas vão aparecer aqui',
     histPlayers: 'jogadores', histPlayer: 'jogador',
     connOverlayTitle: 'Reconectando...', connOverlaySub: 'aguarda um segundo',
@@ -1063,6 +1065,8 @@ const STRINGS = {
     toastNotFound: 'Room not found. Check the code.',
     toastHookupName: 'Enter a name! 👆', toastHookupErr: 'Error saving. Please try again.',
     toastCodeRequired: 'Enter the party code 👆',
+    toastLateJoin: 'You joined mid-party! 🎉',
+    toastPartyEnded: 'This party has already ended 😢',
     histEmpty: 'No rooms yet', histEmptySub: 'Your rooms will appear here',
     histPlayers: 'players', histPlayer: 'player',
     connOverlayTitle: 'Reconnecting...', connOverlaySub: 'hold on a second',
@@ -1480,7 +1484,8 @@ async function doJoinParty(code) {
     subscribeToParty(code.toUpperCase());
     await fetchPartyState(code.toUpperCase());
     setConnReady(true);
-    if (party.status === 'active') { navTo('monitor'); } else { renderLobby(); }
+    if (party.status === 'ended') { setLobbyError(t('toastPartyEnded'), null); return; }
+    if (party.status === 'active') { showToast(t('toastLateJoin')); navTo('monitor'); } else { renderLobby(); }
   } catch(e) {
     setLobbyError(t('toastConnErr'), () => doJoinParty(code));
   }
@@ -1495,7 +1500,7 @@ function setLobbyError(msg, retryFn) {
   document.getElementById('lobby-players').innerHTML = `
     <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px 18px;margin-bottom:8px">
       <div style="font-size:13px;color:var(--red);margin-bottom:10px">⚠️ ${esc(msg)}</div>
-      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">${t('retryBtn')}</button>
+      ${retryFn ? `<button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">${t('retryBtn')}</button>` : `<button class="btn-secondary" onclick="navTo('home')" style="font-size:13px;padding:11px">← Voltar</button>`}
     </div>`;
 }
 
