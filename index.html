@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>100 PT</title>
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="100PT">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;100PT&quot;,&quot;short_name&quot;:&quot;100PT&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230a0a0f&quot;,&quot;theme_color&quot;:&quot;%230a0a0f&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0f'/%3E%3Ctext y='.9em' font-size='70' x='8'%3E🍺%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
 /* ===== RESET & VARS ===== */
 :root {
@@ -35,6 +41,14 @@ body::before {
               radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.05) 0%, transparent 40%);
   pointer-events: none; z-index: 0;
 }
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(168,85,247,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,85,247,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none; z-index: 0;
+}
 
 /* ===== PAGES ===== */
 .page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; position: relative; z-index: 1; min-height: 100vh; }
@@ -42,17 +56,36 @@ body::before {
 .page-with-nav { padding-bottom: calc(var(--nav-h) + 24px); }
 
 /* ===== SPLASH ===== */
+@keyframes splashLogoIn {
+  from { opacity:0; transform:scale(0.72) translateY(20px); filter:blur(6px); }
+  to   { opacity:1; transform:scale(1)    translateY(0);    filter:blur(0); }
+}
+@keyframes splashSubIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes splashGlowPulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.9;transform:scale(1.15)} }
+@keyframes splashBarGrow { from{width:0} to{width:100%} }
 #page-splash {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; position: relative; z-index: 1;
+  min-height: 100vh; position: relative; z-index: 1; overflow: hidden;
+  transition: opacity 0.45s ease;
 }
-.splash-logo { font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2); text-shadow: 0 0 60px rgba(168,85,247,0.8); }
-.splash-sub { color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
-.splash-dots { display: flex; gap: 8px; margin-top: 40px; }
-.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: dotPulse 1.4s infinite; opacity: 0.3; }
-.splash-dot:nth-child(2) { animation-delay: 0.2s; }
-.splash-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotPulse { 0%,80%,100%{opacity:0.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.2)} }
+.splash-glow {
+  position: absolute; width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%);
+  animation: splashGlowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.splash-logo {
+  font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2);
+  text-shadow: 0 0 60px rgba(168,85,247,0.9), 0 0 120px rgba(168,85,247,0.4);
+  position: relative; animation: splashLogoIn 0.7s cubic-bezier(0.34,1.2,0.64,1) both;
+}
+.splash-sub {
+  color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  font-family: 'Courier New', monospace; margin-top: 10px; position: relative;
+  animation: splashSubIn 0.5s 0.45s both;
+}
+.splash-bar-wrap { margin-top: 52px; width: 80px; height: 2px; background: rgba(168,85,247,0.15); border-radius: 2px; overflow: hidden; position: relative; }
+.splash-bar { height: 100%; background: var(--accent2); border-radius: 2px; animation: splashBarGrow 0.9s 0.3s cubic-bezier(0.4,0,0.2,1) both; box-shadow: 0 0 8px rgba(168,85,247,0.8); }
 
 /* ===== PROFILE SETUP ===== */
 #page-profile-setup {
@@ -67,8 +100,12 @@ body::before {
 .setup-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
 
 /* ===== HOME ===== */
-.home-header { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-bottom: 40px; }
-.home-logo { font-size: 42px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); text-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.home-topbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 14px; margin-bottom: 0; }
+.home-hero { text-align: center; padding: 28px 0 28px; }
+.home-hero-logo { font-size: 68px; font-weight: 900; letter-spacing: 14px; color: var(--accent2); text-shadow: 0 0 40px rgba(168,85,247,0.65), 0 0 80px rgba(168,85,247,0.2); line-height: 1; }
+.home-hero-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
+.home-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+.home-chip { font-size: 10px; color: var(--muted); background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.18); border-radius: 100px; padding: 5px 11px; font-family: 'Courier New', monospace; white-space: nowrap; letter-spacing: 0.5px; }
 .home-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
 .action-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
@@ -351,6 +388,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 .sos-alert-overlay { position: fixed; inset: 0; background: rgba(239,68,68,0.15); z-index: 300; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.3s; }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 .sos-alert-box { background: var(--surface); border: 2px solid var(--red); border-radius: 20px; padding: 28px 24px; max-width: 320px; width: 90%; text-align: center; }
+.shout-alert-overlay { position: fixed; inset: 0; background: rgba(124,58,237,0.12); z-index: 300; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.3s; }
+.shout-alert-box { background: var(--surface); border: 2px solid rgba(168,85,247,0.5); border-radius: 20px; padding: 28px 24px; max-width: 320px; width: 90%; text-align: center; }
 
 /* ===== CONN OVERLAY ===== */
 #conn-overlay {
@@ -391,13 +430,10 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
 <!-- ===== SPLASH ===== -->
 <div id="page-splash">
+  <div class="splash-glow"></div>
   <div class="splash-logo">100PT</div>
   <div class="splash-sub" data-i18n="splashSub">curta da maneira certa</div>
-  <div class="splash-dots">
-    <div class="splash-dot"></div>
-    <div class="splash-dot"></div>
-    <div class="splash-dot"></div>
-  </div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
 </div>
 
 <!-- ===== PROFILE SETUP ===== -->
@@ -448,14 +484,22 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
 <!-- ===== HOME ===== -->
 <div id="page-home" class="page">
-  <div class="home-header">
-    <div class="home-logo">100PT</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button id="lang-toggle-btn" onclick="setLang(currentLang==='pt'?'en':'pt')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:10px;font-family:'Courier New',monospace;padding:4px 8px;cursor:pointer;letter-spacing:1px">EN</button>
-      <div class="mini-profile-chip" onclick="openEditProfile()">
+  <div class="home-topbar">
+    <button id="lang-toggle-btn" onclick="setLang(currentLang==='pt'?'en':'pt')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:10px;font-family:'Courier New',monospace;padding:4px 8px;cursor:pointer;letter-spacing:1px">EN</button>
+    <div class="mini-profile-chip" onclick="openEditProfile()">
       <div class="mini-avatar" id="home-mini-avatar"></div>
       <div class="mini-name" id="home-mini-name"></div>
     </div>
+    </div>
+  </div>
+
+  <div class="home-hero">
+    <div class="home-hero-logo">100PT</div>
+    <div class="home-hero-sub" data-i18n="splashSub">curta da maneira certa</div>
+    <div class="home-chips" id="home-chips">
+      <span class="home-chip" data-i18n="chipBac">📊 BAC em tempo real</span>
+      <span class="home-chip" data-i18n="chipGroup">👥 festas em grupo</span>
+      <span class="home-chip" data-i18n="chipAlerts">📣 avisos na hora</span>
     </div>
   </div>
 
@@ -594,6 +638,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
   <br>
   <button class="btn-sos" id="btn-sos" onclick="openSOSConfirm()">🚨 DEI PT — preciso de ajuda</button>
+  <div id="btn-shout-wrap" style="display:none;margin-top:10px">
+    <button class="btn-secondary" onclick="openShoutModal()" style="width:100%;font-size:13px;padding:12px" data-i18n="shoutBtn">📣 Avisar galera</button>
+  </div>
   <div id="solo-exit-wrap" style="display:none;margin-top:16px">
     <button class="btn-secondary" onclick="leaveSolo()" data-i18n="soloExitBtn">← Sair do modo solo</button>
   </div>
@@ -607,8 +654,21 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px" id="ranking-subtitle">ao vivo</div>
   </div>
   <div id="ranking-list"></div>
+  <div id="ranking-invite-card" style="display:none;margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px">
+    <div style="font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-bottom:12px" data-i18n="rankingInviteTitle">// chame mais galera</div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <img id="ranking-qr-img" src="" alt="QR" style="width:90px;height:90px;border-radius:10px;border:1px solid var(--border);flex-shrink:0;background:var(--surface2)">
+      <div style="flex:1;min-width:0">
+        <div id="ranking-code-display" style="font-family:'Courier New',monospace;font-size:24px;font-weight:900;color:var(--accent2);letter-spacing:5px;margin-bottom:10px">------</div>
+        <button class="btn-secondary" onclick="copyPartyLink()" style="font-size:12px;padding:9px 14px;width:100%" data-i18n="rankingInviteCopy">📋 Copiar link</button>
+      </div>
+    </div>
+  </div>
   <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
     <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px" data-i18n="rankingEndBtn">⛔ Encerrar festa</button>
+  </div>
+  <div id="ranking-leave-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
+    <button class="btn-secondary" onclick="confirmLeaveParty()" style="font-size:13px" data-i18n="leavePartyBtn">← Sair da sala</button>
   </div>
 </div>
 
@@ -876,6 +936,32 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 </div>
 
+<!-- ===== MODAL: SHOUT ===== -->
+<div class="modal-overlay" id="modal-shout">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-shout')">✕</button>
+    <div class="modal-title" data-i18n="shoutModalTitle">📣 Avisar galera</div>
+    <div class="modal-sub" data-i18n="shoutModalSub">// todos vão ver sua mensagem</div>
+    <textarea id="shout-input" class="form-input" rows="3" maxlength="120" placeholder="Mensagem pra galera..." style="margin-top:16px;resize:none;font-size:15px" oninput="updateShoutCount()"></textarea>
+    <div style="text-align:right;font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px;margin-bottom:16px"><span id="shout-char-count">0</span>/120</div>
+    <button class="btn-primary" onclick="sendShout()" data-i18n="shoutSendBtn">Enviar 📣</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: LEAVE CONFIRM ===== -->
+<div class="modal-overlay" id="modal-leave">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-leave')">✕</button>
+    <div class="modal-title" data-i18n="leaveConfirmTitle">Sair da sala?</div>
+    <div class="modal-sub" data-i18n="leaveConfirmSub">// você vai perder o histórico desta festa</div>
+    <div style="height:20px"></div>
+    <button class="btn-secondary" onclick="leaveLobby()" style="font-size:14px;font-weight:700;padding:14px;margin-bottom:10px" data-i18n="leavePartyYes">Sair</button>
+    <button class="btn-secondary" onclick="closeModal('modal-leave')" style="font-size:14px;padding:12px;opacity:0.6" data-i18n="leavePartyNo">Cancelar</button>
+  </div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav" id="bottom-nav">
   <button class="nav-btn" id="nav-hookups" onclick="navTo('hookups')" style="display:none">
@@ -954,6 +1040,7 @@ const STRINGS = {
     soloExitBtn: '← Sair do modo solo',
     rankingTitle: 'Ranking 🏆', rankingLive: 'ao vivo',
     rankingEndBtn: '⛔ Encerrar festa',
+    rankingInviteTitle: '// chame mais galera', rankingInviteCopy: '📋 Copiar link',
     reportPageTitle: 'Relatório da festa',
     reportChartTitle: '// BAC ao longo da festa', reportFinalTitle: '// Resultado final',
     reportHookupsTitle: '// Conquistas da noite',
@@ -992,12 +1079,20 @@ const STRINGS = {
     toastNotFound: 'Sala não encontrada. Verifique o código.',
     toastHookupName: 'Coloca o nome! 👆', toastHookupErr: 'Erro ao salvar. Tente novamente.',
     toastCodeRequired: 'Coloca o código da festa 👆',
+    toastLateJoin: 'Você entrou no meio da festa! 🎉',
+    toastPartyEnded: 'Essa festa já acabou 😢',
+    shoutBtn: '📣 Avisar galera', shoutModalTitle: '📣 Avisar galera', shoutModalSub: '// todos vão ver sua mensagem',
+    shoutSendBtn: 'Enviar 📣', shoutSent: '📣 Mensagem enviada!', shoutEmpty: 'Digita algo pra mandar 👆',
+    drinkLogEmpty: 'Nenhum drink ainda 🥤',
+    leavePartyBtn: '← Sair da sala', leaveConfirmTitle: 'Sair da sala?', leaveConfirmSub: '// você vai perder o histórico desta festa',
+    leavePartyYes: 'Sair', leavePartyNo: 'Cancelar',
     histEmpty: 'Nenhuma sala ainda', histEmptySub: 'Suas salas vão aparecer aqui',
     histPlayers: 'jogadores', histPlayer: 'jogador',
     connOverlayTitle: 'Reconectando...', connOverlaySub: 'aguarda um segundo',
     connOverlayLeave: 'Sair da sala',
     retryBtn: '↺ Tentar novamente',
     drinkWord: 'drink', drinksWord: 'drinks',
+    chipBac: '📊 BAC em tempo real', chipGroup: '👥 festas em grupo', chipAlerts: '📣 avisos na hora',
   },
   en: {
     splashSub: 'enjoy the right way',
@@ -1025,6 +1120,7 @@ const STRINGS = {
     soloExitBtn: '← Exit solo mode',
     rankingTitle: 'Ranking 🏆', rankingLive: 'live',
     rankingEndBtn: '⛔ End party',
+    rankingInviteTitle: '// invite more people', rankingInviteCopy: '📋 Copy link',
     reportPageTitle: 'Party Report',
     reportChartTitle: '// BAC over time', reportFinalTitle: '// Final results',
     reportHookupsTitle: "// Tonight's conquests",
@@ -1063,12 +1159,20 @@ const STRINGS = {
     toastNotFound: 'Room not found. Check the code.',
     toastHookupName: 'Enter a name! 👆', toastHookupErr: 'Error saving. Please try again.',
     toastCodeRequired: 'Enter the party code 👆',
+    toastLateJoin: 'You joined mid-party! 🎉',
+    toastPartyEnded: 'This party has already ended 😢',
+    shoutBtn: '📣 Shout to party', shoutModalTitle: '📣 Shout to party', shoutModalSub: '// everyone will see your message',
+    shoutSendBtn: 'Send 📣', shoutSent: '📣 Message sent!', shoutEmpty: 'Type something to send 👆',
+    drinkLogEmpty: 'No drinks yet 🥤',
+    leavePartyBtn: '← Leave room', leaveConfirmTitle: 'Leave the room?', leaveConfirmSub: "// you'll lose this party's history",
+    leavePartyYes: 'Leave', leavePartyNo: 'Cancel',
     histEmpty: 'No rooms yet', histEmptySub: 'Your rooms will appear here',
     histPlayers: 'players', histPlayer: 'player',
     connOverlayTitle: 'Reconnecting...', connOverlaySub: 'hold on a second',
     connOverlayLeave: 'Leave room',
     retryBtn: '↺ Try again',
     drinkWord: 'drink', drinksWord: 'drinks',
+    chipBac: '📊 real-time BAC', chipGroup: '👥 group parties', chipAlerts: '📣 instant alerts',
   }
 };
 
@@ -1125,6 +1229,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let supabaseClient = null;
 let partyChannel = null;
 let _hookupPhoto = null;
+let _wakeLock = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try { _wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+function releaseWakeLock() {
+  _wakeLock?.release().catch(()=>{});
+  _wakeLock = null;
+}
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -1229,6 +1343,7 @@ function subscribeToParty(partyId) {
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkInsert)
     .on('postgres_changes', { event:'DELETE', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkDelete)
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'hookups', filter:'party_id=eq.'+partyId }, handleHookupInsert)
+    .on('broadcast', { event: 'party-shout' }, ({ payload }) => showShoutAlert(payload))
     .subscribe(status => setConnReady(status === 'SUBSCRIBED'));
 }
 
@@ -1330,6 +1445,9 @@ function navTo(page) {
   const nb = document.getElementById('nav-' + page);
   if (nb) nb.classList.add('active');
 
+  if (page === 'home' || page === 'report') releaseWakeLock();
+  if (page === 'monitor' || page === 'ranking') requestWakeLock();
+
   if (page === 'home') renderHome();
   if (page === 'history') renderHistory();
   if (page === 'lobby') renderLobby();
@@ -1400,7 +1518,7 @@ function renderHome() {
   const history = getHistory();
   const el = document.getElementById('home-history');
   if (!history.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">Nenhuma sala ainda</div><div class="empty-state-text">Crie ou entre numa sala pra começar</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">${t('histEmpty')}</div><div class="empty-state-text">${t('histEmptySub')}</div></div>`;
     return;
   }
   el.innerHTML = history.slice(0,3).map(p => `
@@ -1480,7 +1598,8 @@ async function doJoinParty(code) {
     subscribeToParty(code.toUpperCase());
     await fetchPartyState(code.toUpperCase());
     setConnReady(true);
-    if (party.status === 'active') { navTo('monitor'); } else { renderLobby(); }
+    if (party.status === 'ended') { setLobbyError(t('toastPartyEnded'), null); return; }
+    if (party.status === 'active') { showToast(t('toastLateJoin')); navTo('monitor'); } else { renderLobby(); }
   } catch(e) {
     setLobbyError(t('toastConnErr'), () => doJoinParty(code));
   }
@@ -1495,7 +1614,7 @@ function setLobbyError(msg, retryFn) {
   document.getElementById('lobby-players').innerHTML = `
     <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px 18px;margin-bottom:8px">
       <div style="font-size:13px;color:var(--red);margin-bottom:10px">⚠️ ${esc(msg)}</div>
-      <button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">${t('retryBtn')}</button>
+      ${retryFn ? `<button class="btn-primary" onclick="(${retryFn.toString()})()" style="font-size:13px;padding:11px">${t('retryBtn')}</button>` : `<button class="btn-secondary" onclick="navTo('home')" style="font-size:13px;padding:11px">← Voltar</button>`}
     </div>`;
 }
 
@@ -2160,23 +2279,27 @@ function renderMonitor() {
   document.getElementById('btn-sos').style.background = meSos ? 'rgba(239,68,68,0.2)' : '';
   document.getElementById('btn-sos').textContent = meSos ? t('sosBtnActive') : t('sosBtn');
   document.getElementById('btn-sos').style.display = isSolo ? 'none' : '';
+  document.getElementById('btn-shout-wrap').style.display = isSolo ? 'none' : 'block';
   document.getElementById('solo-exit-wrap').style.display = isSolo ? 'block' : 'none';
 
   const log = [...(me.drinks||[])].reverse();
-  document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
+  const lastTs = log[0]?.ts;
+  const lastAgo = lastTs ? Math.floor((now - lastTs) / 60000) : null;
+  const countText = log.length + ' ' + (log.length!==1 ? t('drinksWord') : t('drinkWord'));
+  document.getElementById('drink-count').textContent = countText + (lastAgo !== null ? ' · ' + (lastAgo < 1 ? '< 1 min' : lastAgo + ' min') + ' atrás' : '');
   document.getElementById('drink-log').innerHTML = log.length ? log.map(d => {
     const cup = CUPS.find(x=>x.id===d.cup)||{emoji:'🍶'};
     const dt = DRINK_TYPES.find(x=>x.id===d.drinkType)||{label:'bebida',pct:d.pct||5};
-    const t = new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const timeStr = new Date(d.ts).toLocaleTimeString(currentLang==='pt'?'pt-BR':'en-US',{hour:'2-digit',minute:'2-digit'});
     return `<div class="drink-log-item">
       <div class="drink-log-emoji">${cup.emoji}</div>
       <div class="drink-log-info">
         <div class="drink-log-name">${esc(dt.label)}</div>
-        <div class="drink-log-time">${t} · ${d.ml||0}ml · ${dt.pct}%</div>
+        <div class="drink-log-time">${timeStr} · ${d.ml||0}ml · ${dt.pct}%</div>
       </div>
       <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
     </div>`;
-  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Configure e adicione sua primeira bebida 👆</div>';
+  }).join('') : `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;font-family:'Courier New',monospace">${t('drinkLogEmpty')}</div>`;
 }
 
 // ===== RANKING RENDER =====
@@ -2204,6 +2327,22 @@ function renderRanking() {
   }).join('');
   const wrap = document.getElementById('ranking-end-wrap');
   if (wrap) wrap.style.display = isHost ? 'block' : 'none';
+  const leaveWrap = document.getElementById('ranking-leave-wrap');
+  if (leaveWrap) leaveWrap.style.display = (!isHost && !isSolo) ? 'block' : 'none';
+
+  const inviteCard = document.getElementById('ranking-invite-card');
+  if (inviteCard && !isSolo) {
+    inviteCard.style.display = 'block';
+    const baseUrl = window.location.href.split('?')[0];
+    const joinUrl = baseUrl + '?party=' + party.id;
+    const qrImg = document.getElementById('ranking-qr-img');
+    if (qrImg && !qrImg.dataset.loaded) {
+      qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' +
+        encodeURIComponent(joinUrl) + '&bgcolor=12121a&color=a855f7&qzone=2';
+      qrImg.dataset.loaded = '1';
+    }
+    document.getElementById('ranking-code-display').textContent = party.id;
+  }
 }
 
 // ===== ADD DRINK SECTION =====
@@ -2297,6 +2436,7 @@ async function confirmSOS() {
 }
 
 function showSOSAlert(profile) {
+  navigator.vibrate?.([200, 100, 200, 100, 200]);
   const overlay = document.createElement('div');
   overlay.className = 'sos-alert-overlay';
   overlay.innerHTML = `<div class="sos-alert-box">
@@ -2309,6 +2449,49 @@ function showSOSAlert(profile) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   sendSOSNotification(profile);
 }
+
+// ===== SHOUT (BROADCAST) =====
+function openShoutModal() {
+  const inp = document.getElementById('shout-input');
+  if (inp) { inp.value = ''; updateShoutCount(); }
+  openModal('modal-shout');
+  setTimeout(() => inp?.focus(), 100);
+}
+function updateShoutCount() {
+  const inp = document.getElementById('shout-input');
+  const el = document.getElementById('shout-char-count');
+  if (inp && el) el.textContent = inp.value.length;
+}
+async function sendShout() {
+  const inp = document.getElementById('shout-input');
+  const text = inp?.value.trim();
+  if (!text) { toast(t('shoutEmpty')); return; }
+  if (!partyChannel) return;
+  closeModal('modal-shout');
+  await partyChannel.send({ type: 'broadcast', event: 'party-shout', payload: {
+    player: { name: myProfile.name, avatar: myProfile.avatar, color: myProfile.color },
+    text, ts: Date.now()
+  }});
+  toast(t('shoutSent'));
+}
+function showShoutAlert(payload) {
+  navigator.vibrate?.([80]);
+  const overlay = document.createElement('div');
+  overlay.className = 'shout-alert-overlay';
+  overlay.innerHTML = `<div class="shout-alert-box">
+    <div style="font-size:40px;margin-bottom:8px">${esc(payload.player?.avatar||'📣')}</div>
+    <div style="font-size:16px;font-weight:800;color:var(--accent2);margin-bottom:4px">${esc(payload.player?.name||'alguém')}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:'Courier New',monospace">disse pra galera:</div>
+    <div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:20px;line-height:1.5;word-break:break-word">${esc(payload.text)}</div>
+    <button class="btn-primary" onclick="this.closest('.shout-alert-overlay').remove()">Ok 👍</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  setTimeout(() => overlay.remove(), 12000);
+}
+
+// ===== LEAVE PARTY =====
+function confirmLeaveParty() { openModal('modal-leave'); }
 
 // Refresh BAC every 30s
 setInterval(() => {
@@ -2340,8 +2523,14 @@ function initApp() {
   const partyCode = urlParams.get('party');
   if (partyCode) window.history.replaceState({}, '', window.location.pathname);
 
+  const _dismissSplash = (fn) => {
+    const splash = document.getElementById('page-splash');
+    splash.style.opacity = '0';
+    setTimeout(() => { splash.style.display = 'none'; fn(); }, 450);
+  };
+
   setTimeout(() => {
-    document.getElementById('page-splash').style.display = 'none';
+    _dismissSplash(() => {
     if (partyCode) {
       if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
       else { doJoinParty(partyCode.toUpperCase()); }
@@ -2358,7 +2547,8 @@ function initApp() {
     }
     if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
     else { navTo('home'); }
-  }, 900);
+    });
+  }, 1100);
 }
 
 initApp();
