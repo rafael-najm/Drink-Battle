@@ -582,8 +582,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
   <div class="lobby-player-list" id="lobby-players"></div>
 
-  <div class="lobby-waiting" id="lobby-waiting-msg" style="display:none">
-    ${t('lobbyShareHint')}
+  <div class="lobby-waiting" id="lobby-waiting-msg" style="display:none" data-i18n="lobbyShareHint">
+    Compartilhe o código ou QR pra chamar a galera...
   </div>
 
   <div id="hookup-mode-toggle" style="display:none;margin:12px 0;padding:14px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px">
@@ -1353,7 +1353,7 @@ async function upsertMyPlayer(partyId) {
     id: myProfile.id, party_id: partyId,
     name: myProfile.name, avatar: myProfile.avatar,
     color: myProfile.color, weight: myProfile.weight, sex: myProfile.sex,
-    prefs, joined_at: Date.now(), updated_at: Date.now()
+    prefs, sos: false, joined_at: Date.now(), updated_at: Date.now()
   });
 }
 
@@ -1366,7 +1366,7 @@ function subscribeToParty(partyId) {
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkInsert)
     .on('postgres_changes', { event:'DELETE', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkDelete)
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'hookups', filter:'party_id=eq.'+partyId }, handleHookupInsert)
-    .on('broadcast', { event: 'party-shout' }, ({ payload }) => showShoutAlert(payload))
+    .on('broadcast', { event: 'party-shout' }, ({ payload }) => { if (payload?.text) showShoutAlert(payload); })
     .subscribe(status => setConnReady(status === 'SUBSCRIBED'));
 }
 
