@@ -41,6 +41,14 @@ body::before {
               radial-gradient(ellipse at 20% 80%, rgba(168,85,247,0.05) 0%, transparent 40%);
   pointer-events: none; z-index: 0;
 }
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(168,85,247,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(168,85,247,0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none; z-index: 0;
+}
 
 /* ===== PAGES ===== */
 .page { display: none; max-width: 480px; margin: 0 auto; padding: 16px 16px 32px; position: relative; z-index: 1; min-height: 100vh; }
@@ -48,17 +56,36 @@ body::before {
 .page-with-nav { padding-bottom: calc(var(--nav-h) + 24px); }
 
 /* ===== SPLASH ===== */
+@keyframes splashLogoIn {
+  from { opacity:0; transform:scale(0.72) translateY(20px); filter:blur(6px); }
+  to   { opacity:1; transform:scale(1)    translateY(0);    filter:blur(0); }
+}
+@keyframes splashSubIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes splashGlowPulse { 0%,100%{opacity:0.5;transform:scale(1)} 50%{opacity:0.9;transform:scale(1.15)} }
+@keyframes splashBarGrow { from{width:0} to{width:100%} }
 #page-splash {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 100vh; position: relative; z-index: 1;
+  min-height: 100vh; position: relative; z-index: 1; overflow: hidden;
+  transition: opacity 0.45s ease;
 }
-.splash-logo { font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2); text-shadow: 0 0 60px rgba(168,85,247,0.8); }
-.splash-sub { color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
-.splash-dots { display: flex; gap: 8px; margin-top: 40px; }
-.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); animation: dotPulse 1.4s infinite; opacity: 0.3; }
-.splash-dot:nth-child(2) { animation-delay: 0.2s; }
-.splash-dot:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dotPulse { 0%,80%,100%{opacity:0.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.2)} }
+.splash-glow {
+  position: absolute; width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, transparent 70%);
+  animation: splashGlowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.splash-logo {
+  font-size: 96px; font-weight: 900; letter-spacing: 16px; color: var(--accent2);
+  text-shadow: 0 0 60px rgba(168,85,247,0.9), 0 0 120px rgba(168,85,247,0.4);
+  position: relative; animation: splashLogoIn 0.7s cubic-bezier(0.34,1.2,0.64,1) both;
+}
+.splash-sub {
+  color: var(--muted); font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  font-family: 'Courier New', monospace; margin-top: 10px; position: relative;
+  animation: splashSubIn 0.5s 0.45s both;
+}
+.splash-bar-wrap { margin-top: 52px; width: 80px; height: 2px; background: rgba(168,85,247,0.15); border-radius: 2px; overflow: hidden; position: relative; }
+.splash-bar { height: 100%; background: var(--accent2); border-radius: 2px; animation: splashBarGrow 0.9s 0.3s cubic-bezier(0.4,0,0.2,1) both; box-shadow: 0 0 8px rgba(168,85,247,0.8); }
 
 /* ===== PROFILE SETUP ===== */
 #page-profile-setup {
@@ -73,8 +100,12 @@ body::before {
 .setup-step-label { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent2); margin-bottom: 20px; }
 
 /* ===== HOME ===== */
-.home-header { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; margin-bottom: 40px; }
-.home-logo { font-size: 42px; font-weight: 900; letter-spacing: 8px; color: var(--accent2); text-shadow: 0 0 30px rgba(168,85,247,0.5); }
+.home-topbar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 14px; margin-bottom: 0; }
+.home-hero { text-align: center; padding: 28px 0 28px; }
+.home-hero-logo { font-size: 68px; font-weight: 900; letter-spacing: 14px; color: var(--accent2); text-shadow: 0 0 40px rgba(168,85,247,0.65), 0 0 80px rgba(168,85,247,0.2); line-height: 1; }
+.home-hero-sub { color: var(--muted); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-family: 'Courier New', monospace; margin-top: 8px; }
+.home-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+.home-chip { font-size: 10px; color: var(--muted); background: rgba(168,85,247,0.07); border: 1px solid rgba(168,85,247,0.18); border-radius: 100px; padding: 5px 11px; font-family: 'Courier New', monospace; white-space: nowrap; letter-spacing: 0.5px; }
 .home-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
 .action-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
@@ -399,13 +430,10 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
 <!-- ===== SPLASH ===== -->
 <div id="page-splash">
+  <div class="splash-glow"></div>
   <div class="splash-logo">100PT</div>
   <div class="splash-sub" data-i18n="splashSub">curta da maneira certa</div>
-  <div class="splash-dots">
-    <div class="splash-dot"></div>
-    <div class="splash-dot"></div>
-    <div class="splash-dot"></div>
-  </div>
+  <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
 </div>
 
 <!-- ===== PROFILE SETUP ===== -->
@@ -456,14 +484,21 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
 <!-- ===== HOME ===== -->
 <div id="page-home" class="page">
-  <div class="home-header">
-    <div class="home-logo">100PT</div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <button id="lang-toggle-btn" onclick="setLang(currentLang==='pt'?'en':'pt')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:10px;font-family:'Courier New',monospace;padding:4px 8px;cursor:pointer;letter-spacing:1px">EN</button>
-      <div class="mini-profile-chip" onclick="openEditProfile()">
+  <div class="home-topbar">
+    <button id="lang-toggle-btn" onclick="setLang(currentLang==='pt'?'en':'pt')" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:10px;font-family:'Courier New',monospace;padding:4px 8px;cursor:pointer;letter-spacing:1px">EN</button>
+    <div class="mini-profile-chip" onclick="openEditProfile()">
       <div class="mini-avatar" id="home-mini-avatar"></div>
       <div class="mini-name" id="home-mini-name"></div>
     </div>
+  </div>
+
+  <div class="home-hero">
+    <div class="home-hero-logo">100PT</div>
+    <div class="home-hero-sub" data-i18n="splashSub">curta da maneira certa</div>
+    <div class="home-chips" id="home-chips">
+      <span class="home-chip" data-i18n="chipBac">📊 BAC em tempo real</span>
+      <span class="home-chip" data-i18n="chipGroup">👥 festas em grupo</span>
+      <span class="home-chip" data-i18n="chipAlerts">📣 avisos na hora</span>
     </div>
   </div>
 
@@ -1056,6 +1091,7 @@ const STRINGS = {
     connOverlayLeave: 'Sair da sala',
     retryBtn: '↺ Tentar novamente',
     drinkWord: 'drink', drinksWord: 'drinks',
+    chipBac: '📊 BAC em tempo real', chipGroup: '👥 festas em grupo', chipAlerts: '📣 avisos na hora',
   },
   en: {
     splashSub: 'enjoy the right way',
@@ -1135,6 +1171,7 @@ const STRINGS = {
     connOverlayLeave: 'Leave room',
     retryBtn: '↺ Try again',
     drinkWord: 'drink', drinksWord: 'drinks',
+    chipBac: '📊 real-time BAC', chipGroup: '👥 group parties', chipAlerts: '📣 instant alerts',
   }
 };
 
@@ -1480,7 +1517,7 @@ function renderHome() {
   const history = getHistory();
   const el = document.getElementById('home-history');
   if (!history.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">Nenhuma sala ainda</div><div class="empty-state-text">Crie ou entre numa sala pra começar</div></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🥂</div><div class="empty-state-title">${t('histEmpty')}</div><div class="empty-state-text">${t('histEmptySub')}</div></div>`;
     return;
   }
   el.innerHTML = history.slice(0,3).map(p => `
@@ -2485,8 +2522,14 @@ function initApp() {
   const partyCode = urlParams.get('party');
   if (partyCode) window.history.replaceState({}, '', window.location.pathname);
 
+  const _dismissSplash = (fn) => {
+    const splash = document.getElementById('page-splash');
+    splash.style.opacity = '0';
+    setTimeout(() => { splash.style.display = 'none'; fn(); }, 450);
+  };
+
   setTimeout(() => {
-    document.getElementById('page-splash').style.display = 'none';
+    _dismissSplash(() => {
     if (partyCode) {
       if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
       else { doJoinParty(partyCode.toUpperCase()); }
@@ -2503,7 +2546,8 @@ function initApp() {
     }
     if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
     else { navTo('home'); }
-  }, 900);
+    });
+  }, 1100);
 }
 
 initApp();
