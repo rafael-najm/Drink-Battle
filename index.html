@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>100 PT</title>
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="100PT">
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;100PT&quot;,&quot;short_name&quot;:&quot;100PT&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;%230a0a0f&quot;,&quot;theme_color&quot;:&quot;%230a0a0f&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0f'/%3E%3Ctext y='.9em' font-size='70' x='8'%3E🍺%3C/text%3E%3C/svg%3E&quot;,&quot;sizes&quot;:&quot;any&quot;,&quot;type&quot;:&quot;image/svg+xml&quot;}]}">
 <style>
 /* ===== RESET & VARS ===== */
 :root {
@@ -351,6 +357,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 .sos-alert-overlay { position: fixed; inset: 0; background: rgba(239,68,68,0.15); z-index: 300; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.3s; }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 .sos-alert-box { background: var(--surface); border: 2px solid var(--red); border-radius: 20px; padding: 28px 24px; max-width: 320px; width: 90%; text-align: center; }
+.shout-alert-overlay { position: fixed; inset: 0; background: rgba(124,58,237,0.12); z-index: 300; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); animation: fadeIn 0.3s; }
+.shout-alert-box { background: var(--surface); border: 2px solid rgba(168,85,247,0.5); border-radius: 20px; padding: 28px 24px; max-width: 320px; width: 90%; text-align: center; }
 
 /* ===== CONN OVERLAY ===== */
 #conn-overlay {
@@ -594,6 +602,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
   <br>
   <button class="btn-sos" id="btn-sos" onclick="openSOSConfirm()">🚨 DEI PT — preciso de ajuda</button>
+  <div id="btn-shout-wrap" style="display:none;margin-top:10px">
+    <button class="btn-secondary" onclick="openShoutModal()" style="width:100%;font-size:13px;padding:12px" data-i18n="shoutBtn">📣 Avisar galera</button>
+  </div>
   <div id="solo-exit-wrap" style="display:none;margin-top:16px">
     <button class="btn-secondary" onclick="leaveSolo()" data-i18n="soloExitBtn">← Sair do modo solo</button>
   </div>
@@ -619,6 +630,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
   <div id="ranking-end-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
     <button class="btn-danger" onclick="confirmEndParty()" style="opacity:0.8;font-size:13px" data-i18n="rankingEndBtn">⛔ Encerrar festa</button>
+  </div>
+  <div id="ranking-leave-wrap" style="display:none;margin-top:16px;padding-bottom:8px">
+    <button class="btn-secondary" onclick="confirmLeaveParty()" style="font-size:13px" data-i18n="leavePartyBtn">← Sair da sala</button>
   </div>
 </div>
 
@@ -886,6 +900,32 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 </div>
 
+<!-- ===== MODAL: SHOUT ===== -->
+<div class="modal-overlay" id="modal-shout">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-shout')">✕</button>
+    <div class="modal-title" data-i18n="shoutModalTitle">📣 Avisar galera</div>
+    <div class="modal-sub" data-i18n="shoutModalSub">// todos vão ver sua mensagem</div>
+    <textarea id="shout-input" class="form-input" rows="3" maxlength="120" placeholder="Mensagem pra galera..." style="margin-top:16px;resize:none;font-size:15px" oninput="updateShoutCount()"></textarea>
+    <div style="text-align:right;font-size:10px;color:var(--muted);font-family:'Courier New',monospace;margin-top:4px;margin-bottom:16px"><span id="shout-char-count">0</span>/120</div>
+    <button class="btn-primary" onclick="sendShout()" data-i18n="shoutSendBtn">Enviar 📣</button>
+  </div>
+</div>
+
+<!-- ===== MODAL: LEAVE CONFIRM ===== -->
+<div class="modal-overlay" id="modal-leave">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-leave')">✕</button>
+    <div class="modal-title" data-i18n="leaveConfirmTitle">Sair da sala?</div>
+    <div class="modal-sub" data-i18n="leaveConfirmSub">// você vai perder o histórico desta festa</div>
+    <div style="height:20px"></div>
+    <button class="btn-secondary" onclick="leaveLobby()" style="font-size:14px;font-weight:700;padding:14px;margin-bottom:10px" data-i18n="leavePartyYes">Sair</button>
+    <button class="btn-secondary" onclick="closeModal('modal-leave')" style="font-size:14px;padding:12px;opacity:0.6" data-i18n="leavePartyNo">Cancelar</button>
+  </div>
+</div>
+
 <!-- ===== BOTTOM NAV ===== -->
 <nav class="bottom-nav" id="bottom-nav">
   <button class="nav-btn" id="nav-hookups" onclick="navTo('hookups')" style="display:none">
@@ -1005,6 +1045,11 @@ const STRINGS = {
     toastCodeRequired: 'Coloca o código da festa 👆',
     toastLateJoin: 'Você entrou no meio da festa! 🎉',
     toastPartyEnded: 'Essa festa já acabou 😢',
+    shoutBtn: '📣 Avisar galera', shoutModalTitle: '📣 Avisar galera', shoutModalSub: '// todos vão ver sua mensagem',
+    shoutSendBtn: 'Enviar 📣', shoutSent: '📣 Mensagem enviada!', shoutEmpty: 'Digita algo pra mandar 👆',
+    drinkLogEmpty: 'Nenhum drink ainda 🥤',
+    leavePartyBtn: '← Sair da sala', leaveConfirmTitle: 'Sair da sala?', leaveConfirmSub: '// você vai perder o histórico desta festa',
+    leavePartyYes: 'Sair', leavePartyNo: 'Cancelar',
     histEmpty: 'Nenhuma sala ainda', histEmptySub: 'Suas salas vão aparecer aqui',
     histPlayers: 'jogadores', histPlayer: 'jogador',
     connOverlayTitle: 'Reconectando...', connOverlaySub: 'aguarda um segundo',
@@ -1079,6 +1124,11 @@ const STRINGS = {
     toastCodeRequired: 'Enter the party code 👆',
     toastLateJoin: 'You joined mid-party! 🎉',
     toastPartyEnded: 'This party has already ended 😢',
+    shoutBtn: '📣 Shout to party', shoutModalTitle: '📣 Shout to party', shoutModalSub: '// everyone will see your message',
+    shoutSendBtn: 'Send 📣', shoutSent: '📣 Message sent!', shoutEmpty: 'Type something to send 👆',
+    drinkLogEmpty: 'No drinks yet 🥤',
+    leavePartyBtn: '← Leave room', leaveConfirmTitle: 'Leave the room?', leaveConfirmSub: "// you'll lose this party's history",
+    leavePartyYes: 'Leave', leavePartyNo: 'Cancel',
     histEmpty: 'No rooms yet', histEmptySub: 'Your rooms will appear here',
     histPlayers: 'players', histPlayer: 'player',
     connOverlayTitle: 'Reconnecting...', connOverlaySub: 'hold on a second',
@@ -1141,6 +1191,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let supabaseClient = null;
 let partyChannel = null;
 let _hookupPhoto = null;
+let _wakeLock = null;
+
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try { _wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+}
+function releaseWakeLock() {
+  _wakeLock?.release().catch(()=>{});
+  _wakeLock = null;
+}
 
 // ===== UTILS =====
 let _toastTimer = null;
@@ -1245,6 +1305,7 @@ function subscribeToParty(partyId) {
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkInsert)
     .on('postgres_changes', { event:'DELETE', schema:'public', table:'drinks',  filter:'party_id=eq.'+partyId }, handleDrinkDelete)
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'hookups', filter:'party_id=eq.'+partyId }, handleHookupInsert)
+    .on('broadcast', { event: 'party-shout' }, ({ payload }) => showShoutAlert(payload))
     .subscribe(status => setConnReady(status === 'SUBSCRIBED'));
 }
 
@@ -1345,6 +1406,9 @@ function navTo(page) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const nb = document.getElementById('nav-' + page);
   if (nb) nb.classList.add('active');
+
+  if (page === 'home' || page === 'report') releaseWakeLock();
+  if (page === 'monitor' || page === 'ranking') requestWakeLock();
 
   if (page === 'home') renderHome();
   if (page === 'history') renderHistory();
@@ -2177,23 +2241,27 @@ function renderMonitor() {
   document.getElementById('btn-sos').style.background = meSos ? 'rgba(239,68,68,0.2)' : '';
   document.getElementById('btn-sos').textContent = meSos ? t('sosBtnActive') : t('sosBtn');
   document.getElementById('btn-sos').style.display = isSolo ? 'none' : '';
+  document.getElementById('btn-shout-wrap').style.display = isSolo ? 'none' : 'block';
   document.getElementById('solo-exit-wrap').style.display = isSolo ? 'block' : 'none';
 
   const log = [...(me.drinks||[])].reverse();
-  document.getElementById('drink-count').textContent = log.length + ' bebida' + (log.length!==1?'s':'');
+  const lastTs = log[0]?.ts;
+  const lastAgo = lastTs ? Math.floor((now - lastTs) / 60000) : null;
+  const countText = log.length + ' ' + (log.length!==1 ? t('drinksWord') : t('drinkWord'));
+  document.getElementById('drink-count').textContent = countText + (lastAgo !== null ? ' · ' + (lastAgo < 1 ? '< 1 min' : lastAgo + ' min') + ' atrás' : '');
   document.getElementById('drink-log').innerHTML = log.length ? log.map(d => {
     const cup = CUPS.find(x=>x.id===d.cup)||{emoji:'🍶'};
     const dt = DRINK_TYPES.find(x=>x.id===d.drinkType)||{label:'bebida',pct:d.pct||5};
-    const t = new Date(d.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const timeStr = new Date(d.ts).toLocaleTimeString(currentLang==='pt'?'pt-BR':'en-US',{hour:'2-digit',minute:'2-digit'});
     return `<div class="drink-log-item">
       <div class="drink-log-emoji">${cup.emoji}</div>
       <div class="drink-log-info">
         <div class="drink-log-name">${esc(dt.label)}</div>
-        <div class="drink-log-time">${t} · ${d.ml||0}ml · ${dt.pct}%</div>
+        <div class="drink-log-time">${timeStr} · ${d.ml||0}ml · ${dt.pct}%</div>
       </div>
       <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
     </div>`;
-  }).join('') : '<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;font-family:\'Courier New\',monospace">Configure e adicione sua primeira bebida 👆</div>';
+  }).join('') : `<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px;font-family:'Courier New',monospace">${t('drinkLogEmpty')}</div>`;
 }
 
 // ===== RANKING RENDER =====
@@ -2221,6 +2289,8 @@ function renderRanking() {
   }).join('');
   const wrap = document.getElementById('ranking-end-wrap');
   if (wrap) wrap.style.display = isHost ? 'block' : 'none';
+  const leaveWrap = document.getElementById('ranking-leave-wrap');
+  if (leaveWrap) leaveWrap.style.display = (!isHost && !isSolo) ? 'block' : 'none';
 
   const inviteCard = document.getElementById('ranking-invite-card');
   if (inviteCard && !isSolo) {
@@ -2328,6 +2398,7 @@ async function confirmSOS() {
 }
 
 function showSOSAlert(profile) {
+  navigator.vibrate?.([200, 100, 200, 100, 200]);
   const overlay = document.createElement('div');
   overlay.className = 'sos-alert-overlay';
   overlay.innerHTML = `<div class="sos-alert-box">
@@ -2340,6 +2411,49 @@ function showSOSAlert(profile) {
   overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
   sendSOSNotification(profile);
 }
+
+// ===== SHOUT (BROADCAST) =====
+function openShoutModal() {
+  const inp = document.getElementById('shout-input');
+  if (inp) { inp.value = ''; updateShoutCount(); }
+  openModal('modal-shout');
+  setTimeout(() => inp?.focus(), 100);
+}
+function updateShoutCount() {
+  const inp = document.getElementById('shout-input');
+  const el = document.getElementById('shout-char-count');
+  if (inp && el) el.textContent = inp.value.length;
+}
+async function sendShout() {
+  const inp = document.getElementById('shout-input');
+  const text = inp?.value.trim();
+  if (!text) { toast(t('shoutEmpty')); return; }
+  if (!partyChannel) return;
+  closeModal('modal-shout');
+  await partyChannel.send({ type: 'broadcast', event: 'party-shout', payload: {
+    player: { name: myProfile.name, avatar: myProfile.avatar, color: myProfile.color },
+    text, ts: Date.now()
+  }});
+  toast(t('shoutSent'));
+}
+function showShoutAlert(payload) {
+  navigator.vibrate?.([80]);
+  const overlay = document.createElement('div');
+  overlay.className = 'shout-alert-overlay';
+  overlay.innerHTML = `<div class="shout-alert-box">
+    <div style="font-size:40px;margin-bottom:8px">${esc(payload.player?.avatar||'📣')}</div>
+    <div style="font-size:16px;font-weight:800;color:var(--accent2);margin-bottom:4px">${esc(payload.player?.name||'alguém')}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px;font-family:'Courier New',monospace">disse pra galera:</div>
+    <div style="font-size:17px;font-weight:600;color:var(--text);margin-bottom:20px;line-height:1.5;word-break:break-word">${esc(payload.text)}</div>
+    <button class="btn-primary" onclick="this.closest('.shout-alert-overlay').remove()">Ok 👍</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  setTimeout(() => overlay.remove(), 12000);
+}
+
+// ===== LEAVE PARTY =====
+function confirmLeaveParty() { openModal('modal-leave'); }
 
 // Refresh BAC every 30s
 setInterval(() => {
