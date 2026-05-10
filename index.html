@@ -2872,6 +2872,12 @@ function initApp() {
 
   setTimeout(() => {
     _dismissSplash(() => {
+    // Check onboarding first
+    if (!localStorage.getItem('pre_onboarded')) {
+      navTo('onboarding');
+      renderOnboarding();
+      return;
+    }
     if (partyCode) {
       if (!myProfile) { _pendingJoinCode = partyCode.toUpperCase(); navTo('profile-setup'); renderProfileSetup(); }
       else { doJoinParty(partyCode.toUpperCase()); }
