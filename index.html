@@ -426,6 +426,48 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 .ranking-name { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ranking-sub { font-size: 10px; color: var(--muted); font-family: 'Courier New', monospace; margin-top: 2px; }
 .ranking-bac { font-family: 'Courier New', monospace; font-size: 20px; font-weight: 900; flex-shrink: 0; transition: color 0.4s; }
+
+/* ===== PRESET CHIPS ===== */
+.preset-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px; scrollbar-width: none; -ms-overflow-style: none; }
+.preset-scroll::-webkit-scrollbar { display: none; }
+.preset-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px;
+  background: var(--surface2); border: 1.5px solid var(--border); border-radius: 100px;
+  cursor: pointer; flex-shrink: 0; font-size: 12px; font-family: 'Courier New', monospace;
+  color: var(--text); transition: all 0.15s; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.preset-chip:active { transform: scale(0.92); }
+.preset-chip:hover { border-color: var(--accent2); color: var(--accent2); }
+.preset-chip .preset-del { color: var(--muted); font-size: 10px; margin-left: 4px; line-height: 1; }
+.preset-chip .preset-del:hover { color: var(--red); }
+.preset-chip.save { border-style: dashed; color: var(--muted); border-color: var(--muted); }
+.preset-chip.save:hover { border-color: var(--accent2); color: var(--accent2); }
+
+/* ===== ONBOARDING ===== */
+@keyframes obSlideIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes obGlow { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+#page-onboarding { display: none; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 32px 24px 48px; max-width: 480px; margin: 0 auto; position: relative; z-index: 1; }
+#page-onboarding.active { display: flex; }
+.ob-slide { display: none; flex-direction: column; align-items: center; text-align: center; animation: obSlideIn 0.4s ease both; width: 100%; }
+.ob-slide.active { display: flex; }
+.ob-emoji { font-size: 72px; margin-bottom: 18px; filter: drop-shadow(0 0 24px rgba(168,85,247,0.5)); }
+.ob-title { font-size: 28px; font-weight: 900; color: var(--text); margin-bottom: 8px; }
+.ob-sub { font-size: 12px; color: var(--accent2); font-family: 'Courier New', monospace; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+.ob-body { font-size: 15px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; max-width: 340px; }
+.ob-dots { display: flex; gap: 8px; margin: 24px 0 32px; }
+.ob-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+.ob-dot.active { background: var(--accent2); transform: scale(1.3); box-shadow: 0 0 8px rgba(168,85,247,0.6); }
+.ob-zone-bar { display: flex; height: 20px; border-radius: 10px; overflow: hidden; width: 100%; margin: 12px 0 8px; }
+.ob-zone-seg { display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 800; letter-spacing: 0.5px; color: rgba(255,255,255,0.8); font-family: 'Courier New', monospace; }
+.ob-check-wrap { display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 24px; }
+.ob-check-row { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s; text-align: left; }
+.ob-check-row:hover { border-color: var(--accent2); }
+.ob-check-row input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent2); flex-shrink: 0; cursor: pointer; }
+.ob-check-label { font-size: 14px; color: var(--text); line-height: 1.4; }
+.ob-btn-row { display: flex; gap: 12px; width: 100%; }
+.ob-next-btn { flex: 1; padding: 15px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: white; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.15s; }
+.ob-next-btn:active { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -441,6 +483,65 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
     <div class="conn-dot"></div>
   </div>
   <button onclick="leaveLobby()" style="margin-top:32px;background:none;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12px;font-family:inherit;padding:8px 18px;cursor:pointer" data-i18n="connOverlayLeave">Sair da sala</button>
+</div>
+
+<!-- ===== ONBOARDING ===== -->
+<div id="page-onboarding" class="page">
+  <div id="onboard-content" style="display:flex;flex-direction:column;align-items:center;width:100%">
+
+    <!-- Slide 0 -->
+    <div class="ob-slide active" id="ob-slide-0">
+      <div class="ob-emoji">🍺</div>
+      <div class="ob-title">Bem-vindo ao 100PT</div>
+      <div class="ob-sub">curta da maneira certa</div>
+      <div class="ob-body">Acompanhe seu nível de álcool em tempo real. Festas mais divertidas e mais seguras.</div>
+    </div>
+
+    <!-- Slide 1 -->
+    <div class="ob-slide" id="ob-slide-1">
+      <div class="ob-emoji">📊</div>
+      <div class="ob-title">O que é BAC?</div>
+      <div class="ob-body">BAC é a concentração de álcool no sangue. Calculamos com seu peso, sexo e o que você bebeu. Os resultados são estimativas — não valores clínicos.</div>
+      <div class="ob-zone-bar">
+        <div class="ob-zone-seg" style="flex:12;background:#475569">SÓBRIO</div>
+        <div class="ob-zone-seg" style="flex:16;background:#22c55e">ALTO</div>
+        <div class="ob-zone-seg" style="flex:20;background:#eab308">FLOW</div>
+        <div class="ob-zone-seg" style="flex:24;background:#f97316">BÊB</div>
+        <div class="ob-zone-seg" style="flex:28;background:#ef4444">💀</div>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="ob-slide" id="ob-slide-2">
+      <div class="ob-emoji">⚠️</div>
+      <div class="ob-title">Responsabilidade</div>
+      <div class="ob-body">Nunca dirija sob efeito de álcool. Este app é um estimador e não substitui bom senso.</div>
+      <div class="ob-check-wrap">
+        <label class="ob-check-row">
+          <input type="checkbox" id="ob-age">
+          <span class="ob-check-label">Tenho 18 anos ou mais</span>
+        </label>
+        <label class="ob-check-row">
+          <input type="checkbox" id="ob-est">
+          <span class="ob-check-label">Entendi que os valores são estimativas</span>
+        </label>
+      </div>
+      <button class="ob-next-btn" onclick="obFinish()" style="width:100%">Começar 🍺</button>
+    </div>
+
+    <!-- Progress dots -->
+    <div class="ob-dots">
+      <div class="ob-dot active" id="ob-dot-0"></div>
+      <div class="ob-dot" id="ob-dot-1"></div>
+      <div class="ob-dot" id="ob-dot-2"></div>
+    </div>
+
+    <!-- Nav button (hidden on slide 2) -->
+    <div class="ob-btn-row" id="ob-nav-row">
+      <button class="ob-next-btn" onclick="obNext()">→</button>
+    </div>
+
+  </div>
 </div>
 
 <!-- ===== SPLASH ===== -->
@@ -638,6 +739,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <div class="card-title" data-i18n="addDrinkTitle">// Adicionar bebida</div>
+  <div id="preset-wrap">
+    <div class="preset-scroll" id="preset-scroll"></div>
+  </div>
   <div class="cup-scroll" id="cup-scroll"></div>
 
   <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
@@ -714,7 +818,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
   <div class="card-title" style="margin-bottom:10px" data-i18n="reportChartTitle">// BAC ao longo da festa</div>
   <canvas id="report-chart" style="width:100%;border-radius:12px;display:block"></canvas>
-  <div id="report-chart-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:18px"></div>
+  <div id="report-chart-legend" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;margin-bottom:12px"></div>
+  <button onclick="shareReport()" style="width:100%;padding:12px;background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:12px;color:var(--accent2);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:18px;transition:all 0.15s" onmouseover="this.style.background='rgba(168,85,247,0.2)'" onmouseout="this.style.background='rgba(168,85,247,0.1)'">📤 Compartilhar relatório</button>
   <div class="card-title" style="margin-bottom:10px" data-i18n="reportFinalTitle">// Resultado final</div>
   <div id="report-players"></div>
   <div style="height:40px"></div>
@@ -999,6 +1104,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+// ===== VAPID =====
+const VAPID_PUBLIC = 'BHjszq30GvbpiSDrx2MJrpdqZjfbU4r680Rqtu7jakp3iBC9WXWyrmGgnxOH79nt_Q3s_mDA-UVjX4BxhSsvar8';
+
 // ===== CONSTANTS =====
 const AVATARS = ['🦁','🐻','🦊','🐼','🐨','🦋','🦅','🐬','🦄','🐸','🐯','🦝','🐺','🦖','🐒','🦍'];
 const COLORS  = ['#7c3aed','#2563eb','#16a34a','#dc2626','#ea580c','#db2777','#0891b2','#ca8a04','#0f766e','#475569'];
@@ -1474,7 +1582,7 @@ function navTo(page) {
   if (page === 'home') renderHome();
   if (page === 'history') renderHistory();
   if (page === 'lobby') renderLobby();
-  if (page === 'monitor') renderMonitor();
+  if (page === 'monitor') { renderMonitor(); if (party && !isSolo) registerPush(); }
   if (page === 'ranking') renderRanking();
   if (page === 'hookups') renderHookups();
   if (page === 'report') { /* rendered by showReport */ }
@@ -1671,6 +1779,7 @@ async function startParty() {
     await supabaseClient.from('players').update({ joined_at: now }).eq('party_id', party.id);
     party.status = 'active'; party.startTime = now;
     party.players.forEach(p => { if (!p.joinedAt) p.joinedAt = now; });
+    sendPartyPush('🎉 Festa começou!', party.name + ' tá rolando!', 'start');
     navTo('monitor');
   }
 }
@@ -2294,7 +2403,7 @@ function renderMonitor() {
   }
 
   if (!_drinkSectionReady) initDrinkSection();
-  else updateAddPreview();
+  else { renderPresets(); updateAddPreview(); }
 
   // SOS indicator
   const meSos = me.sos;
@@ -2368,6 +2477,66 @@ function renderRanking() {
   }
 }
 
+// ===== PRESETS =====
+function renderPresets() {
+  const wrap = document.getElementById('preset-scroll');
+  if (!wrap) return;
+  let presets = [];
+  try { presets = JSON.parse(localStorage.getItem('pre_drink_presets') || '[]'); } catch(e) {}
+  const chips = presets.map((p, i) =>
+    `<div class="preset-chip" onclick="applyPreset(${i})">
+      ${esc(p.label)}
+      <span class="preset-del" onclick="event.stopPropagation();deletePreset(${i})">✕</span>
+    </div>`
+  ).join('');
+  const saveChip = presets.length < 5
+    ? `<div class="preset-chip save" onclick="savePreset()">+ Salvar</div>`
+    : '';
+  wrap.innerHTML = chips + saveChip;
+}
+
+function applyPreset(idx) {
+  let presets = [];
+  try { presets = JSON.parse(localStorage.getItem('pre_drink_presets') || '[]'); } catch(e) {}
+  const p = presets[idx];
+  if (!p) return;
+  _selCup = p.cup;
+  _selDrinkType = p.drinkType;
+  _fillPct = p.fillPct;
+  // update UI selectors
+  document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
+  const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${p.cup}',this)"]`);
+  if (chipEl) chipEl.classList.add('selected');
+  const sel = document.getElementById('drink-type-select');
+  if (sel) sel.value = p.drinkType;
+  const slider = document.getElementById('fill-slider');
+  if (slider) slider.value = p.fillPct;
+  updateAddPreview();
+  toast('Preset aplicado ✓');
+}
+
+function savePreset() {
+  let presets = [];
+  try { presets = JSON.parse(localStorage.getItem('pre_drink_presets') || '[]'); } catch(e) {}
+  if (presets.length >= 5) { toast('Máximo de 5 presets'); return; }
+  const cup = CUPS.find(c => c.id === _selCup) || CUPS[1];
+  const dt = DRINK_TYPES.find(d => d.id === _selDrinkType) || DRINK_TYPES[0];
+  const label = cup.emoji + ' ' + dt.label + ' ' + _fillPct + '%';
+  const preset = { id: Date.now().toString(36), label, cup: _selCup, drinkType: _selDrinkType, fillPct: _fillPct };
+  presets.push(preset);
+  try { localStorage.setItem('pre_drink_presets', JSON.stringify(presets)); } catch(e) {}
+  renderPresets();
+  toast('Preset salvo ✓');
+}
+
+function deletePreset(idx) {
+  let presets = [];
+  try { presets = JSON.parse(localStorage.getItem('pre_drink_presets') || '[]'); } catch(e) {}
+  presets.splice(idx, 1);
+  try { localStorage.setItem('pre_drink_presets', JSON.stringify(presets)); } catch(e) {}
+  renderPresets();
+}
+
 // ===== ADD DRINK SECTION =====
 function initDrinkSection() {
   _drinkSectionReady = true;
@@ -2381,6 +2550,7 @@ function initDrinkSection() {
   sel.innerHTML = DRINK_TYPES.map(d=>`<option value="${d.id}">${d.label} (${d.pct}%)</option>`).join('');
   sel.value = _selDrinkType;
   document.getElementById('fill-slider').value = _fillPct;
+  renderPresets();
   updateAddPreview();
 }
 
@@ -2454,6 +2624,7 @@ async function confirmSOS() {
   const me = getMyPlayer();
   if (me) me.sos = true;
   sendSOSNotification(myProfile);
+  sendPartyPush('🚨 ' + myProfile.name + ' deu PT!', 'Vai lá ajudar!', 'sos');
   renderMonitor();
   toast(t('toastSOSSent'), 3000);
 }
@@ -2495,6 +2666,7 @@ async function sendShout() {
     player: { name: myProfile.name, avatar: myProfile.avatar, color: myProfile.color },
     text, ts: Date.now()
   }});
+  sendPartyPush('📣 ' + myProfile.name, text, 'shout');
   toast(t('shoutSent'));
 }
 function showShoutAlert(payload) {
@@ -2515,6 +2687,152 @@ function showShoutAlert(payload) {
 
 // ===== LEAVE PARTY =====
 function confirmLeaveParty() { openModal('modal-leave'); }
+
+// ===== ONBOARDING =====
+let _obSlide = 0;
+
+function renderOnboarding() {
+  _obSlide = 0;
+  document.querySelectorAll('.ob-slide').forEach((el, i) => el.classList.toggle('active', i === 0));
+  document.querySelectorAll('.ob-dot').forEach((el, i) => el.classList.toggle('active', i === 0));
+  const navRow = document.getElementById('ob-nav-row');
+  if (navRow) navRow.style.display = '';
+}
+
+function obNext() {
+  if (_obSlide >= 2) return;
+  _obSlide++;
+  document.querySelectorAll('.ob-slide').forEach((el, i) => el.classList.toggle('active', i === _obSlide));
+  document.querySelectorAll('.ob-dot').forEach((el, i) => el.classList.toggle('active', i === _obSlide));
+  const navRow = document.getElementById('ob-nav-row');
+  if (navRow) navRow.style.display = _obSlide >= 2 ? 'none' : '';
+}
+
+function obFinish() {
+  const age = document.getElementById('ob-age');
+  const est = document.getElementById('ob-est');
+  if (!age?.checked) { toast('Confirme sua idade para continuar 👆'); return; }
+  if (!est?.checked) { toast('Confirme que entendeu as estimativas 👆'); return; }
+  localStorage.setItem('pre_onboarded', '1');
+  // continue to profile-setup or home
+  if (!myProfile) { navTo('profile-setup'); renderProfileSetup(); }
+  else { navTo('home'); }
+}
+
+// ===== SHARE REPORT =====
+async function shareReport() {
+  const canvas = document.getElementById('report-chart');
+  if (!canvas || !party) return;
+  try {
+    const W = 600, H = 440;
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const ctx = off.getContext('2d');
+    // dark background
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, W, H);
+    // header text
+    ctx.fillStyle = '#a855f7';
+    ctx.font = 'bold 22px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('100PT — ' + party.name, W / 2, 38);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '13px monospace';
+    const endTime = party.endTime || Date.now();
+    const startTime = party.startTime || (endTime - 3600000);
+    ctx.fillText(fmtDate(startTime) + ' · ' + fmtDuration(endTime - startTime), W / 2, 60);
+    // draw chart canvas
+    const chartH = 220;
+    const cW = W - 32;
+    ctx.drawImage(canvas, 16, 80, cW, chartH);
+    // player results below chart
+    const sorted = [...party.players].sort((a, b) => calcMaxBac(b, startTime, endTime) - calcMaxBac(a, startTime, endTime));
+    ctx.textAlign = 'left';
+    let yOff = 80 + chartH + 24;
+    sorted.slice(0, 5).forEach((p, i) => {
+      const peak = calcMaxBac(p, startTime, endTime);
+      const lv = bacLevel(peak);
+      ctx.fillStyle = p.profile?.color || '#7c3aed';
+      ctx.font = 'bold 14px monospace';
+      ctx.fillText(['🥇','🥈','🥉'][i] || (i+1)+'.', 20, yOff);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(p.profile?.name || '?', 50, yOff);
+      ctx.fillStyle = lv.color;
+      ctx.textAlign = 'right';
+      ctx.fillText(peak.toFixed(3) + '%', W - 20, yOff);
+      ctx.textAlign = 'left';
+      yOff += 22;
+    });
+    // footer
+    ctx.fillStyle = '#2a2a3d';
+    ctx.font = '11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('100PT · Estimador de BAC', W / 2, H - 10);
+
+    off.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], '100PT-relatorio.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: '100PT - ' + party.name });
+          return;
+        } catch(e) { if (e.name === 'AbortError') return; }
+      }
+      // fallback: download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = '100PT-relatorio.png';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }, 'image/png');
+  } catch(e) {
+    toast('Erro ao compartilhar 😕');
+    console.error('shareReport error', e);
+  }
+}
+
+// ===== WEB PUSH =====
+function urlBase64ToUint8Array(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function registerPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  try {
+    const reg = await navigator.serviceWorker.register('/Drink-Battle/sw.js');
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+      });
+    }
+    if (party && myProfile) {
+      await supabaseClient.from('push_subscriptions').upsert({
+        id: myProfile.id + '_' + (party?.id || 'solo'),
+        party_id: party?.id || '',
+        player_id: myProfile.id,
+        subscription: sub.toJSON(),
+        created_at: Date.now()
+      });
+    }
+  } catch(e) { console.warn('push registration failed', e); }
+}
+
+async function sendPartyPush(title, body, tag) {
+  if (!party?.id || isSolo) return;
+  try {
+    await fetch(SUPABASE_URL + '/functions/v1/send-push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+      body: JSON.stringify({ party_id: party.id, title, body, tag })
+    });
+  } catch(e) {}
+}
 
 // Refresh BAC every 30s
 setInterval(() => {

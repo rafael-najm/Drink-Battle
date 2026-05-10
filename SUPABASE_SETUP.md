@@ -74,6 +74,16 @@ create policy "open" on players  for all using (true) with check (true);
 create policy "open" on drinks   for all using (true) with check (true);
 create policy "open" on hookups  for all using (true) with check (true);
 
+create table push_subscriptions (
+  id text primary key,
+  party_id text not null,
+  player_id text not null,
+  subscription jsonb not null,
+  created_at bigint
+);
+alter table push_subscriptions enable row level security;
+create policy "open" on push_subscriptions for all using (true) with check (true);
+
 -- Enable Realtime
 alter publication supabase_realtime add table parties;
 alter publication supabase_realtime add table players;
