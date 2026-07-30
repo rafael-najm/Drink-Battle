@@ -129,6 +129,12 @@ of caution.
 
 Write "advice": one or two short sentences, in ${langName}, casual party tone,
 speaking directly to them (tu/você), about THIS drink in THEIR situation.
+
+Do NOT name or describe the drink in the advice — the app never shows the user
+what you identified, because a wrong name discredits an otherwise good
+measurement. Refer to it generically ("essa", "esse copo", "essa dose" /
+"this one", "this glass"). Talk about pace, water, food and their goal instead.
+
 Ground it in their goal and their current BAC:
 - Well below their goal → say roughly how this drink moves them toward it
   (e.g. how much of the gap it closes, or how many more like it they'd need).
@@ -148,7 +154,9 @@ Reply with ONLY a valid JSON object, no markdown, no extra text:
 {
   "cup": one of [${Object.keys(CUPS).join(', ')}] — the closest match for an icon,
   "drinkType": one of [${Object.keys(DRINK_TYPES).join(', ')}] — the closest match for a label,
-  "drinkName": short name of what it actually is, in ${langName} (e.g. "Vodka com suco"),
+  "drinkName": short name of what it actually is, in ${langName} (e.g. "Vodka com suco").
+               Naming it helps you settle on the right ABV, but the app does not
+               show it to the user, so never rely on it being read,
   "capacityMl": integer, container's full capacity,
   "fillPct": integer 10-100,
   "volumeMl": integer, actual liquid volume,
@@ -211,6 +219,7 @@ export function normalizeResult(parsed: any) {
 
   return {
     cup, drinkType,
+    // Returned for logs/debugging only — the UI deliberately never renders it.
     drinkName: str(parsed.drinkName, 60),
     capacityMl, fillPct, volumeMl, abvPct, alcoholGrams,
     preparation: ['neat', 'mixed', 'brewed'].includes(parsed.preparation) ? parsed.preparation : 'mixed',

@@ -2711,10 +2711,11 @@ function applyScanResult(data) {
   const volumeMl = Math.round(Number(data.volumeMl));
   const abvPct = Number(data.abvPct);
   _scanEstimate = (Number.isFinite(volumeMl) && volumeMl > 0 && Number.isFinite(abvPct) && abvPct >= 0)
-    ? { volumeMl, abvPct, drinkName: data.drinkName || '', confidence: data.confidence || 'medium' }
+    ? { volumeMl, abvPct, confidence: data.confidence || 'medium' }
     : null;
 
-  openManualDrink();
+  // The result card carries its own Add button, so the manual panel stays shut:
+  // it is the one place that would spell out which drink the model guessed.
   document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
   const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${_selCup}',this)"]`);
   if (chipEl) chipEl.classList.add('selected');
@@ -2727,6 +2728,9 @@ function applyScanResult(data) {
   updateAddPreview();
 }
 
+// Deliberately shows only the measurement, never which drink the model thought
+// it was. Naming the drink is the easiest thing to get visibly wrong, and a
+// wrong name discredits a volume/ABV estimate that was actually fine.
 function renderScanResult(data) {
   const box = document.getElementById('scan-result');
   if (!box) return;
@@ -2734,21 +2738,23 @@ function renderScanResult(data) {
   const grams = Number.isFinite(Number(data.alcoholGrams))
     ? Number(data.alcoholGrams)
     : (est ? Math.round(est.volumeMl * est.abvPct / 100 * 0.789 * 10) / 10 : 0);
-  const name = (est?.drinkName) || (DRINK_TYPES.find(d => d.id === _selDrinkType)?.label || '');
   const confLabel = { high: t('scanConfHigh'), low: t('scanConfLow') }[data.confidence] || t('scanConfMedium');
   const doses = Math.round(grams / 14 * 10) / 10;
 
   box.innerHTML = `
-    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px">
-      <div style="font-size:15px;font-weight:900">${esc(name)}</div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px">
+      <div>
+        <span style="font-size:22px;font-weight:900;font-family:'Courier New',monospace">${est ? est.volumeMl : 0}<span style="font-size:13px">ml</span></span>
+        <span style="color:var(--muted);margin:0 6px">·</span>
+        <span style="font-size:22px;font-weight:900;font-family:'Courier New',monospace;color:var(--accent2)">${est ? est.abvPct : 0}<span style="font-size:13px">%</span></span>
+      </div>
       <div style="font-size:9px;color:var(--muted);font-family:'Courier New',monospace;white-space:nowrap">${esc(confLabel)}</div>
     </div>
-    <div style="font-family:'Courier New',monospace;font-size:12px;color:var(--accent2);margin-bottom:8px">
-      ${est ? est.volumeMl : 0}ml · ${est ? est.abvPct : 0}% · <strong>${grams}g</strong> ${t('scanAlcoholWord')}
-      <span style="color:var(--muted)"> (~${doses} ${t('scanDosesWord')})</span>
+    <div style="font-family:'Courier New',monospace;font-size:11px;color:var(--muted);margin-bottom:8px">
+      = ${grams}g ${t('scanAlcoholWord')} (~${doses} ${t('scanDosesWord')})
     </div>
-    ${data.note ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${esc(data.note)}</div>` : ''}
-    ${data.advice ? `<div style="font-size:13px;line-height:1.45;border-top:1px solid var(--border);padding-top:8px">💡 ${esc(data.advice)}</div>` : ''}
+    ${data.advice ? `<div style="font-size:13px;line-height:1.45;border-top:1px solid var(--border);padding-top:8px;margin-bottom:12px">💡 ${esc(data.advice)}</div>` : ''}
+    <button class="btn-primary" onclick="confirmAddDrink()" style="margin:0">${t('addBtn')}</button>
   `;
   box.style.display = 'block';
 }
@@ -2769,8 +2775,8 @@ function currentDrinkAmount() {
   const ml = _scanEstimate ? _scanEstimate.volumeMl : Math.round(cup.ml * _fillPct / 100);
   const pct = _scanEstimate ? _scanEstimate.abvPct : dt.pct;
   const grams = Math.round(ml * pct / 100 * 0.789 * 10) / 10;
-  const label = (_scanEstimate?.drinkName) || dt.label;
-  return { cup, dt, ml, pct, grams, label };
+  // Always the preset's own name — never the model's guess at what the drink is.
+  return { cup, dt, ml, pct, grams, label: dt.label };
 }
 
 function updateAddPreview() {
@@ -2780,7 +2786,13 @@ function updateAddPreview() {
   const fillEl = document.getElementById('fill-display');
   if (fillEl) fillEl.textContent = _fillPct + '%';
   const prev = document.getElementById('add-preview');
-  if (prev) prev.textContent = `${amt.cup.emoji} ${amt.ml}ml de ${amt.label} ${amt.pct}% = ${amt.grams}g álcool`;
+  // After a scan the line stays purely numeric — the drink's identity is the
+  // model's weakest output, so it never gets asserted back to the user.
+  if (prev) {
+    prev.textContent = _scanEstimate
+      ? `${amt.cup.emoji} ${amt.ml}ml · ${amt.pct}% = ${amt.grams}g álcool`
+      : `${amt.cup.emoji} ${amt.ml}ml de ${amt.label} ${amt.pct}% = ${amt.grams}g álcool`;
+  }
 }
 
 function confirmAddDrink() {
