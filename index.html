@@ -739,23 +739,35 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
 
   <div class="card-title" data-i18n="addDrinkTitle">// Adicionar bebida</div>
-  <div id="preset-wrap">
-    <div class="preset-scroll" id="preset-scroll"></div>
+
+  <div class="action-card solo" id="scan-drink-btn" onclick="document.getElementById('scan-drink-input').click()" style="margin-bottom:10px;text-align:center;padding:22px">
+    <div class="action-card-emoji" id="scan-drink-emoji">📸</div>
+    <div class="action-card-title" id="scan-drink-title" data-i18n="scanDrinkBtn">Escanear copo com IA</div>
+    <div class="action-card-sub" data-i18n="scanDrinkSub">// tira uma foto e a IA preenche pra você</div>
   </div>
-  <button class="btn-secondary" id="scan-drink-btn" onclick="document.getElementById('scan-drink-input').click()" style="width:100%;font-size:13px;padding:12px;margin-bottom:10px" data-i18n="scanDrinkBtn">📸 Escanear copo com IA</button>
   <input type="file" id="scan-drink-input" accept="image/*" capture="environment" style="display:none" onchange="onScanDrinkPhoto(this)">
 
-  <div class="cup-scroll" id="cup-scroll"></div>
-
-  <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
-
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-    <span style="font-size:13px;font-weight:500;color:var(--text)" data-i18n="fillQuestion">Quanto tem no copo?</span>
-    <span id="fill-display" style="font-family:'Courier New',monospace;font-size:20px;font-weight:900;color:var(--accent2)">100%</span>
+  <div style="text-align:center;margin-bottom:14px">
+    <button id="manual-drink-toggle" onclick="toggleManualDrink()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Courier New',monospace;cursor:pointer;padding:6px;text-decoration:underline" data-i18n="manualDrinkShow">✏️ ou ajustar manualmente</button>
   </div>
-  <input type="range" class="fill-slider" id="fill-slider" min="10" max="100" step="5" value="100" oninput="onFillChange(this.value)">
-  <div id="add-preview" style="text-align:center;font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin:10px 0 12px"></div>
-  <button class="btn-primary" onclick="confirmAddDrink()" data-i18n="addBtn">➕ Adicionar</button>
+
+  <div id="manual-drink-section" style="display:none">
+    <div id="preset-wrap">
+      <div class="preset-scroll" id="preset-scroll"></div>
+    </div>
+
+    <div class="cup-scroll" id="cup-scroll"></div>
+
+    <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:500;color:var(--text)" data-i18n="fillQuestion">Quanto tem no copo?</span>
+      <span id="fill-display" style="font-family:'Courier New',monospace;font-size:20px;font-weight:900;color:var(--accent2)">100%</span>
+    </div>
+    <input type="range" class="fill-slider" id="fill-slider" min="10" max="100" step="5" value="100" oninput="onFillChange(this.value)">
+    <div id="add-preview" style="text-align:center;font-size:11px;color:var(--muted);font-family:'Courier New',monospace;margin:10px 0 12px"></div>
+    <button class="btn-primary" onclick="confirmAddDrink()" data-i18n="addBtn">➕ Adicionar</button>
+  </div>
   <br><br>
 
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1167,8 +1179,10 @@ const STRINGS = {
     zoneSober: 'SÓBRIO', zoneBuzzed: 'ALTO', zoneFlow: 'FLOW', zoneDrunk: 'BÊB',
     youLabel: 'você:', goalLabel: 'meta: —',
     addDrinkTitle: '// Adicionar bebida', fillQuestion: 'Quanto tem no copo?', addBtn: '➕ Adicionar',
-    scanDrinkBtn: '📸 Escanear copo com IA', scanDrinkBusy: '🔎 Analisando...',
+    scanDrinkBtn: 'Escanear copo com IA', scanDrinkBusy: '🔎 Analisando...',
+    scanDrinkSub: '// tira uma foto e a IA preenche pra você',
     scanDrinkDone: 'IA ajustou sua bebida — confira antes de adicionar', scanDrinkError: 'Não rolou escanear 😕 tenta de novo ou ajusta na mão',
+    manualDrinkShow: '✏️ ou ajustar manualmente', manualDrinkHide: '▲ ocultar ajuste manual',
     drinkHistTitle: '// Histórico',
     sosBtn: '🚨 DEI PT — preciso de ajuda', sosBtnActive: '🚨 DEI PT — ajuda a caminho...',
     soloExitBtn: '← Sair do modo solo',
@@ -1250,8 +1264,10 @@ const STRINGS = {
     zoneSober: 'SOBER', zoneBuzzed: 'BUZZED', zoneFlow: 'FLOW', zoneDrunk: 'DRUNK',
     youLabel: 'you:', goalLabel: 'goal: —',
     addDrinkTitle: '// Add drink', fillQuestion: 'How full is the cup?', addBtn: '➕ Add',
-    scanDrinkBtn: '📸 Scan cup with AI', scanDrinkBusy: '🔎 Analyzing...',
+    scanDrinkBtn: 'Scan cup with AI', scanDrinkBusy: '🔎 Analyzing...',
+    scanDrinkSub: '// snap a photo and let AI fill it in',
     scanDrinkDone: 'AI set your drink — double-check before adding', scanDrinkError: "Scan didn't work 😕 try again or set it manually",
+    manualDrinkShow: '✏️ or set it manually', manualDrinkHide: '▲ hide manual setup',
     drinkHistTitle: '// History',
     sosBtn: "🚨 I'M WASTED — I need help", sosBtnActive: "🚨 I'M WASTED — help is coming...",
     soloExitBtn: '← Exit solo mode',
@@ -2573,10 +2589,26 @@ function onFillChange(val) {
   updateAddPreview();
 }
 
+function openManualDrink() {
+  document.getElementById('manual-drink-section').style.display = 'block';
+  const toggle = document.getElementById('manual-drink-toggle');
+  if (toggle) toggle.textContent = t('manualDrinkHide');
+}
+function closeManualDrink() {
+  document.getElementById('manual-drink-section').style.display = 'none';
+  const toggle = document.getElementById('manual-drink-toggle');
+  if (toggle) toggle.textContent = t('manualDrinkShow');
+}
+function toggleManualDrink() {
+  const open = document.getElementById('manual-drink-section').style.display !== 'none';
+  if (open) closeManualDrink(); else openManualDrink();
+}
+
 function onScanDrinkPhoto(input) {
   const file = input.files[0];
   if (!file) return;
-  const btn = document.getElementById('scan-drink-btn');
+  const card = document.getElementById('scan-drink-btn');
+  const title = document.getElementById('scan-drink-title');
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
@@ -2589,7 +2621,8 @@ function onScanDrinkPhoto(input) {
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       input.value = '';
-      if (btn) { btn.disabled = true; btn.textContent = t('scanDrinkBusy'); }
+      if (card) { card.style.pointerEvents = 'none'; card.style.opacity = '0.6'; }
+      if (title) title.textContent = t('scanDrinkBusy');
       try {
         const res = await fetch(SUPABASE_URL + '/functions/v1/scan-drink', {
           method: 'POST',
@@ -2602,8 +2635,10 @@ function onScanDrinkPhoto(input) {
       } catch (err) {
         console.warn('scan-drink failed', err);
         toast(t('scanDrinkError'), 2500);
+        openManualDrink();
       } finally {
-        if (btn) { btn.disabled = false; btn.textContent = t('scanDrinkBtn'); }
+        if (card) { card.style.pointerEvents = ''; card.style.opacity = ''; }
+        if (title) title.textContent = t('scanDrinkBtn');
       }
     };
     img.src = e.target.result;
@@ -2617,6 +2652,7 @@ function applyScanResult(data) {
   const fillPct = parseInt(data.fillPct, 10);
   if (Number.isFinite(fillPct)) _fillPct = Math.max(10, Math.min(100, fillPct));
 
+  openManualDrink();
   document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
   const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${_selCup}',this)"]`);
   if (chipEl) chipEl.classList.add('selected');
