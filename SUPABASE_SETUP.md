@@ -130,3 +130,38 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
 
 Deploy `index.html` to any static host (GitHub Pages, Netlify, Vercel, etc.).  
 No server needed — Supabase handles everything.
+
+## 6. AI cup scanner (optional)
+
+The "📸 Escanear copo com IA" button on the add-drink screen sends a photo to a
+Supabase Edge Function (`supabase/functions/scan-drink`), which calls a vision
+model on [OpenRouter](https://openrouter.ai) to guess the cup type, drink type
+and fill level. **The OpenRouter API key never goes in `index.html`** — it's a
+static frontend anyone can view-source, so any key placed there would be
+public. Instead it's kept as a server-side secret on the Edge Function.
+
+1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli) and log in:
+   ```bash
+   supabase login
+   supabase link --project-ref <your-project-ref>
+   ```
+2. Set your OpenRouter key as a function secret (never commit it to git):
+   ```bash
+   supabase secrets set OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
+   ```
+3. (Optional) pick a different vision-capable model, default is
+   `google/gemini-2.0-flash-001`:
+   ```bash
+   supabase secrets set OPENROUTER_MODEL=some/other-vision-model
+   ```
+4. Deploy the function:
+   ```bash
+   supabase functions deploy scan-drink
+   ```
+
+That's it — the button will start working once the function is deployed and
+the secret is set. If the key is ever pasted somewhere public (chat, a
+screenshot, a public repo), rotate it immediately in the OpenRouter dashboard.
+
+This is a fun estimate for the party, not a precise or medical/legal
+measurement of alcohol content or intoxication.

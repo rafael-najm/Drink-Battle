@@ -742,6 +742,9 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   <div id="preset-wrap">
     <div class="preset-scroll" id="preset-scroll"></div>
   </div>
+  <button class="btn-secondary" id="scan-drink-btn" onclick="document.getElementById('scan-drink-input').click()" style="width:100%;font-size:13px;padding:12px;margin-bottom:10px" data-i18n="scanDrinkBtn">📸 Escanear copo com IA</button>
+  <input type="file" id="scan-drink-input" accept="image/*" capture="environment" style="display:none" onchange="onScanDrinkPhoto(this)">
+
   <div class="cup-scroll" id="cup-scroll"></div>
 
   <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
@@ -1164,6 +1167,8 @@ const STRINGS = {
     zoneSober: 'SÓBRIO', zoneBuzzed: 'ALTO', zoneFlow: 'FLOW', zoneDrunk: 'BÊB',
     youLabel: 'você:', goalLabel: 'meta: —',
     addDrinkTitle: '// Adicionar bebida', fillQuestion: 'Quanto tem no copo?', addBtn: '➕ Adicionar',
+    scanDrinkBtn: '📸 Escanear copo com IA', scanDrinkBusy: '🔎 Analisando...',
+    scanDrinkDone: 'IA ajustou sua bebida — confira antes de adicionar', scanDrinkError: 'Não rolou escanear 😕 tenta de novo ou ajusta na mão',
     drinkHistTitle: '// Histórico',
     sosBtn: '🚨 DEI PT — preciso de ajuda', sosBtnActive: '🚨 DEI PT — ajuda a caminho...',
     soloExitBtn: '← Sair do modo solo',
@@ -1245,6 +1250,8 @@ const STRINGS = {
     zoneSober: 'SOBER', zoneBuzzed: 'BUZZED', zoneFlow: 'FLOW', zoneDrunk: 'DRUNK',
     youLabel: 'you:', goalLabel: 'goal: —',
     addDrinkTitle: '// Add drink', fillQuestion: 'How full is the cup?', addBtn: '➕ Add',
+    scanDrinkBtn: '📸 Scan cup with AI', scanDrinkBusy: '🔎 Analyzing...',
+    scanDrinkDone: 'AI set your drink — double-check before adding', scanDrinkError: "Scan didn't work 😕 try again or set it manually",
     drinkHistTitle: '// History',
     sosBtn: "🚨 I'M WASTED — I need help", sosBtnActive: "🚨 I'M WASTED — help is coming...",
     soloExitBtn: '← Exit solo mode',
@@ -2564,6 +2571,63 @@ function selectCupChip(id, el) {
 function onFillChange(val) {
   _fillPct = parseInt(val);
   updateAddPreview();
+}
+
+function onScanDrinkPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const btn = document.getElementById('scan-drink-btn');
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      const maxDim = 768;
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      input.value = '';
+      if (btn) { btn.disabled = true; btn.textContent = t('scanDrinkBusy'); }
+      try {
+        const res = await fetch(SUPABASE_URL + '/functions/v1/scan-drink', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+          body: JSON.stringify({ image: dataUrl })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || 'scan failed');
+        applyScanResult(data);
+      } catch (err) {
+        console.warn('scan-drink failed', err);
+        toast(t('scanDrinkError'), 2500);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = t('scanDrinkBtn'); }
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyScanResult(data) {
+  if (CUPS.find(c => c.id === data.cup)) _selCup = data.cup;
+  if (DRINK_TYPES.find(d => d.id === data.drinkType)) _selDrinkType = data.drinkType;
+  const fillPct = parseInt(data.fillPct, 10);
+  if (Number.isFinite(fillPct)) _fillPct = Math.max(10, Math.min(100, fillPct));
+
+  document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
+  const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${_selCup}',this)"]`);
+  if (chipEl) chipEl.classList.add('selected');
+  const sel = document.getElementById('drink-type-select');
+  if (sel) sel.value = _selDrinkType;
+  const slider = document.getElementById('fill-slider');
+  if (slider) slider.value = _fillPct;
+  const fillEl = document.getElementById('fill-display');
+  if (fillEl) fillEl.textContent = _fillPct + '%';
+  updateAddPreview();
+  toast((data.note ? data.note + ' — ' : '') + t('scanDrinkDone'), 3000);
 }
 
 function updateAddPreview() {
