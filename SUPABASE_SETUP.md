@@ -167,5 +167,31 @@ That's it — the button will start working once the function is deployed and
 the secret is set. If the key is ever pasted somewhere public (chat, a
 screenshot, a public repo), rotate it immediately in the OpenRouter dashboard.
 
+### How the alcohol estimate works
+
+The model does not just pick a cup preset. It estimates the container's
+capacity, the fill level, the actual liquid volume, and — most importantly —
+the ABV **of the mixture in the glass**, which is what `alcoholGrams` and the
+app's BAC math are built from.
+
+That last point is the whole game: a tall glass of vodka + juice is roughly
+8%, not the 40% of the bottle it came from. Reading it as 40% overstates the
+alcohol by about 5x. The function defends against this in two places: the
+prompt makes the model commit to a `preparation` ("neat" / "mixed" / "brewed")
+before giving an ABV, and `normalizeResult()` rejects the physically impossible
+combination of spirit-strength ABV in a volume larger than a neat pour
+(> 120 ml), falling back to the strong end of the mixed range and marking the
+result low-confidence so the UI asks the user to confirm.
+
+The request also carries the player's context — weight, sex, stomach,
+hydration, drinks so far, time spent drinking, current BAC, and the goal they
+picked for the night — so the advice is about their situation, not generic. The
+prompt caps encouragement: past their goal or at a high BAC it tells them to
+slow down and hydrate rather than cheer them on, regardless of the goal set.
+
 This is a fun estimate for the party, not a precise or medical/legal
 measurement of alcohol content or intoxication.
+
+> Changing the prompt or the estimation logic requires **redeploying the
+> function** — editing `index.html` alone does nothing, since the prompt lives
+> server-side in the Edge Function.

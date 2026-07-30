@@ -747,6 +747,8 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
   </div>
   <input type="file" id="scan-drink-input" accept="image/*" capture="environment" style="display:none" onchange="onScanDrinkPhoto(this)">
 
+  <div id="scan-result" style="display:none;background:var(--surface);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:14px;margin-bottom:10px"></div>
+
   <div style="text-align:center;margin-bottom:14px">
     <button id="manual-drink-toggle" onclick="toggleManualDrink()" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:'Courier New',monospace;cursor:pointer;padding:6px;text-decoration:underline" data-i18n="manualDrinkShow">✏️ ou ajustar manualmente</button>
   </div>
@@ -758,7 +760,7 @@ input:checked + .toggle-slider:before { transform:translateX(20px); }
 
     <div class="cup-scroll" id="cup-scroll"></div>
 
-    <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="updateAddPreview()"></select>
+      <select class="form-input" id="drink-type-select" style="margin-bottom:16px" onchange="onDrinkTypeChange()"></select>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <span style="font-size:13px;font-weight:500;color:var(--text)" data-i18n="fillQuestion">Quanto tem no copo?</span>
@@ -1183,6 +1185,8 @@ const STRINGS = {
     scanDrinkSub: '// tira uma foto e a IA preenche pra você',
     scanDrinkDone: 'IA ajustou sua bebida — confira antes de adicionar', scanDrinkError: 'Não rolou escanear 😕 tenta de novo ou ajusta na mão',
     manualDrinkShow: '✏️ ou ajustar manualmente', manualDrinkHide: '▲ ocultar ajuste manual',
+    scanAlcoholWord: 'de álcool', scanDosesWord: 'doses',
+    scanConfHigh: 'estimativa confiável', scanConfMedium: 'estimativa aproximada', scanConfLow: 'chute — confira',
     drinkHistTitle: '// Histórico',
     sosBtn: '🚨 DEI PT — preciso de ajuda', sosBtnActive: '🚨 DEI PT — ajuda a caminho...',
     soloExitBtn: '← Sair do modo solo',
@@ -1268,6 +1272,8 @@ const STRINGS = {
     scanDrinkSub: '// snap a photo and let AI fill it in',
     scanDrinkDone: 'AI set your drink — double-check before adding', scanDrinkError: "Scan didn't work 😕 try again or set it manually",
     manualDrinkShow: '✏️ or set it manually', manualDrinkHide: '▲ hide manual setup',
+    scanAlcoholWord: 'of alcohol', scanDosesWord: 'std drinks',
+    scanConfHigh: 'confident estimate', scanConfMedium: 'rough estimate', scanConfLow: 'guess — double-check',
     drinkHistTitle: '// History',
     sosBtn: "🚨 I'M WASTED — I need help", sosBtnActive: "🚨 I'M WASTED — help is coming...",
     soloExitBtn: '← Exit solo mode',
@@ -1376,6 +1382,10 @@ let currentPage = 'splash';
 let _pendingJoinCode = null;
 let _selCup = 'tulipa', _selDrinkType = 'cerveja', _fillPct = 100;
 let _drinkSectionReady = false;
+// Last AI scan result. When set, its volumeMl/abvPct win over the preset
+// cup/drink values — a preset can't express "vodka + juice in a tall glass".
+// Cleared as soon as the user adjusts anything by hand.
+let _scanEstimate = null;
 
 // ===== SUPABASE CONFIG =====
 const SUPABASE_URL = 'https://lijfuumzlblxdsjtpsie.supabase.co';
@@ -2406,13 +2416,12 @@ function renderMonitor() {
     const stomachF = stomachMult[me.prefs?.stomach||'medium'] || 1;
     const hydF = hydrationMult[me.prefs?.hydration||'ok'] || 1;
     const gramsNeeded = (target - bac) * weight * r * 10 / (stomachF * hydF);
-    const cup = CUPS.find(c=>c.id===_selCup) || CUPS[1];
-    const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType) || DRINK_TYPES[0];
-    const gramsPerDrink = Math.round(cup.ml * _fillPct/100) * (dt.pct/100) * 0.789;
+    const amt = currentDrinkAmount();
+    const gramsPerDrink = amt.grams;
     const lvName = LEVELS_CONFIG[me.prefs?.targetLevel||'flow']?.name || '🔥 FLOW';
     if (gramsPerDrink > 0) {
       const n = Math.ceil(gramsNeeded / gramsPerDrink);
-      hint.textContent = `Faltam ~${n} ${cup.emoji} ${dt.label} pra chegar no ${lvName}`;
+      hint.textContent = `Faltam ~${n} ${amt.cup.emoji} ${amt.label} pra chegar no ${lvName}`;
     } else {
       hint.textContent = `Faltam ~${Math.round(gramsNeeded)}g álcool pro ${lvName}`;
     }
@@ -2450,7 +2459,7 @@ function renderMonitor() {
       <div class="drink-log-emoji">${cup.emoji}</div>
       <div class="drink-log-info">
         <div class="drink-log-name">${esc(dt.label)}</div>
-        <div class="drink-log-time">${timeStr} · ${d.ml||0}ml · ${dt.pct}%</div>
+        <div class="drink-log-time">${timeStr} · ${d.ml||0}ml · ${d.pct ?? dt.pct}%</div>
       </div>
       <button class="drink-log-remove" onclick="removeDrink('${d.id}')">✕</button>
     </div>`;
@@ -2526,6 +2535,7 @@ function applyPreset(idx) {
   _selCup = p.cup;
   _selDrinkType = p.drinkType;
   _fillPct = p.fillPct;
+  clearScanResult();
   // update UI selectors
   document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
   const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${p.cup}',this)"]`);
@@ -2569,23 +2579,44 @@ function initDrinkSection() {
       <div class="cup-chip-label">${c.label}</div>
       <div class="cup-chip-ml">${c.ml}ml</div>
     </div>`).join('');
-  const sel = document.getElementById('drink-type-select');
-  sel.innerHTML = DRINK_TYPES.map(d=>`<option value="${d.id}">${d.label} (${d.pct}%)</option>`).join('');
-  sel.value = _selDrinkType;
+  renderDrinkTypeOptions();
   document.getElementById('fill-slider').value = _fillPct;
   renderPresets();
   updateAddPreview();
+}
+
+// While an AI estimate is active it — not the preset table — defines the
+// strength, so the selected option shows the estimated ABV instead of the
+// preset's fixed one (a preset "Vodka 40%" next to an 8% mixed drink reads
+// as a contradiction).
+function renderDrinkTypeOptions() {
+  const sel = document.getElementById('drink-type-select');
+  if (!sel) return;
+  sel.innerHTML = DRINK_TYPES.map(d => {
+    const overridden = _scanEstimate && d.id === _selDrinkType;
+    const pct = overridden ? _scanEstimate.abvPct : d.pct;
+    return `<option value="${d.id}">${d.label} (${pct}%${overridden ? ' · IA' : ''})</option>`;
+  }).join('');
+  sel.value = _selDrinkType;
 }
 
 function selectCupChip(id, el) {
   _selCup = id;
   document.querySelectorAll('.cup-chip').forEach(e => e.classList.remove('selected'));
   el.classList.add('selected');
+  clearScanResult();
   updateAddPreview();
 }
 
 function onFillChange(val) {
   _fillPct = parseInt(val);
+  clearScanResult();
+  updateAddPreview();
+}
+
+// The drink-type <select> also overrides the AI's reading.
+function onDrinkTypeChange() {
+  clearScanResult();
   updateAddPreview();
 }
 
@@ -2602,6 +2633,29 @@ function closeManualDrink() {
 function toggleManualDrink() {
   const open = document.getElementById('manual-drink-section').style.display !== 'none';
   if (open) closeManualDrink(); else openManualDrink();
+}
+
+// Everything the AI needs to judge what THIS drink means for THIS player:
+// their goal for the night is what makes the same glass good or bad advice.
+function buildScanContext() {
+  const me = getMyPlayer();
+  const prefs = getMyPrefs() || {};
+  const now = Date.now();
+  const drinks = me?.drinks || [];
+  const firstTs = drinks.length ? Math.min(...drinks.map(d => d.ts)) : 0;
+  const targetLevel = prefs.targetLevel || 'flow';
+  return {
+    lang: currentLang,
+    weightKg: me?.profile?.weight || myProfile?.weight || 70,
+    sex: me?.profile?.sex || myProfile?.sex || 'M',
+    stomach: prefs.stomach || 'medium',
+    hydration: prefs.hydration || 'ok',
+    targetLevel,
+    targetBac: LEVELS_CONFIG[targetLevel]?.bac || 0.10,
+    currentBac: me ? calcBAC(me, now) : 0,
+    drinksSoFar: drinks.length,
+    minutesDrinking: firstTs ? Math.round((now - firstTs) / 60000) : 0,
+  };
 }
 
 function onScanDrinkPhoto(input) {
@@ -2627,7 +2681,7 @@ function onScanDrinkPhoto(input) {
         const res = await fetch(SUPABASE_URL + '/functions/v1/scan-drink', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
-          body: JSON.stringify({ image: dataUrl })
+          body: JSON.stringify({ image: dataUrl, context: buildScanContext() })
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || 'scan failed');
@@ -2652,43 +2706,95 @@ function applyScanResult(data) {
   const fillPct = parseInt(data.fillPct, 10);
   if (Number.isFinite(fillPct)) _fillPct = Math.max(10, Math.min(100, fillPct));
 
+  // The numbers that actually drive the BAC math: real liquid volume and the
+  // ABV of the mixture in the glass (a spirit + mixer is ~8%, not 40%).
+  const volumeMl = Math.round(Number(data.volumeMl));
+  const abvPct = Number(data.abvPct);
+  _scanEstimate = (Number.isFinite(volumeMl) && volumeMl > 0 && Number.isFinite(abvPct) && abvPct >= 0)
+    ? { volumeMl, abvPct, drinkName: data.drinkName || '', confidence: data.confidence || 'medium' }
+    : null;
+
   openManualDrink();
   document.querySelectorAll('.cup-chip').forEach(el => el.classList.remove('selected'));
   const chipEl = document.querySelector(`.cup-chip[onclick="selectCupChip('${_selCup}',this)"]`);
   if (chipEl) chipEl.classList.add('selected');
-  const sel = document.getElementById('drink-type-select');
-  if (sel) sel.value = _selDrinkType;
+  renderDrinkTypeOptions();
   const slider = document.getElementById('fill-slider');
   if (slider) slider.value = _fillPct;
   const fillEl = document.getElementById('fill-display');
   if (fillEl) fillEl.textContent = _fillPct + '%';
+  renderScanResult(data);
   updateAddPreview();
-  toast((data.note ? data.note + ' — ' : '') + t('scanDrinkDone'), 3000);
+}
+
+function renderScanResult(data) {
+  const box = document.getElementById('scan-result');
+  if (!box) return;
+  const est = _scanEstimate;
+  const grams = Number.isFinite(Number(data.alcoholGrams))
+    ? Number(data.alcoholGrams)
+    : (est ? Math.round(est.volumeMl * est.abvPct / 100 * 0.789 * 10) / 10 : 0);
+  const name = (est?.drinkName) || (DRINK_TYPES.find(d => d.id === _selDrinkType)?.label || '');
+  const confLabel = { high: t('scanConfHigh'), low: t('scanConfLow') }[data.confidence] || t('scanConfMedium');
+  const doses = Math.round(grams / 14 * 10) / 10;
+
+  box.innerHTML = `
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px">
+      <div style="font-size:15px;font-weight:900">${esc(name)}</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'Courier New',monospace;white-space:nowrap">${esc(confLabel)}</div>
+    </div>
+    <div style="font-family:'Courier New',monospace;font-size:12px;color:var(--accent2);margin-bottom:8px">
+      ${est ? est.volumeMl : 0}ml · ${est ? est.abvPct : 0}% · <strong>${grams}g</strong> ${t('scanAlcoholWord')}
+      <span style="color:var(--muted)"> (~${doses} ${t('scanDosesWord')})</span>
+    </div>
+    ${data.note ? `<div style="font-size:12px;color:var(--muted);margin-bottom:8px">${esc(data.note)}</div>` : ''}
+    ${data.advice ? `<div style="font-size:13px;line-height:1.45;border-top:1px solid var(--border);padding-top:8px">💡 ${esc(data.advice)}</div>` : ''}
+  `;
+  box.style.display = 'block';
+}
+
+function clearScanResult() {
+  const had = !!_scanEstimate;
+  _scanEstimate = null;
+  const box = document.getElementById('scan-result');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+  if (had) renderDrinkTypeOptions();
+}
+
+// Single source of truth for what will actually be logged: the AI estimate
+// when there is one, otherwise the preset cup × drink × fill math.
+function currentDrinkAmount() {
+  const cup = CUPS.find(c=>c.id===_selCup)||CUPS[1];
+  const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType)||DRINK_TYPES[0];
+  const ml = _scanEstimate ? _scanEstimate.volumeMl : Math.round(cup.ml * _fillPct / 100);
+  const pct = _scanEstimate ? _scanEstimate.abvPct : dt.pct;
+  const grams = Math.round(ml * pct / 100 * 0.789 * 10) / 10;
+  const label = (_scanEstimate?.drinkName) || dt.label;
+  return { cup, dt, ml, pct, grams, label };
 }
 
 function updateAddPreview() {
   const sel = document.getElementById('drink-type-select');
   if (sel) _selDrinkType = sel.value || _selDrinkType;
-  const cup = CUPS.find(c=>c.id===_selCup)||CUPS[1];
-  const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType)||DRINK_TYPES[0];
-  const ml = Math.round(cup.ml * _fillPct / 100);
-  const grams = Math.round(ml * dt.pct / 100 * 0.789 * 10) / 10;
+  const amt = currentDrinkAmount();
   const fillEl = document.getElementById('fill-display');
   if (fillEl) fillEl.textContent = _fillPct + '%';
   const prev = document.getElementById('add-preview');
-  if (prev) prev.textContent = `${cup.emoji} ${ml}ml de ${dt.label} ${dt.pct}% = ${grams}g álcool`;
+  if (prev) prev.textContent = `${amt.cup.emoji} ${amt.ml}ml de ${amt.label} ${amt.pct}% = ${amt.grams}g álcool`;
 }
 
 function confirmAddDrink() {
   if (!party) return;
-  const cup = CUPS.find(c=>c.id===_selCup)||CUPS[1];
-  const dt = DRINK_TYPES.find(d=>d.id===_selDrinkType)||DRINK_TYPES[0];
-  const ml = Math.round(cup.ml * _fillPct / 100);
-  const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml, pct: dt.pct, fill: _fillPct, ts: Date.now() };
+  const amt = currentDrinkAmount();
+  const cup = amt.cup, dt = amt.dt;
+  const drink = { id: uid(), cup: cup.id, drinkType: dt.id, ml: amt.ml, pct: amt.pct, fill: _fillPct, ts: Date.now() };
   const me = getMyPlayer();
   if (me) { me.drinks.push(drink); me.drinks.sort((a,b) => a.ts - b.ts); }
+  const addedLabel = amt.label;
+  clearScanResult();
   renderMonitor();
-  toast(cup.emoji + ' ' + dt.label + t('toastDrinkAdded'), 1200);
+  updateAddPreview();
+  toast(cup.emoji + ' ' + addedLabel + t('toastDrinkAdded'), 1200);
   if (isSolo) return;
   supabaseClient.from('drinks').insert({
     id: drink.id, party_id: party.id, player_id: myProfile.id,
