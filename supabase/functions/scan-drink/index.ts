@@ -39,7 +39,7 @@ serve(async (req) => {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const model = Deno.env.get('OPENROUTER_MODEL') || 'google/gemini-2.0-flash-001';
+    const model = Deno.env.get('OPENROUTER_MODEL') || 'google/gemini-2.5-flash-lite';
 
     const imageUrl = image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`;
 

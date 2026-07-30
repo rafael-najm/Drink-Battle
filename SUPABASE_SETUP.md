@@ -150,10 +150,14 @@ public. Instead it's kept as a server-side secret on the Edge Function.
    supabase secrets set OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
    ```
 3. (Optional) pick a different vision-capable model, default is
-   `google/gemini-2.0-flash-001`:
+   `google/gemini-2.5-flash-lite`:
    ```bash
    supabase secrets set OPENROUTER_MODEL=some/other-vision-model
    ```
+   Note: OpenRouter retires model ids over time. If the scan starts failing
+   with `No endpoints found for <model>`, the id is dead — pick a current
+   vision model from https://openrouter.ai/models and set `OPENROUTER_MODEL`
+   to it. No code change or redeploy is needed to swap the model.
 4. Deploy the function:
    ```bash
    supabase functions deploy scan-drink
