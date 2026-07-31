@@ -158,7 +158,13 @@ public. Instead it's kept as a server-side secret on the Edge Function.
    with `No endpoints found for <model>`, the id is dead — pick a current
    vision model from https://openrouter.ai/models and set `OPENROUTER_MODEL`
    to it. No code change or redeploy is needed to swap the model.
-4. Deploy the function:
+4. (Optional) `SCAN_SAMPLES` sets how many readings of the photo are averaged,
+   1-5, default 3. Lower it to 1 to cut cost to a third, at the price of a
+   noisier estimate and a much less meaningful confidence badge:
+   ```bash
+   supabase secrets set SCAN_SAMPLES=3
+   ```
+5. Deploy the function:
    ```bash
    supabase functions deploy scan-drink
    ```
@@ -176,18 +182,48 @@ app's BAC math are built from.
 
 That last point is the whole game: a tall glass of vodka + juice is roughly
 8%, not the 40% of the bottle it came from. Reading it as 40% overstates the
-alcohol by about 5x. The function defends against this in two places: the
-prompt makes the model commit to a `preparation` ("neat" / "mixed" / "brewed")
-before giving an ABV, and `normalizeResult()` rejects the physically impossible
-combination of spirit-strength ABV in a volume larger than a neat pour
-(> 120 ml), falling back to the strong end of the mixed range and marking the
-result low-confidence so the UI asks the user to confirm.
+alcohol by about 5x.
 
-The request also carries the player's context — weight, sex, stomach,
-hydration, drinks so far, time spent drinking, current BAC, and the goal they
-picked for the night — so the advice is about their situation, not generic. The
-prompt caps encouragement: past their goal or at a high BAC it tells them to
-slow down and hydrate rather than cheer them on, regardless of the goal set.
+Four things defend the number:
+
+1. **Preparation before strength.** The prompt makes the model commit to
+   `preparation` ("neat" / "mixed" / "brewed") before it may give an ABV, and
+   a neat pour is capped at 120 ml — nobody is served 300 ml of undiluted
+   spirit.
+2. **Several readings, not one.** Vision estimates are noisy and bimodal: the
+   same photo gets read as a small neat pour or a large mixed drink. The
+   function samples the model `SCAN_SAMPLES` times in parallel (default 3),
+   takes a majority vote on the preparation, and uses the median volume and
+   ABV inside the winning group. Ties never go to "neat", since that is the
+   known misread. Cost is about US$0.001 per scan; latency is unchanged
+   because the calls run concurrently.
+3. **Confidence from agreement.** The badge the user sees comes from how much
+   the samples actually agree, not from the model's own confidence field —
+   which reported "high" on a photo two runs disagreed about by 4x.
+   Disagreement about the preparation alone rules out a "high" reading.
+4. **A plausibility backstop.** `normalizeResult()` rejects spirit-strength ABV
+   at a volume larger than a neat pour and rebuilds the ABV from a typical
+   pour diluted into the observed volume, marking the result low-confidence.
+
+Nothing about the drink's identity is shown to the user — only volume, ABV and
+grams. A wrong name is the most visible way to look wrong and it discredits a
+measurement that was fine.
+
+### Guidance is computed, not generated
+
+The advice under the numbers is built in `buildAdvice()` from the player's
+weight, sex, stomach, hydration, current BAC and the goal they picked, using
+the same Widmark formula as `calcBAC()` in `index.html`. The model is not
+asked for it.
+
+That is deliberate. When the model wrote the advice it handled the conditional
+safety logic badly — at 0.21% BAC, with 0.22% set as the goal, it still wrote
+"gets you closer to your goal". Computing it instead makes the arithmetic exact
+(the projected BAC, the share of the gap this drink closes) and the safety
+rules absolute: past the goal it says to switch to water and food, and a
+projected BAC at or above 0.20% always returns a stop-drinking warning,
+whatever target the player selected. It also means the drink's name can never
+leak into the text.
 
 This is a fun estimate for the party, not a precise or medical/legal
 measurement of alcohol content or intoxication.

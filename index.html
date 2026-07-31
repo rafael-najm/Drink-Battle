@@ -2667,13 +2667,18 @@ function onScanDrinkPhoto(input) {
   reader.onload = e => {
     const img = new Image();
     img.onload = async () => {
+      // Reading a liquid line against glass is a fine-detail job, so the photo
+      // keeps more resolution than a thumbnail would: 1024px at q0.82 lands
+      // around 150-250 KB, still small enough for a phone upload.
       const canvas = document.createElement('canvas');
-      const maxDim = 768;
+      const maxDim = 1024;
       const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
       canvas.width = Math.round(img.width * scale);
       canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      const ctx2d = canvas.getContext('2d');
+      ctx2d.imageSmoothingQuality = 'high';
+      ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       input.value = '';
       if (card) { card.style.pointerEvents = 'none'; card.style.opacity = '0.6'; }
       if (title) title.textContent = t('scanDrinkBusy');
